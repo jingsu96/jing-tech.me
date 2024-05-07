@@ -1,5 +1,5 @@
 module.exports = {
-  root: true,
+  root: false,
   parser: '@typescript-eslint/parser',
   env: {
     browser: true,
@@ -22,8 +22,17 @@ module.exports = {
     tsconfigRootDir: __dirname,
   },
   rules: {
-    'prettier/prettier': 'error',
+    'prettier/prettier': [
+      'error',
+      {
+        semi: true,
+        endOfLine: 'auto',
+        printWidth: 120,
+      },
+    ],
+    'order/properties-alphabetical-order': 'off',
     'react/react-in-jsx-scope': 'off',
+    semi: 'off',
     'jsx-a11y/anchor-is-valid': [
       'error',
       {
@@ -39,4 +48,4 @@ module.exports = {
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
   },
-}
+};

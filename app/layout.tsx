@@ -1,21 +1,24 @@
-import 'css/tailwind.css'
-import 'pliny/search/algolia.css'
+import 'css/tailwind.css';
+import 'css/sandpack.css';
+import 'pliny/search/algolia.css';
 
-import { Space_Grotesk } from 'next/font/google'
-import { Analytics, AnalyticsConfig } from 'pliny/analytics'
-import { SearchProvider, SearchConfig } from 'pliny/search'
-import Header from '@/components/Header'
-import SectionContainer from '@/components/SectionContainer'
-import Footer from '@/components/Footer'
-import siteMetadata from '@/data/siteMetadata'
-import { ThemeProviders } from './theme-providers'
-import { Metadata } from 'next'
+import { Space_Grotesk } from 'next/font/google';
+import { Analytics, AnalyticsConfig } from 'pliny/analytics';
+import { SearchProvider, SearchConfig } from 'pliny/search';
+import SectionContainer from '@/components/SectionContainer';
+import { MenuContent } from '@/components/lab/menu-content';
+import { draftMode } from 'next/headers';
+import { EyeIcon } from 'lucide-react';
+import siteMetadata from '@/data/siteMetadata';
+import { ThemeProviders } from './theme-providers';
+import { Metadata } from 'next';
+import { SideMenu } from '@/components/lab/side-menu';
 
 const space_grotesk = Space_Grotesk({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-space-grotesk',
-})
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteMetadata.siteUrl),
@@ -55,15 +58,13 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     images: [siteMetadata.socialBanner],
   },
-}
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const { isEnabled } = draftMode();
+
   return (
-    <html
-      lang={siteMetadata.language}
-      className={`${space_grotesk.variable} scroll-smooth`}
-      suppressHydrationWarning
-    >
+    <html lang={siteMetadata.language} className={`${space_grotesk.variable} scroll-smooth`} suppressHydrationWarning>
       <link rel="apple-touch-icon" sizes="76x76" href="/static/favicons/apple-touch-icon.png" />
       <link rel="icon" type="image/png" sizes="32x32" href="/static/favicons/favicon-32x32.png" />
       <link rel="icon" type="image/png" sizes="16x16" href="/static/favicons/favicon-16x16.png" />
@@ -73,20 +74,55 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
       <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
       <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
-      <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
+      <body>
+        {/* eslint-disable-next-line react/no-unknown-property */}
+        <ThemeProviders>
+          <main vaul-drawer-wrapper="" className="min-h-screen bg-white">
+            {isEnabled && (
+              <div className="absolute inset-x-0 bottom-0 z-50 flex h-12 w-full items-center justify-center bg-green-500 text-center text-sm font-medium text-white">
+                <div className="flex items-center gap-2">
+                  <EyeIcon size={16} />
+                  <span>Draft mode is enabled</span>
+                </div>
+              </div>
+            )}
+            <div className="lg:flex">
+              <SideMenu className="relative hidden h-[100vh] max-h-[100vh] lg:flex">
+                <MenuContent />
+              </SideMenu>
+              <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
+                <SectionContainer>{children}</SectionContainer>
+              </SearchProvider>
+            </div>
+          </main>
+        </ThemeProviders>
+        <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
+
+        {/* <TailwindIndicator />
+        <SpeedInsights />
+        <Script
+          src="https://unpkg.com/@tinybirdco/flock.js"
+          data-host="https://api.tinybird.co"
+          data-token={process.env.NEXT_PUBLIC_TINYBIRD_TOKEN}
+          strategy="lazyOnload"
+        /> */}
+      </body>
+
+      {/* <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
         <ThemeProviders>
           <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
-          <SectionContainer>
-            <div className="flex h-screen flex-col justify-between font-sans">
-              <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
-                <Header />
-                <main className="mb-auto">{children}</main>
-              </SearchProvider>
-              <Footer />
-            </div>
-          </SectionContainer>
+          <SideMenu>
+            <SectionContainer>
+              <div className="flex h-screen flex-col justify-between font-sans">
+                <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
+                  <main className="mb-auto">{children}</main>
+                </SearchProvider>
+                <Footer />
+              </div>
+            </SectionContainer>
+          </SideMenu>
         </ThemeProviders>
-      </body>
+      </body> */}
     </html>
-  )
+  );
 }

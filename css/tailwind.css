@@ -49,3 +49,8 @@ input:-webkit-autofill:focus {
   display: inline-block;
   vertical-align: middle;
 }
+
+.prose :where(pre):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
+  background: transparent;
+  margin: 0 -10px;
+}

@@ -1,11 +1,11 @@
-import { ReactNode } from 'react'
+import { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 interface Props {
-  children: ReactNode
+  children: ReactNode;
+  className?: string;
 }
 
-export default function SectionContainer({ children }: Props) {
-  return (
-    <section className="mx-auto max-w-3xl px-4 sm:px-6 xl:max-w-5xl xl:px-0">{children}</section>
-  )
+export default function SectionContainer({ children, className }: Props) {
+  return <section className={cn('lg:flex lg:flex-1', className)}>{children}</section>;
 }
