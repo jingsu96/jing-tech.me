@@ -12,6 +12,7 @@ const DynamicIframe = dynamic(() => import('@/components/contentful/iframe').the
   ssr: false,
 });
 import { dasherize } from '@/lib/utils';
+import Image from '@/components/Image';
 
 function options(links) {
   const findAsset = (id) => links?.assets.block.find((item) => item.sys.id === id);
@@ -67,7 +68,7 @@ function options(links) {
 
         return (
           <figure className="mb-6 flex flex-col gap-2 overflow-hidden rounded-xl">
-            <img
+            <Image
               src={asset.url}
               width={asset.width || 400}
               height={asset.height || 300}

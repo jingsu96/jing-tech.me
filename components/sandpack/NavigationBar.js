@@ -7,6 +7,7 @@ import {
 } from '@codesandbox/sandpack-react';
 
 import { FilesDropdown } from './FilesDropdown';
+import { ExternalLink, RotateCcw } from 'lucide-react';
 
 export function NavigationBar() {
   const { sandpack } = useSandpack();
@@ -42,16 +43,17 @@ export function NavigationBar() {
   };
 
   return (
-    <div className="bg-wash border-border dark:border-border-dark dark:bg-card-dark relative z-10 flex items-center justify-between rounded-b-none rounded-t-lg border dark:border-none">
+    <div className="bg-wash dark:border-border-dark dark:bg-card-dark relative z-10 flex items-center justify-between rounded-b-none rounded-t-lg border border-border dark:border-none">
       <div className="px-4 lg:px-6">{dropdownActive ? <FilesDropdown /> : <FileTabs />}</div>
       <div className="flex grow items-center justify-end px-3 text-right " translate="yes">
-        {/* <ReloadIcon
+        <RotateCcw
+          size={16}
           className="text-primary dark:text-primary-dark hover:text-link mx-1 mr-4 inline-flex cursor-pointer items-center text-sm transition duration-100 ease-in dark:text-[#149eca]"
           onClick={handleReset}
         />
         <UnstyledOpenInCodeSandboxButton className="text-primary dark:text-primary-dark hover:text-link mx-1 ml-3 inline-flex items-center text-sm transition duration-100 ease-in dark:text-[#149eca] md:ml-1">
-          <ExternalLinkIcon />
-        </UnstyledOpenInCodeSandboxButton> */}
+          <ExternalLink size={16} />
+        </UnstyledOpenInCodeSandboxButton>
       </div>
     </div>
   );

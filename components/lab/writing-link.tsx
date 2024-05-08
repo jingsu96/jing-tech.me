@@ -2,10 +2,19 @@
 
 import Link from 'next/link';
 import { LazyMotion, domAnimation, m } from 'framer-motion';
-
 import { cn, getDateTimeFormat, viewCountFormatter } from '@/lib/utils';
 
-export const WritingLink = ({ post, viewCount, isMobile, isActive }) => {
+export const WritingLink = ({
+  post,
+  viewCount,
+  isMobile,
+  isActive,
+}: {
+  post: any;
+  viewCount?: number;
+  isMobile?: boolean;
+  isActive?: boolean;
+}) => {
   const date = post.date || post.sys.firstPublishedAt;
   const formattedDate = getDateTimeFormat(date);
   const formattedViewCount = viewCount ? viewCountFormatter.format(viewCount) : null;
@@ -34,7 +43,7 @@ export const WritingLink = ({ post, viewCount, isMobile, isActive }) => {
                 transition={{ duration: 0.3 }}
                 className="tabular-nums"
               >
-                &middot; {formattedViewCount} {formattedViewCount === 1 ? 'view' : 'views'}
+                &middot; {formattedViewCount} {Number(formattedViewCount) === 1 ? 'view' : 'views'}
               </m.span>
             ) : (
               <m.span key={`${post.slug}-views-loading`} />

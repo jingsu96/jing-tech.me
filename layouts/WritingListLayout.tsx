@@ -5,14 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { WritingLink } from '@/components/lab/writing-link';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
-const WritingListLayout = ({ filteredPosts, slug }) => {
+const WritingListLayout = ({ filteredPosts, slug, classname }) => {
   const sidebarVariants = {
     hidden: { opacity: 0, display: 'none' },
     visible: { opacity: 1, display: 'flex' },
   };
   const [isSidebarVisible, setSidebarVisible] = useState(true);
   return (
-    <>
+    <div className={classname}>
       <AnimatePresence mode="wait" initial={false}>
         {isSidebarVisible && (
           <motion.div
@@ -31,12 +31,12 @@ const WritingListLayout = ({ filteredPosts, slug }) => {
         )}
       </AnimatePresence>
       <button
-        className="absolute left-[-15px] top-6 rounded-full border border-gray-300 bg-white p-1"
+        className="absolute left-[-15px] top-6 hidden rounded-full border border-gray-300 bg-white p-1 lg:flex"
         onClick={() => setSidebarVisible((prev) => !prev)}
       >
         {isSidebarVisible ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
       </button>
-    </>
+    </div>
   );
 };
 

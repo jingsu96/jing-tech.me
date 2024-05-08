@@ -23,6 +23,9 @@ dependencies:
   '@radix-ui/react-select':
     specifier: ^2.0.0
     version: 2.0.0(@types/react@18.3.1)(react-dom@18.3.1)(react@18.3.1)
+  '@radix-ui/react-slot':
+    specifier: ^1.0.2
+    version: 1.0.2(@types/react@18.3.1)(react@18.3.1)
   '@supabase/supabase-js':
     specifier: ^2.43.1
     version: 2.43.1
@@ -65,6 +68,9 @@ dependencies:
   lucide-react:
     specifier: ^0.378.0
     version: 0.378.0(react@18.3.1)
+  markdown-to-jsx:
+    specifier: ^7.4.7
+    version: 7.4.7(react@18.3.1)
   next:
     specifier: 14.2.3
     version: 14.2.3(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.3.1)(react@18.3.1)
@@ -6852,6 +6858,15 @@ packages:
 
   /markdown-table@3.0.3:
     resolution: {integrity: sha512-Z1NL3Tb1M9wH4XESsCDEksWoKTdlUafKc4pt0GRwjUyXaCFZ+dc3g2erqB6zm3szA2IUSi7VnPI+o/9jnxh9hw==}
+    dev: false
+
+  /markdown-to-jsx@7.4.7(react@18.3.1):
+    resolution: {integrity: sha512-0+ls1IQZdU6cwM1yu0ZjjiVWYtkbExSyUIFU2ZeDIFuZM1W42Mh4OlJ4nb4apX4H8smxDHRdFaoIVJGwfv5hkg==}
+    engines: {node: '>= 10'}
+    peerDependencies:
+      react: '>= 0.14.0'
+    dependencies:
+      react: 18.3.1
     dev: false
 
   /mdast-util-find-and-replace@3.0.1:

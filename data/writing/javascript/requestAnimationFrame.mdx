@@ -1,0 +1,104 @@
+---
+title: TIL 001 - window.requestAnimationFrame
+date: '2024-05-07'
+tags: ['javascript']
+draft: false
+summary: 今天學 `window.requestAnimationFrame`
+---
+
+`window.requestAnimationFrame()` 告訴瀏覽器——你希望執行一個動畫，並且要求瀏覽器在下次重繪之前調用指定的回調函數更新動畫。該方法需要傳入一個回調函數作為參數，該回調函數會在瀏覽器下一次重繪之前執行
+
+該 API 能以瀏覽器的顯示頻率來作為其動畫動作的頻率，比如瀏覽器每 10ms 刷新一次，動畫回調也每 10ms 調用一次，這樣就不會存在過度繪制的問題，動畫不會掉幀，自然流暢。
+
+## API
+
+```javascript
+window.requestAnimationFrame(callback)
+```
+
+- `callback`: 一個回調函數，當瀏覽器下次重繪之前執行
+
+## 範例
+
+動畫可以實現為一系列幀 - 通常是對 HTML/CSS 屬性的微小更改。
+
+例如，將 `style.left` 從 `0px` 更改為 `100px` 會移動元素。如果我們在 setInterval 中增加它，以 `2px` 稍微延遲地更改，比如每秒 `50` 次，那麼看起來會很流暢。
+
+這與電影中的原則相同：每秒 24 幀足以使其看起來流暢。
+
+<Sandpack lang="static" >
+
+```HTML file=index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    #box {
+      width: 100px;
+      height: 100px;
+      background-color: red;
+      position: absolute;
+    }
+  </style>
+</head>
+<body>
+  <div id="box"></div>
+  <script>
+    const box = document.getElementById('box');
+    let position = 0;
+    let direction = 1;
+
+    setInterval(() => {
+      position += direction;
+      box.style.left = position + 'px';
+      if (position >= 100 || position <= 0) {
+        direction *= -1;
+      }
+    }, 1000 / 50);
+  </script>
+</body>
+</html>
+```
+
+</Sandpack>
+
+如果這時候我們想要讓個動畫同時運行，如果我們分開運行它們，那麼即使每個動畫都有 `setInterval(..., 20)` ，瀏覽器仍然需要比每 20ms 更頻繁地重繪。
+
+這是因為它們有不同的開始時間，所以 **每 20ms** 在不同的動畫之間有所不同。間隔不對齊。所以我們將在 20ms 內進行幾次獨立運行。
+
+```javascript
+setInterval(function () {
+  animate1()
+  animate2()
+  animate3()
+}, 20)
+
+// 上面比下面更輕巧
+
+setInterval(animate1, 20) // independent animations
+setInterval(animate2, 20) // in different places of the script
+setInterval(animate3, 20)
+```
+
+這幾個獨立的重繪應該被分組在一起，讓瀏覽器更容易進行重繪，從而減少 CPU 負載並使畫面更加流暢。
+
+還有一件事要記住。有時候 CPU 負荷過重，或者有其他原因導致重新繪製的頻率較低（比如瀏覽器標籤被隱藏時），所以我們真的不應該每隔 20ms 就執行它。
+
+但是在 JavaScript 中我們如何知道這一點呢？有一個名為動畫定時的規範提供了函數 `requestAnimationFrame` 。它解決了所有這些問題，甚至更多。
+
+```javascript
+function move() {
+  position += direction
+  box.style.left = position + 'px'
+  if (position >= 100 || position <= 0) {
+    direction *= -1
+  }
+  window.requestAnimationFrame(move)
+}
+
+window.requestAnimationFrame(move)
+```

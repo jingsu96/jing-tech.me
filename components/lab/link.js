@@ -1,12 +1,13 @@
 import NextLink from 'next/link';
 
 import { isExternalLink } from '@/lib/utils';
+import CustomLink from '../CustomLink';
 
 export const Link = ({ href = '#', ...rest }) => {
   const isExternal = isExternalLink(href);
   if (isExternal) {
     return (
-      <a
+      <CustomLink
         href={href}
         target="_blank"
         rel="noopener noreferrer"

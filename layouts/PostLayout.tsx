@@ -39,11 +39,9 @@ export default function PostLayout({ content, next, prev, children, filteredPost
     <SectionContainer className="relative">
       <ScrollTopAndComment />
       <FloatingHeader scrollTitle="Writing" />
-
-      <WritingListLayout filteredPosts={filteredPosts} slug={slug} />
-
-      <article className="mt-4 hidden h-[100vh] flex-1 overflow-y-scroll lg:flex">
-        <div className="flex-1 px-12 xl:divide-y xl:divide-gray-200 xl:dark:divide-gray-700">
+      <WritingListLayout filteredPosts={filteredPosts} slug={slug} classname="hidden lg:flex" />
+      <article className="mt-4 block h-[100vh] flex-1 overflow-y-scroll lg:flex">
+        <div className="flex-1 px-6 lg:px-12 xl:divide-y xl:divide-gray-200 xl:dark:divide-gray-700">
           <header className="pt-6 xl:pb-6">
             <div className="sp text-center">
               <dl className="space-y-10">

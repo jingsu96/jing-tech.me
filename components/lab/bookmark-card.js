@@ -3,6 +3,7 @@ import { Link2Icon } from 'lucide-react';
 
 const TweetCard = dynamic(() => import('@/components/tweet-card/tweet-card').then((mod) => mod.TweetCard));
 import { TWEETS_COLLECTION_ID } from '@/lib/constants';
+import Image from '../Image';
 
 export const BookmarkCard = ({ bookmark, order }) => {
   if (bookmark.link && bookmark.collectionId === TWEETS_COLLECTION_ID) {
@@ -21,7 +22,7 @@ export const BookmarkCard = ({ bookmark, order }) => {
       data-bookmark-order={order}
     >
       <span className="aspect-[1200/630] overflow-hidden rounded-lg">
-        <img
+        <Image
           src={bookmark.cover || '/assets/fallback.avif'}
           alt={bookmark.title}
           width={1200}

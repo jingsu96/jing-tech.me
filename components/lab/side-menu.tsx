@@ -26,7 +26,19 @@ const keyCodePathnameMapping = {
   Digit6: '/bookmarks',
 };
 
-export const SideMenu = ({ children, title, bookmarks = [], isInner, className }) => {
+export const SideMenu = ({
+  children,
+  title,
+  bookmarks = [],
+  isInner,
+  className,
+}: {
+  children: React.ReactNode;
+  title?: string;
+  bookmarks?: any[];
+  isInner?: boolean;
+  className?: string;
+}) => {
   const router = useRouter();
   const pathname = usePathname();
   useKeyPress(onKeyPress, Object.keys(keyCodePathnameMapping));
@@ -44,24 +56,19 @@ export const SideMenu = ({ children, title, bookmarks = [], isInner, className }
   return (
     <ScrollArea
       className={cn(
-        'hidden bg-zinc-50 lg:flex lg:flex-col lg:border-r',
+        'shadow-jt1 hidden bg-bg-alt lg:flex lg:flex-col',
         isInner ? 'lg:w-80 xl:w-96' : 'lg:w-60 xl:w-72',
         className
       )}
     >
       {title && (
-        <div className="sticky top-0 z-10 border-b bg-zinc-50 px-5 py-3">
+        <div className="sticky top-0 z-10 border-b px-5 py-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold tracking-tight">{title}</span>
             <div className="flex items-center gap-2">
               {(isWritingPath || isBookmarksPath) && (
                 <Button variant="outline" size="xs" asChild>
-                  <a
-                    href={isWritingPath ? '/writing.xml' : '/bookmarks.xml'}
-                    title="RSS feed"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="/feed.xml" title="RSS feed" target="_blank" rel="noopener noreferrer">
                     <RadioIcon size={16} className="mr-2" />
                     RSS feed
                   </a>
@@ -72,7 +79,7 @@ export const SideMenu = ({ children, title, bookmarks = [], isInner, className }
           </div>
         </div>
       )}
-      <div className="bg-zinc-50 p-3">{children}</div>
+      <div className="bg-bg-alt p-3">{children}</div>
     </ScrollArea>
   );
 };

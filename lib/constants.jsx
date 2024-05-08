@@ -1,7 +1,8 @@
 import {
-  GithubIcon,
+  Github,
+  Twitter,
   LinkedinIcon,
-  InstagramIcon,
+  Instagram,
   SparklesIcon,
   PencilLineIcon,
   NavigationIcon,
@@ -15,29 +16,12 @@ export const PROFILES = {
     title: 'X (Twitter)',
     username: 'Jing19794341',
     url: 'https://twitter.com/intent/user?screen_name=Jing19794341',
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="size-4"
-        width="44"
-        height="44"
-        viewBox="0 0 24 24"
-        strokeWidth="1.5"
-        stroke="#000000"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-        <path d="M4 4l11.733 16h4.267l-11.733 -16z" />
-        <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" />
-      </svg>
-    ),
+    icon: <Twitter size={16} />,
   },
   github: {
     title: 'GitHub',
     url: 'https://github.com/jingsu96',
-    icon: <GithubIcon size={16} />,
+    icon: <Github size={16} />,
   },
   linkedin: {
     title: 'LinkedIn',
@@ -47,7 +31,7 @@ export const PROFILES = {
   instagram: {
     title: 'Instagram',
     url: 'https://www.instagram.com/jing.tech',
-    icon: <InstagramIcon size={16} />,
+    icon: <Instagram size={16} />,
   },
   readcv: {
     title: 'Read.cv',

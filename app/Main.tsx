@@ -17,7 +17,7 @@ const MAX_DISPLAY = 5;
 export default function Home({ posts: items }) {
   return (
     <ScrollArea useScrollAreaId={true}>
-      <FloatingHeader scrollTitle="Writing" />
+      <FloatingHeader scrollTitle="Home" />
       <div className="content-wrapper">
         <div className="content">
           <PageTitle title="Home" className="lg:hidden" />

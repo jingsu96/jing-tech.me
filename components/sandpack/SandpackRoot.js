@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useEffect, useLayoutEffect } from 'react';
+import React, { useLayoutEffect } from 'react';
 import {
   SandpackProvider,
-  Sandpack,
   SandpackConsole,
   SandpackCodeEditor,
   SandpackLayout,
@@ -15,7 +14,6 @@ import { aquaBlue } from '@codesandbox/sandpack-themes';
 import { CustomTheme } from './Themes';
 import { useTheme } from 'next-themes';
 import { NavigationBar } from './NavigationBar';
-import clsx from 'clsx';
 
 const sandboxStyle = `
 * {
@@ -90,7 +88,7 @@ function SandpackRoot(props) {
 
   useLayoutEffect(() => {
     setCodeTheme(theme === 'dark' ? CustomTheme : aquaBlue);
-  }, []);
+  }, [theme]);
 
   if (lang === 'react') {
     files['/styles.css'] = {
@@ -110,7 +108,7 @@ function SandpackRoot(props) {
           autorun={autorun}
           initMode="user-visible"
           initModeObserverOptions={{ rootMargin: '1400px 0px' }}
-          theme={typeof window !== undefined ? null : codeTheme}
+          theme={typeof window !== 'undefined' ? null : codeTheme}
           options={{
             activeFile: activeFile, // used to be activePath
           }}

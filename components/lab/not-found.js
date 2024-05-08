@@ -1,4 +1,4 @@
-import { ScrollArea } from '@/components/scroll-area';
+import { ScrollArea } from '@/components/lab/scroll-area';
 import { FloatingHeader } from '@/components/lab/floating-header';
 import { PageTitle } from '@/components/page-title';
 

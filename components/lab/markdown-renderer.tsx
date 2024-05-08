@@ -1,9 +1,12 @@
+// @ts-nocheck
+
 import Markdown from 'markdown-to-jsx';
 
-import { Link } from '@/components/CustomLink';
-import { TweetCard } from '@/components/tweet-card/tweet-card';
+import { Link } from '@/components/lab/link';
+import { TweetCard } from '@/components/lab/tweet-card/tweet-card';
+import Image from '../Image';
 
-export const MarkdownRenderer = ({ options, ...rest }) => {
+export const MarkdownRenderer = ({ options, children, ...rest }: { options?: any; children: React.ReactNode }): any => {
   return (
     <Markdown
       options={{
@@ -15,14 +18,13 @@ export const MarkdownRenderer = ({ options, ...rest }) => {
           p: ({ children }) => <p className="mb-2 text-sm">{children}</p>,
           img: ({ alt, src }) => (
             <span className="mt-2 block overflow-hidden rounded-xl border">
-              <img
+              <Image
                 alt={alt}
                 src={`https:${src}`}
                 width={400}
                 height={300}
                 loading="lazy"
                 className="animate-reveal aspect-auto w-full object-cover"
-                nopin="nopin"
               />
             </span>
           ),

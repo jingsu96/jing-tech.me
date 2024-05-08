@@ -95,9 +95,9 @@ export const sortByProperty = cache((arr, prop) => {
  */
 export const getSortedPosts = cache((posts) => {
   return posts.sort((a, b) => {
-    const dateA = a.date || a.sys.firstPublishedAt;
-    const dateB = b.date || b.sys.firstPublishedAt;
-    return new Date(dateB) - new Date(dateA);
+    const dateA = new Date(a.date || a.sys.firstPublishedAt);
+    const dateB = new Date(b.date || b.sys.firstPublishedAt);
+    return dateB.getTime() - dateA.getTime();
   });
 });
 
