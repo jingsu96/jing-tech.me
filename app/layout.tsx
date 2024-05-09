@@ -13,6 +13,7 @@ import siteMetadata from '@/data/siteMetadata';
 import { ThemeProviders } from './theme-providers';
 import { Metadata } from 'next';
 import { SideMenu } from '@/components/lab/side-menu';
+import ThemeSwitch from '@/components/ThemeSwitch';
 
 const space_grotesk = Space_Grotesk({
   subsets: ['latin'],

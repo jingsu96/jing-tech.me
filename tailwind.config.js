@@ -31,7 +31,7 @@ module.exports = {
         black: '#000000',
         neutral: 'var(--jt-c-neutral)',
         'neutral-inverse': 'var(--jt-c-neutral-inverse)',
-        gray2: {
+        'gray-jt': {
           1: 'var(--jt-c-gray-1)',
           2: 'var(--jt-c-gray-2)',
           3: 'var(--jt-c-gray-3)',
@@ -107,13 +107,13 @@ module.exports = {
           3: 'var(--jt-c-danger-3)',
           soft: 'var(--jt-c-danger-soft)',
         },
-        boxShadow: {
-          jt1: 'var(--vp-shadow-1)',
-          jt2: 'var(--vp-shadow-2)',
-          jt3: 'var(--vp-shadow-3)',
-          jt4: 'var(--vp-shadow-4)',
-          jt5: 'var(--vp-shadow-5)',
-        },
+      },
+      boxShadow: {
+        jt1: 'var(--vp-shadow-1)',
+        jt2: 'var(--vp-shadow-2)',
+        jt3: 'var(--vp-shadow-3)',
+        jt4: 'var(--vp-shadow-4)',
+        jt5: 'var(--vp-shadow-5)',
       },
       typography: ({ theme }) => ({
         DEFAULT: {

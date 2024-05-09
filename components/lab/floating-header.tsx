@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useState } from 'react';
+import { memo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -9,6 +9,7 @@ import { ArrowLeftIcon, RadioIcon } from 'lucide-react';
 
 import { Button } from '@/components/lab/ui/button';
 import { LoadingSpinner } from '@/components/lab/loading-spinner';
+import ThemeSwitch from '@/components/ThemeSwitch';
 const MobileDrawer = dynamic(() => import('@/components/lab/mobile-drawer').then((mod) => mod.MobileDrawer));
 const SubmitBookmarkDrawer = dynamic(
   () => import('@/components/lab/submit-bookmark/drawer').then((mod) => mod.SubmitBookmarkDrawer),
@@ -52,7 +53,7 @@ export const FloatingHeader = memo(
           <div className="flex w-full items-center justify-between gap-2">
             <div className="flex flex-1 items-center gap-1">
               {goBackLink ? (
-                <Button variant="ghost" size="icon" className="shrink-0" asChild>
+                <Button variant="ghost" size="icon" className="shrink-0 bg-bg-primary" asChild>
                   <Link href={goBackLink} title="Go back">
                     <ArrowLeftIcon size={16} />
                   </Link>
@@ -80,6 +81,7 @@ export const FloatingHeader = memo(
                 </div>
               </div>
             </div>
+            <ThemeSwitch />
             {/* {scrollTitle && isWritingPath && <div className="flex min-w-[50px] justify-end">{children}</div>} */}
           </div>
         </div>

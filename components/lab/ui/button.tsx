@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, PropsWithChildren } from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
@@ -40,15 +40,13 @@ const Button = forwardRef(
       variant,
       size,
       asChild = false,
-      children,
       ...props
-    }: {
+    }: PropsWithChildren<{
       className?: string;
       variant?: ButtonVariant;
       size?: ButtonSize;
       asChild?: boolean;
-      children: React.ReactNode;
-    },
+    }>,
     ref: React.Ref<HTMLButtonElement>
   ) => {
     const Comp = asChild ? Slot : 'button';

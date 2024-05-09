@@ -26,7 +26,7 @@ export const WritingLink = ({
         href={`/writing/${post.slug}`}
         className={cn(
           'flex flex-col gap-1 transition-colors duration-300',
-          !isMobile && isActive ? 'bg-black text-white' : 'hover:bg-gray-200',
+          !isMobile && isActive ? 'bg-gray-jt-3 text-black dark:text-white' : 'hover:bg-bg-elv',
           isMobile ? 'border-b px-4 py-3 text-sm hover:bg-gray-100' : 'rounded-lg p-2'
         )}
       >

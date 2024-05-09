@@ -119,9 +119,8 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
               </ul>
             </div>
           </div>
-
           {/** Mobile Pill*/}
-          <div className="inline-flex overflow-x-scroll md:hidden">
+          <div className="mx-[-30px] inline-flex overflow-x-scroll px-[30px] md:hidden ">
             {sortedTags.map((t) => {
               return (
                 <li key={t} className="my-3 mr-2 list-none">
@@ -139,7 +138,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
               );
             })}
           </div>
-          <div className="mt-4 flex h-[100vh]">
+          <div className="mt-4 flex h-[100vh] overflow-y-scroll">
             <ul>
               {displayPosts.map((post) => {
                 const { path, date, title, summary, tags } = post;

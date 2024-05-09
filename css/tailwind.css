@@ -152,3 +152,11 @@ input:-webkit-autofill:focus {
   --vp-shadow-4: 0 14px 44px rgba(0, 0, 0, 0.12), 0 3px 9px rgba(0, 0, 0, 0.12);
   --vp-shadow-5: 0 18px 56px rgba(0, 0, 0, 0.16), 0 4px 12px rgba(0, 0, 0, 0.16);
 }
+
+[data-radix-popper-content-wrapper] {
+  z-index: 1000 !important;
+}
+
+html body[data-scroll-locked] {
+  margin-right: 0 !important;
+}

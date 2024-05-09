@@ -31,7 +31,7 @@ const WritingListLayout = ({ filteredPosts, slug, classname }) => {
         )}
       </AnimatePresence>
       <button
-        className="absolute left-[-15px] top-6 hidden rounded-full border border-gray-300 bg-white p-1 lg:flex"
+        className="absolute left-[-15px] top-6 hidden rounded-full border border-gray-300 bg-bg-alt p-1 lg:flex"
         onClick={() => setSidebarVisible((prev) => !prev)}
       >
         {isSidebarVisible ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}

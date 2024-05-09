@@ -1,26 +1,22 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'Next.js Starter Blog',
-  author: 'Tails Azimuth',
-  headerTitle: 'TailwindBlog',
+  title: 'JingHuang Su',
+  author: 'JingHuang Su',
+  position: 'Software Engineer',
+  headerTitle: 'v2.jing-tech.me',
   description: 'A blog created with Next.js and Tailwind.css',
   language: 'en-us',
   theme: 'light', // system, dark or light
-  siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
-  siteRepo: 'https://github.com/timlrx/tailwind-nextjs-starter-blog',
+  siteUrl: 'https://v2.jing-tech.me',
+  siteRepo: 'https://github.com/jingsu96/todayIlearned',
   siteLogo: '/static/images/logo.png',
   socialBanner: '/static/images/twitter-card.png',
-  mastodon: 'https://mastodon.social/@mastodonuser',
-  email: 'address@yoursite.com',
-  github: 'https://github.com',
-  x: 'https://twitter.com/x',
-  // twitter: 'https://twitter.com/Twitter',
-  facebook: 'https://facebook.com',
-  youtube: 'https://youtube.com',
-  linkedin: 'https://www.linkedin.com',
-  threads: 'https://www.threads.net',
-  instagram: 'https://www.instagram.com',
-  locale: 'en-US',
+  email: 'jing.tech.tw@gmail.com',
+  github: 'https://github.com/jingsu96/',
+  twitter: 'https://twitter.com/Jing19794341',
+  linkedin: 'https://www.linkedin.com/in/jinghuang-su/',
+  buymeacoffee: 'https://www.buymeacoffee.com/jingtech',
+  instagram: 'https://www.instagram.com/jing.tech/',
   analytics: {
     // If you want to use an analytics provider you have to add it to the
     // content security policy in the `next.config.js` file.
