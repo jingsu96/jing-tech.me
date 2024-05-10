@@ -102,7 +102,7 @@ export default function Home({ posts: items, authors }) {
             </div>
           </div>
         </div>
-        <WritingList items={items} header="Writing" />
+        <WritingList items={items} />
       </section>
     </ScrollArea>
   );
