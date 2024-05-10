@@ -3,11 +3,10 @@
 import Link from 'next/link';
 import { LazyMotion, domAnimation, m } from 'framer-motion';
 
-import { useViewData } from '@/hooks/useViewData';
 import { cn, dateWithDayAndMonthFormatter, dateWithMonthAndYearFormatter, viewCountFormatter } from '@/lib/utils';
 
 export const WritingList = ({ items }) => {
-  const viewData = useViewData();
+  console.log(items);
 
   return (
     <LazyMotion features={domAnimation}>
@@ -22,7 +21,7 @@ export const WritingList = ({ items }) => {
             </span>
           </span>
         </div>
-
+        {/* 
         <div className="group/list-wrapper">
           {items.map((item) => {
             const [year, itemsArr] = item;
@@ -51,7 +50,7 @@ export const WritingList = ({ items }) => {
                       <span
                         className={cn(
                           'pointer-events-none col-span-1 hidden items-center tabular-nums transition-colors duration-300 group-hover/list:text-gray-900 md:grid',
-                          itemIndex === 0 && 'border-t border-gray-200'
+                          itemIndex === 0 && 'border-t border-gray-200',
                         )}
                       >
                         {itemIndex === 0 ? year : ''}
@@ -95,7 +94,7 @@ export const WritingList = ({ items }) => {
               </ul>
             );
           })}
-        </div>
+        </div> */}
       </div>
     </LazyMotion>
   );

@@ -43,7 +43,7 @@ export function NavigationBar() {
   };
 
   return (
-    <div className="bg-wash dark:border-border-dark dark:bg-card-dark relative z-10 flex items-center justify-between rounded-b-none rounded-t-lg border border-border dark:border-none">
+    <div className="bg-wash dark:bg-card-dark relative z-10 flex items-center justify-between rounded-b-none rounded-t-lg border border-border dark:border-[#222]">
       <div className="px-4 lg:px-6">{dropdownActive ? <FilesDropdown /> : <FileTabs />}</div>
       <div className="flex grow items-center justify-end px-3 text-right " translate="yes">
         <RotateCcw

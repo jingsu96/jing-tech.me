@@ -1,11 +1,12 @@
+'use client';
 // import Pre from '@/components/Pre';
 
-import { useState, useRef, useLayoutEffect } from 'react';
+import { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { Prism, Highlight, themes } from 'prism-react-renderer';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils/';
 import { Copy, Check } from 'lucide-react';
-
+import { useMounted } from '@/hooks/useMounted';
 const { github, nightOwl } = themes;
 
 const CodeBlock = function CodeBlock({ children, className = 'language-js' }) {
@@ -18,9 +19,11 @@ const CodeBlock = function CodeBlock({ children, className = 'language-js' }) {
   const [copied, setCopied] = useState(false);
   const [codeTheme, setCodeTheme] = useState(null);
 
+  const mounted = useMounted();
+
   useLayoutEffect(() => {
     setCodeTheme(theme === 'dark' ? nightOwl : github);
-  }, [theme]);
+  }, [theme, mounted]);
 
   const onEnter = () => {
     setHovered(true);
@@ -29,6 +32,7 @@ const CodeBlock = function CodeBlock({ children, className = 'language-js' }) {
     setHovered(false);
     setCopied(false);
   };
+
   const onCopy = () => {
     setCopied(true);
     navigator.clipboard.writeText(textInput.current.textContent);

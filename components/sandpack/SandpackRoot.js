@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useLayoutEffect } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import {
   SandpackProvider,
   SandpackConsole,
@@ -14,6 +14,7 @@ import { aquaBlue } from '@codesandbox/sandpack-themes';
 import { CustomTheme } from './Themes';
 import { useTheme } from 'next-themes';
 import { NavigationBar } from './NavigationBar';
+import { useMounted } from '@/hooks/useMounted';
 
 const sandboxStyle = `
 * {
@@ -78,17 +79,18 @@ function SandpackRoot(props) {
     activeFile = '/App.js',
     showTerminal,
   } = props;
-  const [devToolsLoaded, setDevToolsLoaded] = React.useState(false);
+  const [devToolsLoaded, setDevToolsLoaded] = useState(false);
+  const mounted = useMounted();
   let codeSnippets = React.Children.toArray(children);
   let isSingleFile = true;
 
   const { theme } = useTheme();
-  const [codeTheme, setCodeTheme] = React.useState(null);
+  const [codeTheme, setCodeTheme] = useState(null);
   const files = createFileMap(codeSnippets, props.lang);
 
   useLayoutEffect(() => {
     setCodeTheme(theme === 'dark' ? CustomTheme : aquaBlue);
-  }, [theme]);
+  }, [theme, mounted]);
 
   if (lang === 'react') {
     files['/styles.css'] = {
@@ -102,27 +104,27 @@ function SandpackRoot(props) {
       {['vanilla', 'node', 'static'].includes(props.lang) ? (
         <SandpackProvider
           template={props.lang}
-          files={{
-            ...files,
-          }}
+          files={
+            mounted
+              ? {
+                  ...files,
+                }
+              : {}
+          }
           autorun={autorun}
           initMode="user-visible"
           initModeObserverOptions={{ rootMargin: '1400px 0px' }}
-          theme={typeof window !== 'undefined' ? null : codeTheme}
+          theme={codeTheme}
           options={{
-            activeFile: activeFile, // used to be activePath
+            recompileMode: 'delayed',
+            recompileDelay: 300,
+            activeFile,
           }}
         >
           <NavigationBar />
           <SandpackLayout>
-            <SandpackCodeEditor
-              showLineNumbers
-              showInlineErrors
-              style={{ backgroundColor: 'transparent' }}
-              showTabs={false}
-              showRunButton={false}
-            />
-            <SandpackPreview style={showTerminal && { display: 'none' }} />
+            <SandpackCodeEditor showLineNumbers showInlineErrors showTabs={false} showRunButton={false} />
+            {mounted && <SandpackPreview style={showTerminal && { display: 'none' }} />}
             {showTerminal && <SandpackConsole standalone={true} />}
           </SandpackLayout>
         </SandpackProvider>

@@ -11,6 +11,9 @@ dependencies:
   '@codesandbox/sandpack-themes':
     specifier: ^2.0.21
     version: 2.0.21
+  '@emotion/is-prop-valid':
+    specifier: ^1.2.2
+    version: 1.2.2
   '@headlessui/react':
     specifier: 1.7.19
     version: 1.7.19(react-dom@18.3.1)(react@18.3.1)
@@ -52,7 +55,7 @@ dependencies:
     version: 0.20.2
   framer-motion:
     specifier: ^11.1.7
-    version: 11.1.7(react-dom@18.3.1)(react@18.3.1)
+    version: 11.1.7(@emotion/is-prop-valid@1.2.2)(react-dom@18.3.1)(react@18.3.1)
   github-slugger:
     specifier: ^2.0.0
     version: 2.0.0
@@ -2020,6 +2023,16 @@ packages:
 
   /@effect-ts/system@0.57.5:
     resolution: {integrity: sha512-/crHGujo0xnuHIYNc1VgP0HGJGFSoSqq88JFXe6FmFyXPpWt8Xu39LyLg7rchsxfXFeEdA9CrIZvLV5eswXV5g==}
+    dev: false
+
+  /@emotion/is-prop-valid@1.2.2:
+    resolution: {integrity: sha512-uNsoYd37AFmaCdXlg6EYD1KaPOaRWRByMCYzbKUX4+hhMfrxdVSelShywL4JVaAeM/eHUOSprYBQls+/neX3pw==}
+    dependencies:
+      '@emotion/memoize': 0.8.1
+    dev: false
+
+  /@emotion/memoize@0.8.1:
+    resolution: {integrity: sha512-W2P2c/VRW1/1tLox0mVUalvnWXxavmv/Oum2aPsRcoDJuob75FC3Y8FbpfLwUegRcxINtGUMPq0tFCvYNTBXNA==}
     dev: false
 
   /@esbuild-plugins/node-resolve@0.2.2(esbuild@0.20.2):
@@ -5671,7 +5684,7 @@ packages:
     resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
     dev: false
 
-  /framer-motion@11.1.7(react-dom@18.3.1)(react@18.3.1):
+  /framer-motion@11.1.7(@emotion/is-prop-valid@1.2.2)(react-dom@18.3.1)(react@18.3.1):
     resolution: {integrity: sha512-cW11Pu53eDAXUEhv5hEiWuIXWhfkbV32PlgVISn7jRdcAiVrJ1S03YQQ0/DzoswGYYwKi4qYmHHjCzAH52eSdQ==}
     peerDependencies:
       '@emotion/is-prop-valid': '*'
@@ -5685,6 +5698,7 @@ packages:
       react-dom:
         optional: true
     dependencies:
+      '@emotion/is-prop-valid': 1.2.2
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       tslib: 2.6.2

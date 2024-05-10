@@ -23,10 +23,10 @@ export const MenuContent = () => {
           />
           <div className="flex flex-col">
             <span className="font-semibold tracking-tight">{author}</span>
-            <span className="text-gray-600">{position}</span>
+            <span className="text-gray-600 dark:text-gray-300">{position}</span>
           </div>
           <SearchButton />
-          <ThemeSwitch className="ml-auto mr-4 hidden lg:flex" />
+          <ThemeSwitch className="ml-auto hidden lg:flex" />
         </Link>
         <div className="flex flex-col gap-1">
           {LINKS.map((link, linkIndex) => (
