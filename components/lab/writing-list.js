@@ -6,8 +6,6 @@ import { LazyMotion, domAnimation, m } from 'framer-motion';
 import { cn, dateWithDayAndMonthFormatter, dateWithMonthAndYearFormatter, viewCountFormatter } from '@/lib/utils';
 
 export const WritingList = ({ items }) => {
-  console.log(items);
-
   return (
     <LazyMotion features={domAnimation}>
       <div className="text-sm">

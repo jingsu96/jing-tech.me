@@ -53,7 +53,7 @@ export default function Home({ posts: items, authors }) {
   return (
     <ScrollArea useScrollAreaId={true}>
       <FloatingHeader scrollTitle="Home" />
-      <section className="mx-auto mt-10 max-w-[840px]">
+      <section className="mx-auto mt-10 max-w-[840px] px-4">
         <div className="grid grid-cols-1 gap-x-16 gap-y-1 sm:grid-cols-3">
           {/* ABOUT ME */}
           <div className="sm:col-span-2 sm:row-span-2">
