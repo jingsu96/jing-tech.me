@@ -53,12 +53,12 @@ export default function Home({ posts: items, authors }) {
   return (
     <ScrollArea useScrollAreaId={true}>
       <FloatingHeader scrollTitle="Home" />
-      <section className="mx-auto mt-10 max-w-[840px] px-4">
+      <section className="mx-auto mt-4 max-w-[840px] px-4 md:m-auto">
         <div className="grid grid-cols-1 gap-x-16 gap-y-1 sm:grid-cols-3">
           {/* ABOUT ME */}
           <div className="sm:col-span-2 sm:row-span-2">
             <h1 className="text-m mb-m font-bold leading-tight text-[#ff0a78] dark:text-[#ff0a78] sm:text-lg">
-              ABOUT ME
+              關於我
             </h1>
             <div className="py-4 sm:pl-0 [&>p]:mb-4">
               <MDXLayoutRenderer code={authors.body.code} components={components} />
@@ -68,7 +68,7 @@ export default function Home({ posts: items, authors }) {
           {/* WORK EXPERIENCE */}
           <div className="flex flex-col justify-center">
             <h1 className="text-m mb-1 font-bold leading-tight text-[#ff0a78] dark:text-[#ff0a78] sm:text-lg">
-              WORK EXPERIENCE
+              工作經驗
             </h1>
             <div className="p-4 sm:pl-2">
               <ol className="relative border-l border-gray-200 dark:border-gray-700">
@@ -102,7 +102,12 @@ export default function Home({ posts: items, authors }) {
             </div>
           </div>
         </div>
-        <WritingList items={items} />
+        <div className="my-5 lg:my-12">
+          <h1 className="text-m mb-m font-bold leading-tight text-[#ff0a78] dark:text-[#ff0a78] sm:text-lg">
+            最新文章
+          </h1>
+          <WritingList items={items} />
+        </div>
       </section>
     </ScrollArea>
   );

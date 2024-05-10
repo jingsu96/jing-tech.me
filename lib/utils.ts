@@ -106,7 +106,7 @@ export const getSortedPosts = cache((posts) => {
  * specifying the format to include the month and year in a two-digit and numeric format, respectively.
  * This formatter can be used to format date objects into a string representation with only the month and year.
  */
-export const dateWithMonthAndYearFormatter = Intl.DateTimeFormat('en-US', {
+export const dateWithMonthAndYearFormatter = Intl.DateTimeFormat('zh-TW', {
   month: '2-digit',
   year: 'numeric',
   timeZone: 'UTC',
@@ -117,7 +117,7 @@ export const dateWithMonthAndYearFormatter = Intl.DateTimeFormat('en-US', {
  * specifying the format to include the day and month in a two-digit format.
  * This formatter can be used to format date objects into a string representation with the day and month included.
  */
-export const dateWithDayAndMonthFormatter = Intl.DateTimeFormat('tr-TR', {
+export const dateWithDayAndMonthFormatter = Intl.DateTimeFormat('zh-TW', {
   day: '2-digit',
   month: '2-digit',
   timeZone: 'UTC',
@@ -132,7 +132,7 @@ export const dateWithDayAndMonthFormatter = Intl.DateTimeFormat('tr-TR', {
  * const formattedCount = viewCountFormatter.format(count);
  * console.log(formattedCount); // Output: "1.000.000"
  */
-export const viewCountFormatter = new Intl.NumberFormat('nl-NL');
+export const viewCountFormatter = new Intl.NumberFormat('zh-TW');
 
 /**
  * Function to group items by year based on the provided date.

@@ -20,10 +20,10 @@ import { cn } from '@/lib/utils';
 const keyCodePathnameMapping = {
   Digit1: '/',
   Digit2: '/writing',
-  Digit3: '/journey',
-  Digit4: '/stack',
-  Digit5: '/workspace',
-  Digit6: '/bookmarks',
+  // Digit3: '/journey',
+  // Digit4: '/stack',
+  // Digit5: '/workspace',
+  // Digit6: '/bookmarks',
 };
 
 export const SideMenu = ({
