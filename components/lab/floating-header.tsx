@@ -72,7 +72,7 @@ export const FloatingHeader = memo(
                 )}
                 <div className="inline-flex">
                   <SearchButton />
-                  <ThemeSwitch className="mx-2 inline-flex items-center" />
+                  <ThemeSwitch className="mx-4 inline-flex items-center" />
                   <div className="flex items-center gap-2">
                     {(isWritingIndexPage || isBookmarksIndexPage) && (
                       <Button variant="outline" size="xs" asChild>

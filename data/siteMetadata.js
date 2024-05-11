@@ -5,7 +5,8 @@ const siteMetadata = {
   position: 'Software Engineer',
   headerTitle: 'v2.jing-tech.me',
   description: 'A blog created with Next.js and Tailwind.css',
-  language: 'en-us',
+  language: 'zh-TW',
+  locale: 'zh-TW',
   theme: 'light', // system, dark or light
   siteUrl: 'https://v2.jing-tech.me',
   siteRepo: 'https://github.com/jingsu96/todayIlearned',

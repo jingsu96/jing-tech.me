@@ -84,13 +84,13 @@ function SandpackRoot(props) {
   let codeSnippets = React.Children.toArray(children);
   let isSingleFile = true;
 
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
   const [codeTheme, setCodeTheme] = useState(null);
   const files = createFileMap(codeSnippets, props.lang);
 
   useLayoutEffect(() => {
-    setCodeTheme(theme === 'dark' ? CustomTheme : aquaBlue);
-  }, [theme, mounted]);
+    setCodeTheme(resolvedTheme === 'dark' ? CustomTheme : aquaBlue);
+  }, [resolvedTheme, mounted]);
 
   if (lang === 'react') {
     files['/styles.css'] = {

@@ -10,7 +10,7 @@ import { useMounted } from '@/hooks/useMounted';
 const { github, nightOwl } = themes;
 
 const CodeBlock = function CodeBlock({ children, className = 'language-js' }) {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
 
   // e.g. "language-js"
   const language = className.substring(9);
@@ -22,8 +22,8 @@ const CodeBlock = function CodeBlock({ children, className = 'language-js' }) {
   const mounted = useMounted();
 
   useLayoutEffect(() => {
-    setCodeTheme(theme === 'dark' ? nightOwl : github);
-  }, [theme, mounted]);
+    setCodeTheme(resolvedTheme === 'dark' ? nightOwl : github);
+  }, [resolvedTheme, mounted]);
 
   const onEnter = () => {
     setHovered(true);

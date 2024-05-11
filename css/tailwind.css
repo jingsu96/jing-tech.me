@@ -60,6 +60,15 @@ input:-webkit-autofill:focus {
   content: none;
 }
 
+/* body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+} */
+
 :root {
   --jt-c-gray-1: #dddde3;
   --jt-c-gray-2: #e4e4e9;
