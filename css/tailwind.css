@@ -165,4 +165,12 @@ html body[data-scroll-locked] {
   #thread-icon {
     fill: white;
   }
+
+  #navigation-link-external {
+    &:hover {
+      #thread-icon {
+        fill: black;
+      }
+    }
+  }
 }

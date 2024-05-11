@@ -81,7 +81,7 @@ export const FloatingHeader = memo(
                 </div>
               </div>
             </div>
-            <ThemeSwitch className="ml-4" />
+            <ThemeSwitch className="mr-4 inline-flex items-center" />
             {/* {scrollTitle && isWritingPath && <div className="flex min-w-[50px] justify-end">{children}</div>} */}
           </div>
         </div>
