@@ -4,15 +4,10 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WritingLink } from '@/components/lab/writing-link';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const WritingListLayout = ({ filteredPosts, slug, classname }) => {
-  const sidebarVariants = {
-    hidden: { opacity: 0, display: 'none', minWidth: 0 },
-    visible: { opacity: 1, display: 'flex' },
-  };
-
   const [isSidebarVisible, setSidebarVisible] = useState(true);
-  const [showContent, setShowContent] = useState(false);
 
   return (
     <div className={classname}>
@@ -34,7 +29,9 @@ const WritingListLayout = ({ filteredPosts, slug, classname }) => {
         )}
       </AnimatePresence>
       <button
-        className="absolute left-[-15px] top-[50%] hidden rounded-full border border-gray-300 bg-bg-alt p-1 lg:flex"
+        className={cn(
+          'absolute left-[-15px] top-[50%] hidden rounded-full border border-gray-300 bg-bg-alt p-1 lg:flex'
+        )}
         onClick={() => setSidebarVisible((prev) => !prev)}
       >
         {isSidebarVisible ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}

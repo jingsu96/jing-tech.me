@@ -39,7 +39,7 @@ export default function PostLayout({ content, next, prev, children, filteredPost
       <ScrollTopAndComment />
       <FloatingHeader scrollTitle="Writing" />
       <WritingListLayout filteredPosts={filteredPosts} slug={slug} classname="hidden lg:flex" />
-      <article id="jt-article" className="block h-auto flex-1 overflow-y-scroll pt-4 lg:flex lg:h-[100vh]">
+      <article id="jt-article" className=" zblock h-auto flex-1 overflow-y-scroll pt-4 lg:flex lg:h-[100vh]">
         <div className="mx-auto max-w-[1000px] flex-1  px-6 lg:px-12 xl:divide-y xl:divide-gray-200 xl:dark:divide-gray-700">
           <header className="pt-6 xl:pb-6">
             <div className="sp text-center">
