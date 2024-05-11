@@ -79,12 +79,12 @@ const siteMetadata = {
     // kbarConfig: {
     //   searchDocumentsPath: 'search.json', // path to load documents to search
     // },
-    // provider: 'algolia',
+    provider: 'algolia',
     algoliaConfig: {
       // The application ID provided by Algolia
-      appId: 'R2IYF7ETH7',
+      appId: 'M1D7C3VH4L',
       // Public API key: it is safe to commit it
-      apiKey: '599cec31baffa4868cae4e79f180729b',
+      apiKey: 'b766706362e67acdf357bf08bf3c79d0',
       indexName: 'docsearch',
     },
   },

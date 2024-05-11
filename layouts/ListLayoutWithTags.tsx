@@ -84,7 +84,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
       <div className="h-[100vh]">
         <FloatingHeader scrollTitle="Writing" />
         <div className="flex flex-col p-4 sm:space-x-12 md:flex-row lg:p-0">
-          <div className="hidden w-full min-w-[24rem] max-w-[24rem] flex-wrap overflow-auto rounded bg-gray-50 pt-5 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 sm:flex lg:flex">
+          <div className="hidden h-[100vh] w-full min-w-[24rem] max-w-[24rem] flex-wrap overflow-auto rounded bg-gray-50 pt-5 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 sm:flex lg:flex">
             <div className="px-6 py-4">
               {pathname.startsWith('/writing') ? (
                 <h3 className="font-bold uppercase text-primary-500">All Posts</h3>
@@ -138,7 +138,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
               );
             })}
           </div>
-          <div className="mt-4 flex lg:h-[100vh] lg:overflow-y-scroll">
+          <div className="mt-4 flex lg:overflow-y-scroll">
             <ul>
               {displayPosts.map((post) => {
                 const { path, date, title, summary, tags } = post;

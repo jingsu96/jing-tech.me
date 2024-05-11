@@ -37,7 +37,6 @@ export const WritingList = ({ items }) => {
                   {items?.map?.((item, itemIndex) => {
                     const { title, slug, date } = item;
                     const dateObj = new Date(date);
-                    console.log(dateObj);
                     const dateWithDayAndMonth = dateWithDayAndMonthFormatter.format(dateObj);
                     const dateWithMonthAndYear = dateWithMonthAndYearFormatter.format(dateObj);
 

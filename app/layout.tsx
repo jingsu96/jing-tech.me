@@ -2,18 +2,21 @@ import 'css/tailwind.css';
 import 'css/sandpack.css';
 import 'pliny/search/algolia.css';
 
+import { Metadata } from 'next';
 import { Space_Grotesk } from 'next/font/google';
 import { Analytics, AnalyticsConfig } from 'pliny/analytics';
 import { SearchProvider, SearchConfig } from 'pliny/search';
-import SectionContainer from '@/components/SectionContainer';
-import { MenuContent } from '@/components/lab/menu-content';
 import { draftMode } from 'next/headers';
 import { EyeIcon } from 'lucide-react';
-import siteMetadata from '@/data/siteMetadata';
-import { ThemeProviders } from './theme-providers';
-import { Metadata } from 'next';
+
+import SectionContainer from '@/components/SectionContainer';
+import { MenuContent } from '@/components/lab/menu-content';
 import { SideMenu } from '@/components/lab/side-menu';
-import ThemeSwitch from '@/components/ThemeSwitch';
+import { TailwindIndicator } from '@/components/lab/tailwind-indicator';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import siteMetadata from '@/data/siteMetadata';
+
+import { ThemeProviders } from './theme-providers';
 
 const space_grotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -78,7 +81,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {/* eslint-disable-next-line react/no-unknown-property */}
         <ThemeProviders>
-          <main vaul-drawer-wrapper="" className="min-h-screen bg-bg-primary">
+          <main vaul-drawer-wrapper="" className="h-auto bg-bg-primary">
             {isEnabled && (
               <div className="absolute inset-x-0 bottom-0 z-50 flex h-12 w-full items-center justify-center bg-green-500 text-center text-sm font-medium text-white">
                 <div className="flex items-center gap-2">
@@ -88,19 +91,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
             )}
             <div className="lg:flex">
-              <SideMenu className="relative hidden h-[100vh] max-h-[100vh] lg:flex">
-                <MenuContent />
-              </SideMenu>
               <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
+                <SideMenu className="relative hidden h-[100vh] max-h-[100vh] lg:flex">
+                  <MenuContent />
+                </SideMenu>
                 <SectionContainer>{children}</SectionContainer>
               </SearchProvider>
             </div>
           </main>
         </ThemeProviders>
         <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
-
-        {/* <TailwindIndicator />
+        <TailwindIndicator />
         <SpeedInsights />
+
+        {/* 
         <Script
           src="https://unpkg.com/@tinybirdco/flock.js"
           data-host="https://api.tinybird.co"
@@ -108,22 +112,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           strategy="lazyOnload"
         /> */}
       </body>
-
-      {/* <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
-        <ThemeProviders>
-          <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
-          <SideMenu>
-            <SectionContainer>
-              <div className="flex h-screen flex-col justify-between font-sans">
-                <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
-                  <main className="mb-auto">{children}</main>
-                </SearchProvider>
-                <Footer />
-              </div>
-            </SectionContainer>
-          </SideMenu>
-        </ThemeProviders>
-      </body> */}
     </html>
   );
 }
