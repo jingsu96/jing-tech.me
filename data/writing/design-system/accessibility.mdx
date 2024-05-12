@@ -1,0 +1,172 @@
+---
+title: Design System 101 - 無障礙設計 (Accessibility)
+date: '2023-09-16'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'accessibility'
+order: 1
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+> Accessibility 又稱 A11y，因為 Accessibility 這個單字有 11 個字母，或是可以稱為可訪問性。
+
+回想兩三年前，那時候滑 Twitter 時很常看到一些國外的大神們分享他們的產品已經是 Accessible 的，又或是他們的 design system / UI library 支援 A11y 等等的關鍵字。
+
+那時候只覺得又有新東西跑出來，學不動了學不動了，並想說這應該只是概念性的東西，只是剛好在風口上，說不定之後就沒有這麼重要了？
+
+直到一年前加入現在所待的美商公司，初期都在處理一些簡單的任務，而令我訝異的是大部分都是關於 A11y 的修正或加強，例如讓 Keyboard 可以操作、讓 Screen Reader 可以讀出來等等。
+
+一問之下才知道最近公司在推動網站全面支援 A11y，也才了解美國的法律對於網站的可訪問性有一定的要求，如果網站的可訪問性不足，可能會被告上法庭。
+
+以 2021 的資料，在美國有四千兩百五十萬的人口有是身心障礙者，佔了 13% 的人口，這個族群包括了聽力、視力、認知、行走、自我照顧或獨立生活困難的人。而台灣根據[衛生福利部統計](https://dep.mohw.gov.tw/dos/cp-5224-62359-113.html) 有近 120 萬人是身心障礙者，佔了 4.2% 的人口。
+
+那時我才知道 Accessibility 如此重要。
+
+<Image src="https://imgur.com/VkzCxnO.png" height="714" width="1255" />
+
+## 什麼是 Accessibility？
+
+根據 W3C 對於 Accessibility 的定義：
+
+> Web accessibility means that websites, tools, and technologies are designed and developed so that people with disabilities can use them. More specifically, people can:
+>
+> - perceive, understand, navigate, and interact with the Web
+> - contribute to the Web
+
+網路無障礙是指設計和開發網站、工具和技術，使身障人士能夠使用它們。更具體地說，人們可以：感知、理解、導航和與 Web 交互以及為 Web 做貢獻。
+
+然而許多可訪問性的功能不僅僅是身障使用者受益，也對所有使用者帶來了更好的可用性和包容性。
+
+例如，提供高顏色對比度可以讓所有使用者受惠，包括視力較差的人、在太陽底下使用行動裝置的人、或在黑暗的房間裡，藉此增強可讀性和能見度，降低眼睛負荷，提高清晰度和可用性。
+
+### 重要的原則
+
+1. **可感知性 (Perceivable)** - 訊息和 UI 組件必須能夠以任何的方式呈現，以便所有使用者，不論用什麼方式，都能感知它們。 例如，對於視力障礙的使用者，要讓他能夠透過 Screen Reader 來感知訊息。
+2. **可操作性 (Operable)** - 所有使用者都能操作 UI 組件和導航，確保所有功能都可以用鍵盤操作，而不僅僅是滑鼠。
+3. **可理解 (Understandable)** - 所有使用者都必須能夠理解訊息和 UI 組件操作。例如確保軟體可以大聲朗讀內容並生成頁面摘要，以幫助有認知障礙的使用者。
+4. **強健 (Robust)** - 所有網頁內容都必須能夠被各種使用者代理 (user agent) 解釋 (包括輔助技術)，確保與多種使用者代理兼容 (user agent)。
+
+## Accessibility 的最佳實踐
+
+以下列出四個實作時該注意的要點，也是參考 [WCAG (Web Content Accessibility Guidelines)](https://www.w3.org/TR/WCAG21/) 所制定的準則，之後我們在實作 Design System 組件時會額外著墨的部分。
+
+### 顏色對比度
+
+提供足夠的對比度，以便使用者可以看到文字和圖像。例如，將文字放在圖像上時，文字和圖像的對比度必須足夠，以便使用者可以看到文字。
+
+舉下面這個例子，上面的顏色對比度是 **1.61:1**，而下面則是符合 WCAG 的 **8.39:1**，可以明顯看出下面的文字更容易閱讀。
+
+<Image src="https://imgur.com/Oc7eiHO.png" height="531" width="708" />
+
+**Takeaway**:
+
+- 確保文字顏色和背景顏色之間的對比度至少為 **4.5:1**。
+- 同時也要避免過高的對比度，過高的對比色反而會在閱讀時更困難。
+
+通常這部分都會在設計 visual element 的時候定義及驗證好，但我們也可以透過 [Webaim](https://webaim.org/resources/contrastchecker/) 工具做驗證。
+
+### Sementic HTML
+
+<Image
+  src="https://imgur.com/v536TjO.png"
+  height="390"
+  width="508"
+  showalt
+  alt="Semantic HTML 有 100 多個，不僅僅只有上圖列的這些。"
+  sourceUrl="https://developer.mozilla.org/en-US/docs/Glossary/Semantics#semantic_elements"
+  sourceTitle="mdn"
+  style={{ display: 'none' }}
+/>
+
+Semantic HTML 是指使用 HTML 標籤來描述網頁的內容，讓瀏覽器和 Screen Reader 能夠更好地理解網頁的內容。
+
+對於 Accessibility 會要求盡量不要使用 `<div>` 或 `<span>` 來包裹內容，而是使用 `<header>`、`<nav>`、`<main>`、`<footer>` 等等，因為 Screen Reader 會無法判斷這些元素的意義。
+
+<Image src="https://imgur.com/SIpbxfk.png" height="287" width="708" />
+
+**Takeaway**:
+
+- 使用 HTML 標籤來描述網頁的內容，例如 `<header>`、`<nav>`、`<main>`、`<footer>` 等等。
+- 用 Semantic HTML 不僅僅是優化 Accessibility 而已，對 SEO 的加強也是有很大的幫助，可以讓網頁更容易被搜尋引擎抓取。
+
+### Accessibility Tree
+
+<Image
+  src="https://wicg.github.io/aom/images/DOM-a11y-tree.png"
+  height="327"
+  width="555"
+  showalt
+  alt="Accessibility Object Model"
+  sourceUrl="https://wicg.github.io/aom/images/DOM-a11y-tree.png"
+  sourceTitle="Accessibility Object Model"
+/>
+
+整個渲染流程就是瀏覽器先把網頁的標記語言 (e.g. HTML) 進行語法解析構建出一個樹狀結構 (DOM Tree)，其包含著網頁中的元素、屬性和文本節點。
+
+接著，瀏覽器會再根據這個 DOM 樹做出一個 Accessibility Tree。這個 Accessibility Tree 就是可以讓輔助技術 (e.g. Screen Reader) 來讀取網頁的結構，讓身障人士可以了解與操作我們的網頁。
+
+#### Accessibility API
+
+作為開發者，我們要如何將資訊揭露給 Accessibility Tree 呢？而這就是 Accessibility API 的用途。它提供了 Accessible Object，讓我們可以將資料揭露給 Accessibility Tree。
+
+Accessible Object 主要包含以下四種屬性：
+
+- **Role** - 描述元素的角色如 button、checkbox、link 等預定義的角色。
+
+假設某些情況就是只能用 `<div>` 或 `<span>` 來寫你要的 button 元件，這時候就應該使用 role 屬性來明確地定義其角色。
+
+```html
+<div role="button">點我</div>
+```
+
+- **Name** - 定義元素的名稱或標籤
+
+例如一個輸入框，標籤 (label) 就會是它的名稱。如果沒有 label，可以使用 `aria-label` 或 `aria-labelledby` 屬性來提供名稱。例如：
+
+```html
+<input type="text" aria-label="我是輸入框" />
+```
+
+- **State** - 定義元素的狀態
+
+例如 checkbox 的狀態可以是 checked 或 unchecked。則可以使用 `aria-checked` 屬性來描述。
+
+```html
+<input type="checkbox" aria-checked="true" />
+```
+
+- **Description** - 提供對元素的額外描述。這用 `aria-describedby` 屬性來實現。
+
+```html
+<label for="username">用戶名:</label>
+<input type="text" id="username" aria-describedby="usernameHelp" />
+<p id="usernameHelp">您的用戶名應該包含6-12個字符，不包含特殊字符。</p>
+```
+
+想更了解 Accessible Object [WICG](https://wicg.github.io/aom/explainer.html) 有更詳細的解釋。
+
+### Keyboard Focus
+
+Focus 就是當前瀏覽器的焦點，當使用者是透過鍵盤瀏覽網站時，Focus 就是他的游標，並且網頁所有可交互的組件都可以透過任何鍵盤的事件訪問到，例如 `Enter`、`Space`、`Tab` 等等，並且要注意 Focus 的順序是由上到下，由左到右。
+
+而另一個需要注意的就是當使用者透過點擊按鈕開啟 Modal 組件時，需要將 Focus 跳到 Modal 上，並且在其關閉時，將 Focus 回到按鈕上，之後我們會實作相關的組件來處理這個問題。
+
+## Accessibility 測試工具
+
+1. [VoiceOver](https://www.apple.com/accessibility/mac/vision/) - macOS 內建的 Screen Reader
+2. [NVDA](https://www.nvaccess.org/) - 支援 Windows 的 Screen Reader
+3. [TalkBack](https://support.google.com/accessibility/android/answer/6283677?hl=en) - 支援 Android 的 Screen Reader
+
+## 參考資料
+
+1. [W3](https://www.w3.org/WAI/fundamentals/accessibility-intro/)
+2. [Saleforce](https://medium.com/salesforce-ux/7-things-every-designer-needs-to-know-about-accessibility-64f105f0881b)
+3. [WebAIM](https://webaim.org/)
+4. [MDN](https://developer.mozilla.org/en-US/docs/Glossary/Semantics#semantic_elements)
+5. [Cloudscape.design](https://cloudscape.design/foundation/visual-foundation/design-tokens/)
+6. [Accessibility Tree](https://benmyers.dev/blog/accessibility-tree/)
+7. [WICG](https://wicg.github.io/aom/explainer.html)

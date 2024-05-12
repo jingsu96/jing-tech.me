@@ -1,0 +1,686 @@
+---
+title: Design System 101 - 設計模式 x 複合組件
+date: '2023-11-04'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'core'
+order: 2
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+React 是一個 Component-based 的 UI 庫，所以在設計組件時，我們會將組件拆分成一個個的小組件，並且將這些小組件像是樂高積木般的進行組合 (Compose) 成一個更複雜的組件。
+
+這個概念我們稱為 [Compound Component Pattern (複合組件設計模式)](https://www.patterns.dev/posts/compound-pattern)，其核心就是讓多個組件組合後達到單一功能的效果 (例如 Menu 是由 Item, Trigger 等等所組合成的)。
+
+這種寫法我們並不陌生，HTML 就是這種方式來撰寫，以原生的選單列表來舉例：
+
+```html
+<h1>產品類別</h1>
+<select>
+  <option>蘋果</option>
+  <option>香蕉</option>
+  <option>橘子</option>
+</select>
+```
+
+在網頁應用中也可以看到許多 UI 的設計都是使用這種複合組件的概念，舉凡 Menu (下拉選單)、Select (選單) 以及 Accordion (手風琴) 等等。
+
+然而這樣的模式下原生 API 可以運作的很好，但在 React 就迎來了一個問題，要如何讓父層與子層之間能夠互動？
+
+```jsx
+<Menu>
+  <Menu.Item>蘋果</Menu.Item>
+  <Menu.Item>香蕉</Menu.Item>
+  <Menu.Item>橘子</Menu.Item>
+</Menu>
+```
+
+開發過程中會遇到像是要如何讓 `<Menu>` 知道當前 active 的 `<Menu.Item>` 是哪一個，而 `<Menu.Item>` 也需要知道本身是否 active，進而顯示對應的 UI。
+
+本篇將會介紹幾種常見的解決方式，以及它們的優缺點。
+
+## 方法一：透過 \`props\`
+
+用 `props` 來控制組件的行為，讓父子層透過 `props` 來傳遞資訊，這也是最多人選擇也是最簡單的方法。
+
+### 實作
+
+而 API 的設計會就是讓父層組件 (`Menu`) 控制所有子組件的行為，這樣的設計方式也是最常見的方式。
+
+<Sandpack>
+
+```jsx file=App.js
+import React from 'react'
+import { Menu } from './menu.js'
+
+export default () => {
+  return (
+    <Menu
+      defaultIndex={0}
+      items={[
+        { index: 0, label: '蘋果' },
+        { index: 1, label: '香蕉' },
+        { index: 2, label: '橘子' },
+      ]}
+    />
+  )
+}
+```
+
+```jsx file=menu.js
+import React, { useState } from 'react'
+import './index.css'
+
+export const Menu = ({ items, defaultIndex }) => {
+  const [activeIndex, setActiveIndex] = useState(defaultIndex)
+
+  const handleItemClick = (index) => {
+    setActiveIndex(index)
+  }
+
+  return (
+    <div aria-activedescendant={activeIndex}>
+      {items.map((item, index) => (
+        <MenuItem
+          key={item.label}
+          index={index}
+          activeIndex={activeIndex}
+          onClick={handleItemClick}
+        >
+          {item.label}
+        </MenuItem>
+      ))}
+    </div>
+  )
+}
+
+export const MenuItem = ({ index, activeIndex, onClick, children }) => {
+  const isActive = activeIndex === index
+
+  const handleClickItem = () => {
+    onClick?.(index)
+  }
+
+  return (
+    <div onClick={handleClickItem} className={isActive ? 'active' : ''}>
+      {children}
+    </div>
+  )
+}
+```
+
+```css file=index.css hidden=true
+.active {
+  background-color: #f2f2f2;
+}
+```
+
+</Sandpack>
+
+想必各位看到這種 API 的設計應該不陌生，因為一些常見的 UI 庫就是以這種方式來設計的。像是 [Ant Design - Menu](https://ant.design/components/menu) 又或是 [Grommet - Menu](https://v2.grommet.io/menu)。
+
+### 優缺點
+
+#### 優點
+
+- 這種方式非常直觀，在資料不複雜的情況下，可以使用這種方法來設計。
+
+#### 缺點
+
+- 此設計方式失去了彈性與擴充性，假設想要在某個 Item 上加 Icon 或是想要對 Item 改樣式，就會發現會需要傳入更多 `props` 來控制組件的行為，而當功能越來越多時，傳入的 API 就會變得相當多且複雜。
+
+## 方法二：使用 \`cloneElement\`
+
+另外一種方式就是用 `cloneElement` 的方式，這其實是實現複合組件模式的一種方式，透過 `React.cloneElement` 來將 `index` 與當前 active 的 `index` 傳給子組件。
+
+而子組件 (`MenuItem`) 只要知道這些資訊後，就不需要依賴由單一組件 (`Menu`) 來控制所有行為。
+
+### 實作
+
+實作上就是透過 `React.Children.map` 迭代所有的子組件，並且透過 `React.cloneElement` 將 `index`, `activeIndex` 與 `onClick` 事件傳給子組件 (`MenuItem`)。
+
+<Sandpack>
+
+```jsx file=App.js
+import React from 'react'
+import { Menu, MenuItem } from './menu.js'
+
+export default () => {
+  return (
+    <Menu defaultIndex={0}>
+      <MenuItem>蘋果</MenuItem>
+      <MenuItem>香蕉</MenuItem>
+      <MenuItem>橘子</MenuItem>
+      {/* uncomment to see the issue */}
+      {/* 
+        <div>
+          <MenuItem>櫻桃</MenuItem>
+       </div>
+      */}
+    </Menu>
+  )
+}
+```
+
+```jsx file=menu.js
+import React, { useState } from 'react'
+import './index.css'
+
+export const Menu = ({ children, defaultIndex }) => {
+  const [activeIndex, setActiveIndex] = useState(defaultIndex)
+
+  const handleItemClick = (index) => {
+    setActiveIndex(index)
+  }
+
+  return (
+    <div aria-activedescendant={activeIndex}>
+      {React.Children.map(children, (child, index) => {
+        return React.cloneElement(child, {
+          index,
+          activeIndex,
+          onClick: handleItemClick,
+        })
+      })}
+    </div>
+  )
+}
+
+export const MenuItem = ({ index, activeIndex, onClick, children }) => {
+  const isActive = activeIndex === index
+
+  const handleClickItem = () => {
+    onClick?.(index)
+  }
+
+  return (
+    <div onClick={handleClickItem} className={isActive ? 'active' : ''}>
+      {children}
+    </div>
+  )
+}
+```
+
+```css file=index.css hidden=true
+.active {
+  background-color: #f2f2f2;
+}
+```
+
+</Sandpack>
+
+### 優缺點
+
+#### 優點
+
+- 解決上個方法擴充性的問題，也可以根據需求對 Item 放入相對應的 `props`。
+
+#### 缺點
+
+- 子組件的結構必須要固定，也就是當我們在 Item 加入一個 `<div>` 時，就會發生問題 (可以取消上面範例的註解來看看)。
+
+## 方法三：React Descendant
+
+React Descendant 主要是利用 React 渲染生命週期 (Render Lifecycle)，在這過程中子組件會將其元素註冊到父層的 descendants，而父層就可以追蹤所有子組件並且管理它們的聚焦 (focus)。也讓我們可以不用使用 `cloneElement` 來傳遞 `index`。
+
+### API 設計
+
+| API 名稱                | 說明                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------- |
+| createDescendantContext | 用來建立 Descendant 的 Context，並且會將 children 透過 `DescendantProvider` 包起來 。 |
+| useDescendant           | 回傳 `index`，並且會將子組件註冊到父層組件的 `descendants` 裡。                       |
+| useDescendants          | 回傳所有子組件的資訊。                                                                |
+| useDescendantsInit      | 回傳 `descendants` 與 `setDescendants`，並且會在第一次渲染時初始化 `descendants`。    |
+
+### 實作
+
+首先父層組件 (`Menu`) 會管理當前 active 的 `index`，以及所有 `descendants` 的資訊。
+
+在渲染過程中，子組件 (`MenuItem`) 裡的 `useDescendant` 會找出組件自身的 `index`，同時透過 `DescendantProvider` 裡的 `registerDescendant`，將組件本身元素與相關資料註冊 (register) 到父層組件 `descendants`。
+
+<Sandpack>
+
+```jsx file=App.js
+import React from 'react'
+import { Menu, MenuItem } from './menu.js'
+
+export default () => {
+  return (
+    <Menu defaultIndex={0}>
+      <MenuItem>蘋果</MenuItem>
+      <MenuItem>香蕉</MenuItem>
+      <MenuItem>橘子</MenuItem>
+      {/* uncomment to see the issue */}
+      {/* 
+        <div>
+          <MenuItem>櫻桃</MenuItem>
+       </div>
+      */}
+    </Menu>
+  )
+}
+```
+
+```jsx file=menu.js
+import React from 'react'
+import {
+  createDescendantContext,
+  useDescendantsInit,
+  useDescendant,
+  DescendantProvider,
+} from './descendants.js'
+import './index.css'
+
+let DescendantContext = createDescendantContext('DescendantContext')
+let MenuContext = React.createContext()
+
+export const Menu = ({ id, children, defaultIndex }) => {
+  let [descendants, setDescendants] = useDescendantsInit()
+  let [activeIndex, setActiveIndex] = React.useState(defaultIndex)
+
+  return (
+    <DescendantProvider context={DescendantContext} items={descendants} set={setDescendants}>
+      <MenuContext.Provider value={{ activeIndex, setActiveIndex }}>
+        {children}
+      </MenuContext.Provider>
+    </DescendantProvider>
+  )
+}
+
+export const MenuItem = ({ ...props }) => {
+  const { activeIndex, setActiveIndex } = React.useContext(MenuContext)
+  const ref = React.useRef(null)
+  const [element, setElement] = React.useState(null)
+
+  const handleRefSet = React.useCallback((refValue) => {
+    ref.current = refValue
+    setElement(refValue)
+  }, [])
+
+  const descendant = React.useMemo(
+    () => ({
+      element,
+      key: props.label,
+    }),
+    [element, props.label]
+  )
+  const index = useDescendant(descendant, DescendantContext)
+
+  const isSelected = index === activeIndex
+
+  const handleItemClick = () => {
+    if (!isSelected) {
+      setActiveIndex(index)
+    }
+  }
+
+  const a11yProps = {
+    role: 'menuitem',
+    tabIndex: -1,
+  }
+
+  return (
+    <div
+      {...a11yProps}
+      className={isSelected ? 'active' : ''}
+      ref={handleRefSet}
+      onClick={handleItemClick}
+      {...props}
+    />
+  )
+}
+```
+
+```jsx file=descendants.js
+import React from 'react'
+import { noop, insertAt } from './utils.js'
+
+export const createDescendantContext = (name, initValue) => {
+  const descendants = []
+
+  let ctx = React.createContext({
+    registerDescendant: () => noop,
+    descendants,
+    ...initValue,
+  })
+
+  ctx.displayName = name
+
+  return ctx
+}
+
+export const useDescendant = (descendant, context) => {
+  const { registerDescendant, descendants } = React.useContext(context)
+
+  let index = descendants.findIndex((item) => item.element === descendant?.element)
+
+  // Prevent any flash
+  React.useLayoutEffect(() => {
+    const unregisterDescendant = registerDescendant({ ...descendant, index })
+    return unregisterDescendant
+  }, [descendant, index, registerDescendant, ...Object.values(descendant)])
+
+  return index
+}
+
+export const useDescendantsInit = () => {
+  return React.useState([])
+}
+
+export const useDescendants = (ctx) => {
+  return React.useContext(ctx).descendants
+}
+
+export const DescendantProvider = ({ context: Ctx, children, items, set }) => {
+  const registerDescendant = React.useCallback((descendant) => {
+    const { element, ...rest } = descendant
+
+    if (!element) {
+      return noop
+    }
+
+    set((items) => insertAt(items, descendant, { element, ...rest }))
+
+    return () => {
+      if (!element) {
+        return
+      }
+      set((items) => items.filter((item) => element !== item.element))
+    }
+  }, [])
+
+  return (
+    <Ctx.Provider
+      value={React.useMemo(
+        () => ({
+          descendants: items,
+          registerDescendant,
+        }),
+        [items, registerDescendant]
+      )}
+    >
+      {children}
+    </Ctx.Provider>
+  )
+}
+```
+
+```js file=utils.js
+import React from 'react'
+
+export const noop = () => {}
+
+export const insertAt = (arr, item, index) => {
+  if (index == null || !(index in arr)) {
+    return [...arr, item]
+  }
+  return [...arr.slice(0, index), item, ...arr.slice(index)]
+}
+```
+
+```css file=index.css hidden=true
+.active {
+  background-color: #f2f2f2;
+}
+```
+
+</Sandpack>
+
+這樣就可以讓 `index` 不用透過父傳子的方式，而是子組件 (`MenuItem`) 找出自己的 `index` 後將其註冊到父層組件 (`Menu`) 的 `descendants` 裡，這樣使我們可以更容易管理它們的聚焦 (focus)。
+
+同時父層組件 (`Menu`) 也只需要將當前 active 的 `index` 透過 `Context` 傳遞給子組件 (`MenuItem`)，讓子組件自行判斷是否 active。
+
+如果想要看更完整的 React Descendants 的實作方式，可以參考 [Reach UI](https://github.com/reach/reach-ui/blob/dev/packages/descendants) 的開源碼，可以透過它的測試情境了解更多以及管理 focus 的邏輯。
+
+### 優缺點
+
+#### 優點
+
+- 解決了上面兩種方法的問題，同時也可以讓我們更容易管理子組件的聚焦 (focus)。
+
+#### 缺點
+
+- 雙重渲染，們的組件有大量的子組件時，會有大量的渲染，這會導致效能的問題。
+- 無法在 SSR (Server Side Rendering) 時使用，因爲任何需要知道 `index` 的事物（或是需要依賴 `index` 衍生出來的邏輯）在 SSR 中都還沒開始，直到第二次渲染才知道該資訊。
+- 無法在子組件中使用 `<Suspense>`，當異步 Item 渲染時，我們會失去其他所有 Item 的 `index` ，或者得到產生出重複的 `index`。
+
+## 方法四：Collection API
+
+最後介紹的是 Collection API，其概念跟 React Descendant 差不多，都是將子組件存在陣列裡，並且在子組件渲染時將自己的資訊註冊到父層組件的陣列裡。
+
+### API 設計
+
+| API 名稱           | 說明                                                                                          |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| createCollection   | 用來建立 Collection 的 API，並且會將 children 透過 `CollectionComponent` 包起來 。            |
+| useCollectionItem  | 回傳兩個參數 `ref` 與 `index`， `ref` 用來將取得子組件的元素， `index` 則是該子組件的 index。 |
+| useCollectionItems | 回傳所有子組件的資訊。                                                                        |
+
+### 實作
+
+在 `Menu` 組件中，我們會透過 `createCollection` 來建立 `Menu` 的骨幹，它會將 `Menu` 的子組件包在 `CollectionProvider` 內。同時建立 `MenuContext` 來傳遞 `activeIndex` 與 `setActiveIndex`。
+
+而在 `MenuItem` 組件中，我們會透過 `useCollectionItem` 來取得該子組件的 `ref` 與 `index`，並且可以透過 `MenuContext` 來取得 `activeIndex` 來呈現出對應的 UI。
+
+<Sandpack>
+
+```jsx file=App.js
+import React from 'react'
+import { Menu, MenuItem } from './menu.js'
+
+export default () => {
+  return (
+    <Menu defaultIndex={0}>
+      <MenuItem>蘋果</MenuItem>
+      <MenuItem>香蕉</MenuItem>
+      <MenuItem>橘子</MenuItem>
+      {/* uncomment to see the issue */}
+      {/* 
+        <div>
+          <MenuItem>櫻桃</MenuItem>
+       </div>
+      */}
+    </Menu>
+  )
+}
+```
+
+```jsx file=menu.js
+import React from 'react'
+import { createCollection } from './collection.js'
+import './index.css'
+
+const [createMenuCollection, useMenuItem, useMenu] = createCollection('Menu')
+const MenuContext = React.createContext()
+
+export const Menu = createMenuCollection(({ children, defaultIndex }) => {
+  const [activeIndex, setActiveIndex] = React.useState(defaultIndex)
+  return (
+    <MenuContext.Provider value={{ activeIndex, setActiveIndex }}>{children}</MenuContext.Provider>
+  )
+})
+
+export const MenuItem = ({ ...props }) => {
+  const { activeIndex, setActiveIndex } = React.useContext(MenuContext)
+  const { ref: menuItemRef, index } = useMenuItem()
+
+  const isSelected = index === activeIndex
+
+  const handleItemClick = () => {
+    if (!isSelected) {
+      setActiveIndex(index)
+    }
+  }
+
+  const a11yProps = {
+    role: 'menuitem',
+    tabIndex: -1,
+  }
+
+  return (
+    <div
+      {...a11yProps}
+      className={isSelected ? 'active' : ''}
+      ref={menuItemRef}
+      onClick={handleItemClick}
+      {...props}
+    />
+  )
+}
+```
+
+```jsx file=collection.js
+import React from 'react'
+import createContext from './createContext.js'
+
+export const createCollection = (name) => {
+  const [CollectionContextProvider, useCollectionContext] = createContext(
+    `${name}CollectionContext`
+  )
+
+  const CollectionProvider = ({ children }) => {
+    const [items, setItems] = React.useState([])
+
+    // 主要是用來追蹤在 SSR 時，有多少個 useCollectionItem 被呼叫，並且透過此變數去紀錄，這樣在第二次渲染時，就可以知道有多少個子組件。
+    const ssrSyncUseCollectionItemCountRef = React.useRef(0)
+
+    const addItem = React.useCallback(
+      (item) => {
+        setItems((prevItems) => {
+          const exists = prevItems.find(({ ref }) => item.ref.current === ref.current)
+          return exists ? prevItems : [...(prevItems ?? []), item]
+        })
+      },
+      [setItems]
+    )
+
+    const removeItem = React.useCallback(
+      (ref) => {
+        setItems((prevItems) => prevItems.filter((item) => item.ref.current !== ref.current))
+      },
+      [setItems]
+    )
+
+    React.useLayoutEffect(() => {
+      setItems([])
+    }, [children])
+
+    return (
+      <CollectionContextProvider
+        value={React.useMemo(
+          () => ({ items, addItem, removeItem, ssrSyncUseCollectionItemCountRef }),
+          [items, addItem, removeItem]
+        )}
+      >
+        {children}
+      </CollectionContextProvider>
+    )
+  }
+
+  const createCollectionComponent = (Component) => {
+    const CollectionComponent = (props) => {
+      return (
+        <CollectionProvider>
+          <Component {...props} />
+        </CollectionProvider>
+      )
+    }
+
+    CollectionComponent.displayName = Component.displayName || `${name}CollectionComponent`
+
+    return CollectionComponent
+  }
+
+  const useCollectionItem = (state = {}) => {
+    const ref = React.useRef(null)
+    const { items, addItem, removeItem, ssrSyncUseCollectionItemCountRef } =
+      useCollectionContext('useCollectionItem')
+
+    // 在第一次渲染時，existingIndex 會是 -1
+    const existingIndex = items.findIndex((item) => ref.current === item.ref.current)
+    const index = existingIndex !== -1 ? existingIndex : ssrSyncUseCollectionItemCountRef.current++
+
+    React.useLayoutEffect(() => {
+      addItem({ ...state, ref })
+    })
+
+    React.useLayoutEffect(() => {
+      return () => {
+        removeItem(ref)
+      }
+    }, [removeItem])
+
+    return {
+      ref,
+      index,
+    }
+  }
+
+  const useCollectionItems = () => {
+    return useCollectionContext('useCollectionItem')?.items
+  }
+
+  return [createCollectionComponent, useCollectionItem, useCollectionItems]
+}
+```
+
+```jsx file=createContext.js
+import React from 'react'
+
+const createContext = (rootComponentName, defaultContext) => {
+  const Context = React.createContext(defaultContext)
+
+  // Provider
+  const Provider = (props) => {
+    const { children, value = {} } = props
+    const ctx = React.useMemo(() => value, [Object.values(value)])
+
+    return <Context.Provider value={ctx}>{children}</Context.Provider>
+  }
+
+  // Consumer
+  const useContext = (caller) => {
+    const context = React.useContext(Context)
+
+    if (context) {
+      return context
+    }
+
+    if (defaultContext) {
+      return defaultContext
+    }
+
+    throw new Error(`${caller} must be used within a ${rootComponentName}.`)
+  }
+
+  return [Provider, useContext]
+}
+
+export default createContext
+```
+
+```css file=index.css hidden=true
+.active {
+  background-color: #f2f2f2;
+}
+```
+
+</Sandpack>
+
+### 優缺點
+
+#### 優點
+
+- 同樣是解決了上述介紹的前兩種方法的問題，一樣讓我們可以更容易管理子組件的聚焦 (focus)。
+- 支援 SSR (Server Side Rendering)。
+
+## 參考資料
+
+1. [Reach UI - Descendants](https://github.com/reach/reach-ui/blob/dev/packages/descendants/README.md)
+2. [Radix UI - Collection](https://github.com/radix-ui/primitives/)
+3. [Advanced React component composition](https://frontendmastery.com/posts/advanced-react-component-composition-guide/)
+4. [Advanced Element Composition in React](https://ryanflorence.dev/p/advanced-element-composition-in-react)

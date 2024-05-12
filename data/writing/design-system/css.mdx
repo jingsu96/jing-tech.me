@@ -1,0 +1,127 @@
+---
+title: Design System 101 - CSS Package
+date: '2023-10-02'
+tags: ['設計系統']
+draft: true
+authors: ['default']
+topic: 'core'
+---
+
+## 前言
+
+因為先前都還沒有介紹 CSS 的設置，而今天剛好比較忙，所以本篇將介紹所有相關 CSS 的設置！
+
+## Storybook
+
+在 [Token to CSS](/series/design-system/style-dictionary#建立-Design-Token) 這篇，我們最終產出了屬於符合自身 Design System 需求的 [CSS](https://cdn.jsdelivr.net/npm/@tocino-ui/design-tokens/dist/normalize/normalize.css)，其包含了所有的基本設定，像是 Reference Token, System Token 以及一些基本的 Style。
+
+而我們也在先前的章節提到，在開發時我們可以透過 Storybook 來呈現組件的各種狀態，以便在開發或 Demo 時可以快速的預覽組件的樣式。
+
+先在 Storybook 建立 `preview-head.html`
+
+```js
+|__ .storybook
+    |__ preview-head.html
+    ...
+```
+
+在來透過 `preview-head.html` 來載入我們的 CSS
+
+```html
+// .storybook/preview-head.html
+<link
+  href="https://cdn.jsdelivr.net/npm/@tocino-ui/design-tokens/dist/normalize/normalize.css"
+  rel="stylesheet"
+/>
+```
+
+接著當開啟 Storybook 時，就可以看到 stylesheet 已經被載入，並且 `:root` 中已經有所有先前定義好的 Design Token (CSS Variable)。
+
+<Image src="https://imgur.com/tp1wV31.png" height="445" width="900" />
+
+## CSS Package
+
+> 以下設定可以參考筆者的 [Github - @tocino-ui/css](https://github.com/jingsu96/tocino/tree/main/packages/css)
+
+### CSS Package 架構
+
+```bash
+|__ packages
+|   |__ css
+|   |   |__ src
+|   |   |__ script
+|   |__ package.json
+|   |__ postcss.config.json
+```
+
+### 安裝相關套件
+
+接著我們來安裝一些主要的套件，首先我們需要安裝 `postcss` 與其相關套件， `postcss` 提供許多的 Plugin 來幫助我們處理 CSS，從幫加入 prefix 提升網站兼容係到幫處理 SCSS 等等。
+
+```bash
+pnpm i -D postcss autoprefixer postcss-import postcss-scss @csstools/postcss-sass
+```
+
+- `autoprefixer`: 自動在你的 CSS 中添加適當的前綴。
+- `@csstools/postcss-sass`: 可以使用 postcss 來處理 Sass 檔案。
+- `postcss-scss`: 讓 postcss 可以解析 SCSS 語法的工具。
+- `postcss-import`: 可以在你的 CSS 或 SCSS 中使用 @import 語句來導入其他樣式檔。
+
+### 建立 postcss.config.js
+
+該 script 主要就是用來處理 CSS 的設定，以下是筆者的設定！
+
+```js
+const autoprefixer = require('autoprefixer')
+const sass = require('@csstools/postcss-sass')
+const scss = require('postcss-scss')
+const scssImport = require('postcss-import')
+const { join } = require('path')
+
+module.exports = {
+  map: {
+    sourcesContent: false, // 不要產生 sourcemap
+    annotation: true, // 產生註解
+  },
+  customSyntax: scss, // 使用 scss 語法
+  parser: scss,
+  plugins: [
+    scssImport,
+    sass({
+      includePaths: [join(__dirname, 'node_modules')],
+      outputStyle: process.env.CSS_MINIFY === '0' ? 'expanded' : 'compressed',
+    }),
+    autoprefixer,
+  ],
+}
+```
+
+最後再透過該 config 引入 `build.js` 腳本，透過此腳本就可以產生我們最終所需要的 CSS 檔案，並且在組件中引入。
+
+```js
+// button.tsx
+
+import '@tocino-ui/css/dist/button.css'
+
+// your code
+```
+
+## 小結
+
+現在我們已經有了一個 Design System 的雛形，從最初的 `/components` 建立，到現在 `/css` 整體架構如下:
+
+```bash
+|__ packages
+|   |__ components // 組件庫
+|   |__ css // 所有組件 CSS 相關的設定
+|   |__ design-tokens // 所有視覺元素以及基礎 Styling 的設定
+|   |__ core // 核心共用的邏輯
+```
+
+而開發時我們可以透過 turbo 來同時啟動相關的 Packages
+
+```bash
+turbo run dev -- --watch
+```
+
+<Image src="https://imgur.com/ATQXUAU.png" height="392" width="900" />

@@ -1,0 +1,650 @@
+---
+title: Design System 101 - 設計模式 x Slots 插槽
+date: '2023-09-24'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'core'
+order: 1
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 什麼是 Slots ?
+
+Slots, 也可以稱為插槽, 就是一個預設的區塊 (placeholder)，其顧名思義，可以透過 Slots 在組件中插入任何預先定義的內容，包含其他組件、文字、圖片等等。
+
+<Image src="https://imgur.com/VBZVXr4.png" height="440" width="708" />
+
+## 為什麼需要 Slots ?
+
+在介紹 Slots 之前，我們先來探討現今 React 組件中最常見的兩種 API 設計方式：配置模式 (Configuration) 和組合模式 (Composition)。再深入瞭解 Slots 是如何為其提供解決方案的。
+
+### 配置模式 (Configuration)
+
+說到了配置模式，就讓筆者回想到當初在建 `<TextInput />` 或是其他一些比較複雜的組件，時常會遇到需要 **客製化** 的情況。
+
+而那時候的解法都是透過傳入 props 大法，雖然這樣的方法在短期內是有效的，但隨著需求的增加，組件的 API 也會變得越來越繁鎖。
+
+以下筆者將用 `<TextInput />` 舉例， 一起來看看其組件的成長史。
+
+首先 v1 版本通常會是和組件的設計指南一樣，有基本的 `label`、`input`、`helperText`，這時候的組件可能會長這樣
+
+```jsx
+// v1
+const TextInput = ({ label, helperText, icon, ...props }) => {
+  return (
+    <div className="text-input">
+      <label>{label}</label>
+      <input {...props} />
+      <span className="helper-text">{helperText}</span>
+      {icon}
+    </div>
+  )
+}
+```
+
+然而，隨著時間的進展，可能有同事提出需要改變 `label` 的顏色。於是我們引入 `labelProps` 以便開發者進行客製化：
+
+```jsx
+// v2
+const TextInput = ({ label, helperText, icon, labelProps, ...props }) => {
+  return (
+    <div className="text-input">
+      <label {...labelProps}>{label}</label>
+      <input {...props} />
+      <span className="helper-text">{helperText}</span>
+      {icon}
+    </div>
+  )
+}
+```
+
+不久之後，又有同事反應說需要 `input` 需要加入前綴與後綴，於是我們就加入 `prefix` 與 `suffix` 讓開發者可以自由的客製化 `prefix` 與 `suffix`。
+
+```jsx
+// v3
+const TextInput = ({
+  label,
+  helperText,
+  icon,
+  labelProps,
+  prefix,
+  prefixProps,
+  suffix,
+  suffixProps,
+  ...props
+}) => {
+  return (
+    <div className="text-input">
+      <label {...labelProps}>{label}</label>
+      <div>
+        {prefix && <span {...prefixProps}>{prefix}</span>}
+        <input {...props} />
+        {suffix && <span {...suffixProps}>{suffix}</span>}
+      </div>
+      <span className="helper-text">{helperText}</span>
+      {icon}
+    </div>
+  )
+}
+```
+
+隨著設計千奇百怪的需求迎面而來，為了讓組件能夠複用，我們就會需要越來越多的 props 來客製化組件，到最後 `<TextInput />` API 可能會非常冗長，讓組件變得難以維護，且混合了各種邏輯。
+
+而組合模式的出現，正是為了嘗試解決這樣的問題。接下來，我們來看看組合模式如何達到這個目的。
+
+### 組合模式 (Composition)
+
+React 是一個組件化的 UI 框架，而組件化的好處就是可以將一個大的組件拆分成更小的組件，並且可以複用。這就是組合模式的核心思想。
+
+```jsx
+<TextField>
+  <TextField.Label />
+  <TextField.Input />
+  <TextField.HelperText />
+  <TextField.Icon />
+</TextField>
+```
+
+這種方式提供開發者可以靈活運用組件，自由的定制組件的每一部分，但這引起了另一個問題：一致性，使用者必須按照預期的順序放入子組件，否則可能會導致 Accessibility 問題。
+
+舉例來說 `<TextField />` 組件的順序應該是 `Label` -> `Input` -> `HelperText` -> `Icon`。
+
+此時使用者將 `Label` 放在最後面，並透過 CSS 將 `Label` 移到 `Input` 的上方，這樣就會導致 Accessibility 問題，因為對於 Screen Reader 使用者來說，因為他們可能首先接觸到的是 Input，卻還不知道這個輸入框的具體用途。
+
+## Slots 概念
+
+### Slots - Web Components
+
+在介紹如何設計 React Slots 之前我們可以透過 Web Components 的 API 來看看 Slots 是如何解決這個問題的。
+
+舉例來說，現在要設計一個 `Button` 組件，有了 Slots 我們就可以 Slot 的位置，像是按鈕的文字，並且給予一個預設的內容，當有需要客製化的時候，就可以透過 `slot` 屬性直接來插入內容。
+
+<Sandpack lang="static">
+
+```html file=index.html
+<body>
+  <template id="button-component">
+    <button>
+      <slot name="text">Default Button</slot>
+    </button>
+  </template>
+
+  <button-component>
+    <!--   <span slot="text">Click Me</span>  -->
+  </button-component>
+</body>
+<script>
+  customElements.define(
+    'button-component',
+    class extends HTMLElement {
+      constructor() {
+        super()
+        const template = document.getElementById('button-component')
+        const templateContent = template.content
+
+        const shadowRoot = this.attachShadow({ mode: 'open' })
+        shadowRoot.appendChild(templateContent.cloneNode(true))
+      }
+    }
+  )
+</script>
+```
+
+</Sandpack>
+
+### Slots - React
+
+在 React 中，雖然沒有原生 Slots AP，但我們可以透過 `children` 來達到相同的效果，但是 `children` 並沒有提供名稱的概念，因此需要透過 `props` 來定義。
+
+#### Default Slot
+
+首先，先介紹當只需要定義一個 Slot, 讓我們來看看如何透過 `children` 來實現 Slots。
+
+```jsx
+const Button = ({ children }) => {
+  return <button>{children || 'Default Button'}</button>
+}
+```
+
+這樣的寫法，就可以讓開發者在使用 `<Button />` 組件時，可以自由的插入任何內容。
+
+```jsx
+<Button>
+  <span>Click Me</span>
+</Button>
+```
+
+#### Named Slots
+
+當需要定義多個 Slots 時，例如 Button 與 Icon, 此時我們可以透過 `props` 來定義
+
+```jsx
+const Button = ({ icon, content }) => {
+  return (
+    <button>
+      {icon}
+      {content || 'Default Button'}
+    </button>
+  )
+}
+```
+
+而這個做法有一個缺點，所有的 Slot 都需要透過 `props` 來定義。
+
+```jsx
+<Button icon={<Icon />} content={<span>Click Me</span>} />
+```
+
+#### Slots with `createSlots`
+
+為了解決上面的問題，可以與組合模式的概念進行結合，並透過遍歷 React Children 的方式找到每個子組件的型別，並且將其放入對應的 Slot 中。
+
+首先使用方式大概會像這樣
+
+```jsx
+<Button>
+  <Icon>🖕</Icon>
+  <Content>Click Me!</Content>
+</Button>
+```
+
+而 JSX 會被轉換成以下的結構
+
+```jsx
+{
+  type: function Button() {},
+  props: {
+    children: [
+      {
+        type: function Icon() {},
+        props: {},
+      },
+      {
+        type: function Content() {},
+        props: {
+          children: 'Click Me',
+        },
+      },
+    ],
+  },
+}
+```
+
+再透過這個結構，遍歷 `children` 來找到每個子組件的型別，並且將其放入對應的 Slot 中。
+
+<Sandpack>
+
+```js file=App.js
+import React from 'react'
+
+function ButtonContent(props) {
+  return <>{props.children}</>
+}
+
+function Icon(props) {
+  return <>{props.children}</>
+}
+
+const Button = (props) => {
+  const { children } = props
+
+  let icon = null
+  let content = null
+
+  React.Children.forEach(children, (child) => {
+    if (!React.isValidElement(child)) return null
+    if (child.type === Icon) {
+      icon = child
+    } else {
+      content = child
+    }
+  })
+
+  console.log(icon, content)
+
+  return (
+    <button>
+      {icon}
+      {content || 'Default Button'}
+    </button>
+  )
+}
+
+export default () => {
+  return (
+    <Button>
+      <Icon>🖕</Icon>
+      <ButtonContent>Click Me!</ButtonContent>
+    </Button>
+  )
+}
+```
+
+</Sandpack>
+
+而從上面的例子中，可以看到我們可以透過 `slot` 屬性來插入內容，就可以解決 Configuration 模式的痛點，不用再傳入過多的 props 來客製化組件。也可以解決 Composition 模式的痛點，因為開發者可以自由的插入內容，而不用擔心順序的問題。
+
+#### Slots with Context API
+
+上面的例子中，我們透過遍歷 React Children 的方式找到每個子組件的型別，並且將其放入對應的 Slot 中，但這樣的方式有一個缺點，就是當組件的層級越深，就需要越多的遍歷，這樣的效能會變得越來越差。
+
+我們可以透過 React Context API 來解決這個問題，首先先建立一個 Context
+
+```jsx
+const ButtonContext = React.createContext({
+  slots: {
+    icon: null,
+    content: null,
+  },
+})
+```
+
+再來就是透過 `ButtonContext.Provider` 來包住子組件，並且可以透過 `slots` 來定義每個 Slot 的內容
+
+```jsx
+const ButtonContextProvider = ({ children, slots }) => {
+  return <ButtonContext.Provider value={slots}>{children}</ButtonContext.Provider>
+}
+```
+
+最後建立一個 `useButtonContext` 來取得 Context 的值
+
+```jsx
+const useButtonContext = (props, slotName) => {
+  const context = React.useContext(ButtonContext)
+
+  return { ...(props || {}), ...(context?.[slotName] || {}) }
+}
+```
+
+最後再建立 Button 與 Icon 組件時，加入 `useButtonContext` 來取得相對應 Slot 的內容
+
+```jsx
+const ICONS = {
+  play: '⏯️',
+  thumbUp: '👍',
+};
+
+const Icon = (props: { type: string }) => {
+  props = useButtonContext(props, 'icon');
+
+  return (
+    <span style={{ marginRight: '4px', display: 'inline-flex' }} {...props}>
+      {ICONS[props.type]}
+    </span>
+  );
+};
+
+const Button = (props: { children: React.ReactNode }) => {
+  props = useButtonContext(props, 'button');
+
+  return (
+    <button {...props}>
+      <Icon type="play" />
+      {props.children}
+    </button>
+  );
+};
+```
+
+<Sandpack>
+
+```js file=App.js
+import React from 'react'
+
+const ButtonContext = React.createContext({
+  slots: {
+    icon: null,
+    button: null,
+  },
+})
+
+const useButtonContext = (props, slotName) => {
+  const context = React.useContext(ButtonContext)
+
+  return { ...(props || {}), ...(context?.[slotName] || {}) }
+}
+
+const ButtonContextProvider = ({ children, slots }) => {
+  return <ButtonContext.Provider value={slots}>{children}</ButtonContext.Provider>
+}
+
+const ICONS = {
+  play: '⏯️',
+  thumbUp: '👍',
+}
+
+const Icon = (props) => {
+  props = useButtonContext(props, 'icon')
+
+  return (
+    <span style={{ marginRight: '4px', display: 'inline-flex' }} {...props}>
+      {ICONS[props.type]}
+    </span>
+  )
+}
+
+const Button = (props) => {
+  props = useButtonContext(props, 'button')
+
+  return (
+    <button {...props}>
+      <Icon type="play" />
+      {props.children}
+    </button>
+  )
+}
+
+export default () => {
+  return (
+    <ButtonContextProvider
+      slots={{
+        icon: {
+          type: 'thumbUp',
+          style: { marginRight: '4px' },
+        },
+      }}
+    >
+      <Button>Play!!!</Button>
+    </ButtonContextProvider>
+  )
+}
+```
+
+</Sandpack>
+
+而這就是用 React Context API 建立 Slots 這個概念，也是目前 [Adobe React-Spectrum Slot](https://github.com/adobe/react-spectrum/blob/main/rfcs/2019-v3-slots.md) 的設計方式，透過 Context API 來定義 Slots 的內容，並且透過 `useSlotProps` 來取得相對應 Slot 的值。
+
+接著來探讀 [Adobe React-Spectrum Slot](https://github.com/adobe/react-spectrum/blob/main/rfcs/2019-v3-slots.md) 是如何建立 `Slots` 組件，在這之前，我們不仿想一下如何讓上面的例子適用於不同的組件中，這時我們可能需要以下的 API
+
+##### **API**
+
+| Name           | Description           | Params                 |
+| -------------- | --------------------- | ---------------------- |
+| `SlotProvider` | 建立 Slots 的 Context | `slots`                |
+| `useSlotProps` | 使用對應 Slot 的內容  | `props`, `defaultSlot` |
+| `mergeProps`   | 合併所有的 props      | `args`                 |
+
+##### **Slot - SlotProvider**
+
+在正式進入實作之前，要先思考一下當開發者對同一個 slot 傳入重複的 `props` 我們要如何處理，例如以下的例子
+
+```jsx
+<SlotProvider
+  slots={{ icon: { type: 'play' }, className: 'mb-4', onClick={myClickLogic} }}
+>
+  <SlotProvider
+    slots={{ icon: { type: 'pause' }, className: 'd-flex', onClick={defaultClickLogic} }}
+  >
+    <Button />
+  </SlotProvider>
+</SlotProvider>
+```
+
+這時後我們要保留最外層的 `type` (因為這是最後一個傳入的值)，但是 `className` 則是要合併，最後 `onClick` 這種事件行函式則是要連續的呼叫，這時候我們就可以透過 `mergeProps` 來解決這個問題。
+
+```jsx
+export const chain = (...fns) => {
+  return (...args) => {
+    fns.forEach((fn) => typeof fn === 'function' && fn?.(...args))
+  }
+}
+
+export const mergeProps = (...args) => {
+  const result = { ...args[0] }
+
+  for (let i = 1; i < args.length; i++) {
+    const props = args[i]
+
+    for (const key in props) {
+      const a = result[key]
+      const b = props[key]
+
+      if (
+        typeof a === 'function' &&
+        typeof b === 'function' &&
+        key.startsWith('on') &&
+        key.charCodeAt(2) <= 90 &&
+        key.charCodeAt(2) >= 65
+      ) {
+        result[key] = chain(a, b)
+        continue
+      }
+
+      if (key === 'className') {
+        result[key] = clsx(a, b)
+        continue
+      }
+
+      result[key] = b === undefined ? a : b
+    }
+  }
+
+  return result
+}
+```
+
+再來我們就可以實作 `SlotProvider` 了，因為 React Context 只會取最近的一層 Context，如果也要讓其他開發者放入 slot 參數都可以被取到，透過 `useContext` 先取得 parentSlots，
+
+透過 `reduce` 將相同的 slot 組合起來， 並將 `slots` 與 `parentSlots` 透過 `mergeProps` 的方式進行合併，最後用 `useMemo` 將結果進行儲存，避免重複計算。
+
+```jsx
+const SlotContext = React.createContext(null)
+
+const SlotProvider = (props) => {
+  const parentSlots = useContext(SlotContext) || {}
+  const { slots = {}, children } = props
+
+  const value = useMemo(() => {
+    return Object.keys(parentSlots)
+      .concat(Object.keys(slots))
+      .reduce(
+        (acc, props) => ({
+          ...acc,
+          [props]: mergeProps(parentSlots[props] || {}, slots[props] || {}),
+        }),
+        {}
+      )
+  }, [parentSlots, slots])
+
+  return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>
+}
+```
+
+##### **Slot - useSlotProps**
+
+`useSlotProps` 則相對簡單，我們只需要取得 `slot` 的值，並且回傳對應的 `props` 即可。
+
+```jsx
+const useSlotProps = <T,>(props: T & { id?: string }, defaultSlot?: string) => {
+  const slot = (props as SlotProps).slot || defaultSlot;
+  const context = useContext(SlotContext) || {};
+
+  return mergeProps(props, mergeProps(slot ? (context as any)[slot] : {}, { id: props.id }));
+};
+```
+
+##### **Slot with Button**
+
+最後再將上面的 API 應用到 Button 組件中，首先我們先定義 Button, Icon 組件，並且有了 `SlotProvider` 之後，就可以改 Button 或是 Icon 的參數
+
+<Sandpack>
+
+```js file=App.js
+import React, { useContext, useMemo } from 'react'
+
+const chain = (...fns) => {
+  return (...args) => {
+    fns.forEach((fn) => typeof fn === 'function' && fn?.(...args))
+  }
+}
+
+const mergeProps = (...args) => {
+  const result = { ...args[0] }
+
+  for (let i = 1; i < args.length; i++) {
+    const props = args[i]
+
+    for (const key in props) {
+      const a = result[key]
+      const b = props[key]
+
+      if (
+        typeof a === 'function' &&
+        typeof b === 'function' &&
+        key.startsWith('on') &&
+        key.charCodeAt(2) <= 90 &&
+        key.charCodeAt(2) >= 65
+      ) {
+        result[key] = chain(a, b)
+        continue
+      }
+
+      if (key === 'className') {
+        result[key] = clsx(a, b)
+        continue
+      }
+
+      result[key] = b === undefined ? a : b
+    }
+  }
+
+  return result
+}
+
+const SlotContext = React.createContext(null)
+
+const SlotProvider = (props) => {
+  const parentSlots = useContext(SlotContext) || {}
+  const { slots = {}, children } = props
+
+  const value = useMemo(() => {
+    return Object.keys(parentSlots)
+      .concat(Object.keys(slots))
+      .reduce(
+        (acc, props) => ({
+          ...acc,
+          [props]: mergeProps(parentSlots[props] || {}, slots[props] || {}),
+        }),
+        {}
+      )
+  }, [parentSlots, slots])
+
+  return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>
+}
+
+const useSlotProps = (props, defaultSlot) => {
+  const slot = props.slot || defaultSlot
+  const context = useContext(SlotContext) || {}
+
+  return mergeProps(props, mergeProps(slot ? context[slot] : {}, { id: props.id }))
+}
+
+const ICONS = {
+  play: '⏯️',
+  thumbUp: '👍',
+}
+
+const Icon = (props) => {
+  props = useSlotProps(props, 'icon')
+
+  return (
+    <span style={{ marginRight: '4px', display: 'inline-flex' }} {...props}>
+      {ICONS[props.type]}
+    </span>
+  )
+}
+
+const Button = (props) => {
+  props = useSlotProps(props, 'button')
+
+  return (
+    <button {...props}>
+      <Icon type="play" />
+      {props.children}
+    </button>
+  )
+}
+
+export default () => {
+  return (
+    <SlotProvider
+      slots={{
+        button: {
+          style: { display: 'flex', alignItems: 'center' },
+        },
+        icon: {
+          style: { marginRight: '8px', display: 'inline-flex' },
+          type: 'thumbUp',
+        },
+      }}
+    >
+      <Button>Play!!</Button>
+    </SlotProvider>
+  )
+}
+```
+
+</Sandpack>

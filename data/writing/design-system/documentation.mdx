@@ -1,0 +1,119 @@
+---
+title: Design System 101 - 文檔建置 (Documentaion)
+date: '2023-10-08'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'workflow'
+order: 1
+---
+
+## 前言
+
+大多數人一開始都是透過文檔去了解一個套件它想要解決什麼問題，以及如何使用。
+
+對於 Design System 裡文檔也是不可或缺的一環，其不僅可以減少團隊間的溝通成本，也可以讓其他開發者在使用任何組件時更容易上手。
+
+> 本篇會來介紹文檔建置的基本需要的內容，以及一些常見的工具。
+
+### 基礎
+
+#### Design Tokens
+
+在 Design Token 介紹到主要的視覺元素有顏色, 字體, 邊框, 陰影, 間距與動畫等等，而這些資訊呈現在文檔上面可以讓開發者在開發時快速對焦到需要的 Token 而不是去 Design System 原始碼或是設計稿找。
+
+讓我們來看看 Design Tokens 這部分，大廠都是如何呈現的，首先是 Saleforce 的 Lighting Design System，其在很早就有推行 Design Token 這個概念，而其頁面設計也是簡潔有力，有很完整的 Token 資訊(像是 alias, rgba, version) 以及搜尋功能，唯一美中不足的是沒有複製 Token 的功能。
+
+<Image
+  src="https://imgur.com/eIgLBhM.png"
+  width="708"
+  height="556"
+  showalt
+  sourceTitle="Lighting Design System"
+  sourceUrl="https://www.lightningdesignsystem.com/design-tokens/"
+/>
+
+而類似於 Saleforce 的還有 AWS 的 Cloudspace Design System。
+
+<Image
+  src="https://imgur.com/9ZeGKls.png"
+  width="708"
+  height="423"
+  showalt
+  sourceTitle="AWS Cloudspace Design System"
+  sourceUrl="https://cloudscape.design/foundation/visual-foundation/colors/"
+/>
+
+#### Best Practice
+
+另外當其他開發者想使用我們的 Design System 時，也可以列出 A11y, 設計準則, 與程式架構方面的最佳實踐原則，可以減少開發者寫出 Anti Pattern 的機會。
+
+### 組件
+
+#### 用途與組件結構
+
+介紹組件的設計框架，可以讓其他開發者更了解該組件，以及哪些部分可以因應需求進行客製化。
+
+#### 屬性
+
+記錄組件在設計和程式碼中支持的屬性。這裡建議各平台之間能夠有一致的屬性，可以讓設計交接過程更順暢。
+
+#### 範例程式碼
+
+此外如果在介紹組件的各種 API 又或是如何使用較底層的組件 (像是 Button, Icon, Text ...) 組出更複雜的組件時可以有交互型的範例，可以讓其他開發者可以更快速建立出組件。
+
+<Image src="https://imgur.com/D72OKBH.gif" width="708" height="326" />
+
+下面是一些常見的工具:
+
+- [Sandpack](https://sandpack.codesandbox.io/): 是 Codesandbox 所開源的套件，可以使用它來建立交互式的範例
+- [React Live](https://formidable.com/open-source/react-live/): React Live 也是另外一種選擇，也可以使用它來達到此效果
+
+目前許多大廠或是部落格都開始有提供交互式的範例，在建置上不會需要太多成本，也可以與 MDX 整合，非常推薦大家使用!
+
+#### A11y
+
+最後則是列出該組件的 A11y 相關的資訊，這部分筆者認為 IBM 的 [Carbon Design System](https://carbondesignsystem.com/components/accordion/accessibility) 可以作為很好的範例，其將 A11y 的資訊獨立出來，讓開發者可以更快速的找到相關的資訊。
+
+<Image src="https://imgur.com/oxx1c7v.png" width="708" height="529" />
+
+### 網站建置工具
+
+現在有許多開箱及用的網頁框架，可以讓我們快速搭建一個網頁，並專註載內容的撰寫，以下會介紹幾個常見的工具:
+
+#### Docusaurus
+
+[Docusaurus](https://github.com/facebook/docusaurus) 是由 Meta 所開源的一個網頁框架，其主要是用來建置文檔網站，其特色是有以下幾點
+
+- 可以透過 Markdown 來撰寫文檔
+- 支援多國語系
+- 支援搜尋功能 (Algolia)
+- 以及多種 [其他人的範例](https://docusaurus.io/showcase) 可以參考
+
+**基本的環境建置**
+
+```bash
+design-systems/app > npx @docusaurus/init@latest init doc classic
+design-systems/app/doc > pnpm install
+design-systems/app/doc > pnpm run start
+```
+
+接者就一個網站雛形就出來了！
+
+<Image src="https://imgur.com/pFrdaJy.png" width="708" height="555" />
+
+#### Astro
+
+[Astro](https://docs.astro.build/en/install/auto/) 則是近來興起的一個網頁框架，其主要是也用來建置網頁，而它的特點為
+
+- 可以透過 Markdown 來撰寫文檔
+- 支援多國語系
+- 支援搜尋功能 (Algolia)
+- 以及不受限於 React 的生態系，可以是任何框架
+
+```bash
+design-systems/app > pnpm create astro@latest
+design-systems/app/<dir> > pnpm run dev
+```
+
+<Image src="https://imgur.com/2TsYJYB.png" width="708" height="584" />

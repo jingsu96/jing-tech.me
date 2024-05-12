@@ -1,0 +1,97 @@
+---
+title: Design System 101 - Visual Regression Testing
+date: '2023-10-12'
+tags: ['設計系統']
+draft: true
+authors: ['default']
+topic: 'workflow'
+order: 4
+---
+
+## 前言
+
+本篇將來介紹測試，測試是在軟體開發中一個重要的環節，而像 Design System 這類的核心的基礎套件中，測試更顯重要。
+
+而本篇會對視覺回溯測試進行介紹，並且介紹 Storybook 中的 Chromatic 來進行視覺回溯測試。
+
+## 視覺回溯測試
+
+視覺回歸測試是一種測試與單元測試不同的是，其是對畫面進行的測試，當有新的改動時，會將改動前後的快照進行比對，
+
+測試結束後我們會得到三種結果：
+
+1. UI 沒有差異
+2. UI 有變化，但當這個變更是預期的時候，就需要在測試平台中將改動後的快照作新的基線，並可以重新觸發測試。
+3. UI 有變化，但是非預期的，這部分就需要開發者來檢查是否有問題。
+
+而第三點的測試結果就是視覺回溯測試的價值所在！
+
+![Storybook Visual Testing](https://imgur.com/3kuVGsq.gif)
+
+### 為什麼要做視覺回溯測試
+
+在沒有視覺回溯測試前，往往都需要在版本發佈前，用人工的方式確認排版或組件，這部分通常是枯燥乏味的，而且一不小心就可能忽略一些細節。
+
+而視覺回溯測試就可以幫助我們在每次發佈前，自動化的確認畫面或是組件是否有變化！
+
+### Chromatic
+
+在先前我們提到了許多 Storybook 的優點，而其也可以使用 Storybook 搭配 Chromatic 來進行組件的視覺回溯測試
+
+#### 建立帳號與設置
+
+可以透過 Github 帳號登入 Chromatic 並設置好 Chromatic，在[官方文檔](https://storybook.js.org/tutorials/intro-to-storybook/react/zh-TW/deploy/)有更仔細的教學，這邊就不再贅述。
+
+全部設定好後，就可以在 Chromatic 中看到組件的畫面了！
+
+![Chromatic](https://imgur.com/qTObQxt.png)
+
+#### 建立 CI
+
+而 Chromatic 也提供了 Github Action 的 CI，可以透過 Github Action 來觸發 Chromatic 的測試。
+
+```yml
+# Workflow name
+name: 'Chromatic Deployment'
+
+# Event for the workflow
+on: push
+
+# List of jobs
+jobs:
+  test:
+    # Operating System
+    runs-on: ubuntu-latest
+    # Job steps
+    steps:
+      - uses: actions/checkout@v4
+      - run: pnpm install
+        #👇 Adds Chromatic as a step in the workflow
+      - uses: chromaui/action@v1
+        # Options required for Chromatic's GitHub Action
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+#### 改動 UI
+
+當我們改動 UI 時，就可以透過 Github Action 來觸發 Chromatic 的測試，並且在 Chromatic 中看到改動前後的畫面。
+
+假設今天不小心改動了 UI，將 Button Elevated 字的顏色改了
+
+```scss
+// packages/css/src/button/button.scss
+- --tocino-elevated-button-label-text-color: var(--tocino-sys-color-primary);
++ --tocino-elevated-button-label-text-color: var(--tocino-sys-color-on-primary);
+```
+
+![png](https://imgur.com/vhHaWCm.png)
+
+推 PR 時，這時候 Chromatic 就會發現 UI 有變化，並且會在 Chromatic 中顯示出來。
+
+![png](https://imgur.com/beDiNRA.png)
+
+## 參考資料
+
+https://storybook.js.org/tutorials/intro-to-storybook/react/zh-TW/test/

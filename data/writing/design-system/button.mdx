@@ -1,0 +1,161 @@
+---
+title: Design System 101 - Button
+date: '2023-09-30'
+tags: ['設計系統']
+draft: true
+authors: ['default']
+topic: 'component'
+status: 'Preview'
+order: 2
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+Button 在 Design System 中是最基礎的組件，主要作為**觸發某事件**的 UI，例如：送出表單、刪除資料、開啟 Modal 等等。本篇文章將搭配 Material Design 來介紹 Button 的設計與實作。
+
+### Button Type
+
+Button 組件通常會有不同的種類去處理對應的行為，像是 Material Design 中的 Button 有以下幾種類型：
+
+<Image
+  src="https://lh3.googleusercontent.com/9NBw6U14z6f-EAnwPqfcX-mIkxNdpK0IXvwiun9w84JkMcZfBT0bfRqn7QWdBVqnCYC5hsDEnGhSjbaWcgi1HT_Q6pCioSRTgMFODqZdAXw=s0"
+  height="248"
+  width="846"
+  showalt
+  sourceTitle="Material Design"
+  sourceUrl="https://m3.material.io/components/buttons/overview"
+/>
+
+| 種類             | 描述                                                                      | 用途                                                                |
+| ---------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **Elevated**     | 由於該按鈕本身有陰影，所以需要避免陰影效果擴散，進而影響到頁面上的視覺。  | 當按鈕需要與背景的視覺區隔時 。                                     |
+| **Filled**       | 本身的背景色是使用較強烈的顏色，所以容易吸引使用者的注意力 。             | 通常使用完成流程的重要最終操作，例如: 保存、送出與確認的狀態等等 。 |
+| **Outlined**     | 本身的背景色是使用較弱的顏色 。                                           | 通常是用來作為次要的操作 ，例如: 取消、返回等等 。                  |
+| **Filled tonal** | 是 Filled 與 Outlined 的折衷方案，而對應的操作重要程度也是介於兩者之間 。 | 下一步、繼續等等的操作 。                                           |
+| **Text**         | 用於最低優先級的操作。                                                    | 同時展示不同選項的操作，例如: Yes, No 與 Maybe 。                   |
+
+> 如果想要知道更多 Material Design 對於 Button 種類，可以參考[指引](https://m3.material.io/components/buttons/guidelines)。
+
+### Button 的狀態
+
+Button 除了有不同的種類外，也會有不同的狀態，這些也是在設計 API 時需要考慮的。例如：`disabled`、`hover`、`focus`、`active` 等等。
+
+<Image
+  src="https://lh3.googleusercontent.com/LpxrsfkTvTDslsvmXniNC2qfGK-q07F3hSlEt4mhIAndZFZ0iO4UKq6x6-3hEOdfnEefCCQK7Or-HECtj3gx3P_in7dgNWAg_zw_MbBM1w_k=s0"
+  height="496"
+  width="846"
+  showalt
+  sourceTitle="Material Design"
+  sourceUrl="https://m3.material.io/components/buttons/specs"
+/>
+
+### Button 的組成
+
+<Image
+  src="https://lh3.googleusercontent.com/QJ8i4-l9KptfBfnifxeaAgfpczaGv9Z-4X5e05A8qp8hSUYOmWC_sJOfucrodjLxd6EZ5WTCQ3kro28exYQG-AL4-Lx2bIZp0eAy1Y4P4rBd=s0"
+  height="375"
+  width="846"
+  showalt
+  sourceTitle="Material Design"
+  sourceUrl="https://m3.material.io/components/buttons/specs"
+/>
+
+#### 1. Label Text
+
+在 [設計標籤到 CSS](/series/design-system/style-dictionary#建立-Design-Token) 中，我們已經建立好給 Component Token 參照的 System Token，所以這裡可以參照其值。
+
+```css
+// button.scss
+:root {
+  --tocino-button-label-text-line-height: var(--tocino-sys-typescale-label-large-line-height);
+  --tocino-button-label-text-font: var(--tocino-sys-typescale-label-large-font);
+  --tocino-button-label-text-size: var(--tocino-sys-typescale-label-large-size);
+  --tocino-button-label-text-weight: var(--tocino-sys-typescale-label-large-weight);
+}
+```
+
+#### 2. Buttom 的容器 (Container)
+
+這層定義所有 Button 的基本樣式。
+
+#### 3. Icon (optional)
+
+Icon 在 Button 組件中則是可選的屬性，其傳達了按鈕對應的操作，其位置可以是在 Label Text 的前後。
+
+### Slot
+
+先前在 [設計模式 x Slots 插槽](/series/design-system/slot) 提到了 Slot 的概念，這個概念也會應用到 Button 組件中，讓在未來 Button 的使用上，更容易與其他組件進行組合。
+
+```jsx
+const Button = ({ children, ...props }) => {
+  props = useSlotProps(props, 'button')
+
+  return <button {...props}>{children}</button>
+}
+```
+
+### 使用方式
+
+```jsx
+<Button>Elevated</Button>
+<Button icon={<Icon />} />
+<Button icon={<Icon />} iconPosition="after">Send</Button>
+<Button variant="filled">Filled</Button>
+<Button disabled>Text</Button>
+```
+
+### API
+
+Button 的 API 主要有以下：
+
+| 屬性             | 描述                                                                | 型別 | 預設值     |
+| ---------------- | ------------------------------------------------------------------- | ---- | ---------- |
+| **variant**      | 按鈕的種類 `elevated`、`filled`、`outlined`、`filled-tonal`、`text` | enum | `elevated` |
+| **icon**         | 按鈕的 Icon                                                         | node | -          |
+| **iconPosition** | Icon 的位置，可選擇 `before`、`after`                               | enum | `before`   |
+| **disabled**     | 是否禁用按鈕                                                        | bool | `false`    |
+
+### Accessibility
+
+#### 1. 聚焦環 (Focus Ring)
+
+Focus Ring 主要是讓鍵盤使用者在瀏覽網頁的過程中，可以透過它來知道當前的聚焦 (focus) 位置。
+
+<Image
+  src="https://imgur.com/EVffluV.gif"
+  height="231"
+  width="708"
+  showalt
+  sourceTitle="React Spectrum - Button"
+  sourceUrl="https://react-spectrum.adobe.com/react-spectrum/Button.html"
+/>
+
+#### 2. 顏色對比 (Color Contrast)
+
+在設計 Button 時，也需要考慮到其顏色對比度，同一排的 Button 顏色對比度應該要不同，讓使用者可以清楚的知道哪些是重要的操作。
+
+<Image
+  src="https://lh3.googleusercontent.com/T-27VKKfxBpAnVw7mUrGPh7-yhGek4lbCafYb8ayKaG6DiOVwFtzEaXwifnCtkDs2k51S3aUuMKso2HD4jthfk-NrZT5a5DFFzVoR0E3TKT6Gg=s0"
+  height="242"
+  width="557"
+  showalt
+  sourceTitle="Material Design"
+  sourceUrl="https://m3.material.io/components/buttons/accessibility"
+/>
+
+#### 3. 鍵盤互動 (Keyboard Interaction)
+
+根據不同的鍵盤事件來觸發對應的行為。
+
+| 鍵盤事件 | 描述                         |
+| -------- | ---------------------------- |
+| `Enter`  | 觸發按鈕的行為               |
+| `Space`  | 觸發按鈕的行為               |
+| `Tab`    | 移動到下一個可獲取焦點的元素 |
+
+#### 4. Accessibility Tree
+
+1. 如果 Button 有 Icon，則 Icon 需要有對應的 `aria-label`。
+2. 加入 role 屬性，讓使用者知道這是一個 Button。

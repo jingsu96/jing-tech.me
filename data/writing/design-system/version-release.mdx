@@ -1,0 +1,106 @@
+---
+title: Design System 101 - 版本發佈與版本控制
+date: '2023-10-07'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'workflow'
+order: 2
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+本篇要來介紹 Design System 的版本控制與發佈流程！
+
+## 基本設定
+
+### npm
+
+**1. 建立 Organization**
+
+當登入 npm 後，可以在右上角看到自己的頭像並在點擊後會出現選單，選擇 `Add Organization`，而 organization 要跟套件的前綴一樣，例如套件是以 `@your-ui` 開頭就用 `your-ui` 作為 organization 名稱，可以參考 [npm 官方文件](https://docs.npmjs.com/creating-an-organization) 瞭解更多。
+
+**2. 本地發布 packages**
+
+完成第一步驟時就可以嘗試看看在本地發布一版，而本篇會用 Github Action 來取代手動的本地發布會省略這部分，但可以參考 [npm 官方文件](https://docs.npmjs.com/creating-and-publishing-an-org-scoped-package) 瞭解更多。
+
+一些注意事項：
+
+1. 套件中 `package.json` 中的 `name` 要以 `@your-ui` 開頭以及`publishConfig` 要設定 `access` 為 `public`，這樣才能讓其他人安裝到你的套件。
+2. 在根目錄下建立 `.npmrc` 檔案，加入 `registry=https://registry.npmjs.org/`，這樣才能讓你的套件發佈到 npm 上。
+
+**3. 建立 npm token**
+
+這在之後要建立 Github Action - Release 工作流時會用到，可以參考這篇[設定範例](https://scribehow.com/shared/How_to_Generate_an_NPM_Access_Token_for_Automation__ZY0B3TR6SM64JxJBvIUnZw)
+
+### Github
+
+**Action - Workflow Permission**
+
+為了讓之後 Github Action 可以順利運行，需要到 Repo 底下的 Setting，到 Action Tab 中 Workflow Permission 欄位的 Read and Write Permission 以及 Permit Actions on protected branches 打勾!
+
+<Image src="https://imgur.com/fMBzUML.png" width="708" height="343" />
+
+### 版本控制與發布流程
+
+在先前介紹我們使用 changesets 管理 workspaces 所有的版本與其 changelogs，接下來將會介紹整體發佈流程
+
+### Semantic Versioning
+
+想必大家都多少有聽過 [Semantic Versioning](https://semver.org/)，簡單來說就是一個版本號的命名規則，其規則如下
+
+```bash
+<major>.<minor>.<patch> // <主版本號>.<次版本號>.<修訂號>
+```
+
+| 版本號         | 說明                                             | 範例         |
+| -------------- | ------------------------------------------------ | ------------ |
+| major (主版本) | 做了不兼容的 API 修改，會導致既有功能無法使用    | 刪除某 API   |
+| minor (次版本) | 做了向下兼容的功能性新增，其並不會影響到既有功能 | 新增某 API   |
+| patch (修訂號) | 做了向下兼容的問題修正                           | 修正某個 bug |
+
+changeset 是也是遵循 Semantic Versioning 的規則，當我們在進行套件發佈時，會根據 changeset 的類型來決定版本號的變化。
+
+當今天一個 `1.0.0` 的組件新增了一個 API 以及錯誤修正，則版本號應該會是 `1.1.1`。又或是當某個套件有重大更新且與 repo 內其他套件有互相依賴時， changeset 也會將其相依套件進行更新。可以參考 [changeset 的文檔](https://github.com/changesets/changesets/blob/main/docs/decisions.md) 瞭解更多。
+
+### 加入相關指令
+
+在 `package.json` 中加入以下指令
+
+```json
+"scripts": {
+    "changeset": "changeset",
+    "release": "changeset publish",
+    "setup": "rm -rf node_modules packages/*/node_modules && pnpm install && pnpm build:packages",
+    "setup-git": "tsx ./scripts/setupUser.ts",
+    "version": "changeset version"
+    ...
+}
+```
+
+- `changeset`：新增一個 changeset 記錄此次的變更
+- `release`：發佈的相關有變動的套件
+- `version`: 根據 changeset 的類型來決定版本號的變化
+- `setup-git`: 最後則是設定 git user，這在建立 Github Action - Release 工作流中會用到 [程式範例](https://github.com/jingsu96/tocino/commit/62b2937afed0ad334a207591ef35ca9f8bf65f6b))
+
+### 工作流程
+
+**1. 開發者在開發完成時**
+
+需要執行 `pnpm run changeset` 先將所有的變更記錄在 changeset 中，這步驟完成後 `.changeset` 的資料夾底下會多出一個檔案，這個檔案涵蓋暪次新增的 changeset。
+
+<Image src="https://imgur.com/b423hLv.png" width="708" height="343" />
+
+**2. 版本發佈**
+
+接著我們建立一個 Github Action 專門處理 Release ([程式碼範例](https://github.com/jingsu96/tocino/blob/main/.github/workflows/release.yml))，當我們將 PR 合併到 `main` 時會觸發此工作流，其會根據 changeset 的類型來決定版本號的變化，並且將其發佈到 npm 上。
+
+<Image src="https://imgur.com/EeikDbd.png" width="708" height="359" />
+
+**3. 版本更新與 Changelogs**
+
+最後，當 Github Action 執行完畢後，我們可以在 Github 上看到一個新的 [PR](https://github.com/jingsu96/tocino/pull/27)，裡面會記載著組件的版本變更，並且會自動幫我們更新所有的 changelogs。
+
+<Image src="https://imgur.com/b4qps42.png" width="708" height="373" />

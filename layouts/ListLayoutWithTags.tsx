@@ -81,7 +81,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
 
   return (
     <>
-      <div className="h-[100vh]">
+      <div className="flex h-[100vh] w-full">
         <FloatingHeader scrollTitle="Writing" />
         <div className="flex flex-col p-4 sm:space-x-12 md:flex-row lg:p-0">
           <div className="hidden h-[100vh] w-full min-w-[24rem] max-w-[24rem] flex-wrap overflow-auto rounded bg-gray-50 pt-5 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 sm:flex lg:flex">
@@ -138,39 +138,39 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
               );
             })}
           </div>
-          <div className="mt-4 flex lg:overflow-y-scroll">
-            <ul>
-              {displayPosts.map((post) => {
-                const { path, date, title, summary, tags } = post;
-                return (
-                  <li key={path} className="py-5">
-                    <article className="flex flex-col space-y-2 xl:space-y-0">
-                      <dl>
-                        <dt className="sr-only">Published on</dt>
-                        <dd className="text-base font-medium leading-6 text-gray-500 dark:text-gray-400">
-                          <time dateTime={date}>{formatDate(date, siteMetadata.locale)}</time>
-                        </dd>
-                      </dl>
-                      <div className="space-y-3">
-                        <div>
-                          <h2 className="text-2xl font-bold leading-8 tracking-tight">
-                            <Link href={`/${path}`} className="text-gray-900 dark:text-gray-100">
-                              {title}
-                            </Link>
-                          </h2>
-                          <div className="flex flex-wrap">{tags?.map((tag) => <Tag key={tag} text={tag} />)}</div>
-                        </div>
-                        <div className="prose max-w-none text-gray-500 dark:text-gray-400">{summary}</div>
+        </div>
+        <div className="!mx-auto mt-4 flex h-full justify-center lg:overflow-y-scroll">
+          <ul>
+            {displayPosts.map((post) => {
+              const { path, date, title, summary, tags } = post;
+              return (
+                <li key={path} className="py-5">
+                  <article className="flex flex-col space-y-2 xl:space-y-0">
+                    <dl>
+                      <dt className="sr-only">Published on</dt>
+                      <dd className="text-base font-medium leading-6 text-gray-500 dark:text-gray-400">
+                        <time dateTime={date}>{formatDate(date, siteMetadata.locale)}</time>
+                      </dd>
+                    </dl>
+                    <div className="space-y-3">
+                      <div>
+                        <h2 className="text-2xl font-bold leading-8 tracking-tight">
+                          <Link href={`/${path}`} className="text-gray-900 dark:text-gray-100">
+                            {title}
+                          </Link>
+                        </h2>
+                        <div className="flex flex-wrap">{tags?.map((tag) => <Tag key={tag} text={tag} />)}</div>
                       </div>
-                    </article>
-                  </li>
-                );
-              })}
-              {pagination && pagination.totalPages > 1 && (
-                <Pagination currentPage={pagination.currentPage} totalPages={pagination.totalPages} />
-              )}
-            </ul>
-          </div>
+                      <div className="prose max-w-none text-gray-500 dark:text-gray-400">{summary}</div>
+                    </div>
+                  </article>
+                </li>
+              );
+            })}
+            {pagination && pagination.totalPages > 1 && (
+              <Pagination currentPage={pagination.currentPage} totalPages={pagination.totalPages} />
+            )}
+          </ul>
         </div>
       </div>
     </>

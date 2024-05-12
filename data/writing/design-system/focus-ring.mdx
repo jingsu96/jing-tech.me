@@ -1,0 +1,102 @@
+---
+title: Design System - Focus Ring
+date: '2023-09-22'
+tags: ['設計系統']
+draft: true
+authors: ['default']
+topic: 'accessibility'
+order: 4
+---
+
+## 前言
+
+今天將介紹另外一個 Accessibility 常見的組件，Focus Ring.
+
+想必大家都體驗過當點擊 button 時，會有一個外框出現在 button 上，而這就是 Focus Ring. 而其用處就是讓鍵盤操作者知道現在的 focus 在哪裡，以便他們能夠順利的操作網頁。
+
+<Image src="https://imgur.com/xr5RSob.gif" height="144" width="812" />
+
+回想當初在和設計師進行 UI Day 時，總是收到「為什麼這個按鈕點擊的時候會有外框」的回饋，而那時我總是回 「斯咪媽ㄙㄟ！好像是瀏覽器預設的，我來改一下!!!」，甚至到最後直接從全域的 CSS 把 Focus Ring 拔掉。
+
+```css
+// global.css
+
+button {
+  outline: none;
+}
+```
+
+當時確實是把問題解決了，但現在回想這樣做就等於將滑鼠的游標隱藏掉一樣，讓鍵盤操作者無法知道現在的 focus 在哪裡。
+
+而 CSS 有提供 `:focus-visible` 這個 pseudo-class，可以讓開發者針對鍵盤操作者和滑鼠操作者做不同的設計，透過這個 pseudo-class，我們可以只針對鍵盤操作者加上 Focus Ring！讓使用滑鼠的使用者可以不用看到外框，但讓外框依然保留給鍵盤操作者。
+
+```css
+// global.css
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 1px solid red;
+}
+```
+
+這時讀者們可能會想，既然都有 CSS 支援了，那為什麼還需要 Focus Ring？
+
+## 為什麼需要 Focus Ring?
+
+雖然 CSS 有提供 `:focus-visible` 這個 pseudo-class，且越來越多的瀏覽器都開始支援，但每家瀏覽器都可能都會有些微差具，所以為了要讓使用者在不同的瀏覽器上都能夠有一致的體驗，還是需要 Focus Ring 來達成，而如果不在意這一點的話，其實用 CSS `focus-visible` 也不失為一個好選擇。
+
+## 使用 Focus Ring
+
+而 Design System 所追求的其中一點就是一致性，我們可以在實作每個 Focusable 的組件上加入 Focus Ring，舉 Button 為例，我們可以這樣實作。
+
+```jsx
+// Button.jsx
+<FocusRing>
+  <button>{children}</button>
+</FocusRing>
+```
+
+而當每個 Focusable 的組件都加上 Focus Ring 後，就可以讓鍵盤操作者在使用時，並且所有組件的 FocusRing 在不同平台以及頁面都會是相同的。
+
+## 實作
+
+由於要 FocusRing 牽涉到更多底層的細節，並且要考慮到不同平台的差異，所以使用已經有實作好的套件，在客製化成屬於自己的 Focus Ring 會相對容易一些，而這次會使用 Abode React Spectrum 的 Focus Ring 套件，有興趣的讀者可以參考 [React Spectrum - Focus Ring](https://react-spectrum.adobe.com/react-aria/useFocusRing.html)。
+
+首先定義好 CSS
+
+```css
+.tocino-focus-ring-wrapper {
+  outline: var(--tocino-sys-color-on-primary);
+
+  &--disabled {
+    box-shadow: none;
+  }
+}
+```
+
+再來就是將 Focus Ring 套件包裝起來，並且將 Focus Ring 的 props 傳入
+
+```jsx
+// FocusRing.jsx
+import React from 'react'
+import { AriaFocusRing } from '@react-aria/focus'
+import clsx from 'clsx'
+
+const FocusRing = ({ children, ...props }) => {
+  let { children, focusRingClassName = '' } = props
+  const focusRingClass = clsx('tocino-focus-ring-wrapper', focusRingClassName)
+
+  return (
+    <AriaFocusRing {...props} focusRingClass={focusRingClass}>
+      {children}
+    </AriaFocusRing>
+  )
+}
+```
+
+## 小結
+
+至今 Button 組件我們已經介紹了 Ripple, CSS 與 FocusRing，明天將完成 Button 組件！

@@ -1,19 +1,25 @@
 'use client';
 
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { LazyMotion, domAnimation, m } from 'framer-motion';
 
 import { cn, dateWithDayAndMonthFormatter, dateWithMonthAndYearFormatter } from '@/lib/utils';
 
-export const WritingList = ({ items }) => {
-  let groupedByYear = items.reduce((acc, post) => {
-    const year = new Date(post.date).getFullYear();
-    if (!acc[year]) {
-      acc[year] = [];
-    }
-    acc[year].push(post);
-    return acc;
-  }, {});
+export const WritingList = ({ items, maxDisplay }) => {
+  const groupedByYear = useMemo(() => {
+    return items
+      .filter((p) => !p.draft)
+      .slice(0, maxDisplay)
+      .reduce((acc, post) => {
+        const year = new Date(post.date).getFullYear();
+        if (!acc[year]) {
+          acc[year] = [];
+        }
+        acc[year].push(post);
+        return acc;
+      }, {});
+  }, [items, maxDisplay]);
 
   return (
     <LazyMotion features={domAnimation}>

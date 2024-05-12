@@ -1,0 +1,164 @@
+---
+title: Design System 101 - Carousel
+description: 本文章將會介紹如何設計一個 Carousel 的組件
+date: '2024-04-15'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'component'
+status: 'In Progress 🔒'
+order: 2
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+Carousel 是專門用來展示多個元素的組件，並且讓使用者可以透過滾動、點擊、滾動或是拖曳的方式來進行元素間的切換。
+
+本篇文章將會介紹如何設計一個 Carousel 以及實作一個無限輪播的 Carousel。
+
+## 本篇目標
+
+在開始實作 Carousel 之前，將先定義本篇所實作 Carousel 的目標：
+
+1. Carousel 要支援平板、桌機、手機。
+2. Carousel 需要支援無限輪播與自動播放。
+3. Carousel 可以透過點擊、滾動、鍵盤來進行元素的切換。
+4. Carousel 需要有導航按鈕跟頁籤。
+5. Carousel 在切換時需要有過場動畫。
+
+## 組件設計
+
+### 基本介紹
+
+Carousel 主要由三個組件組合而成：
+
+<Image
+  alt="carousel"
+  src="/static/images/blog/design-system/carousel/carousel.png"
+  width={512}
+  height={190}
+/>
+
+1. 輪播元素 (Carousel Item): 此為 Carousel 的主體，它可以是任何元素，像是 Card 或是 Image 都是常見的輪播元素。
+2. 左右導航鈕 (Navigation): Carousel 通常兩側通常會有導航 UI (左右箭頭)，允許使用者導覽前或後的輪播元素。
+3. 頁籤 (Pagination): 頁籤通常放置在 Carousel 的下方，讓使用者可以快速挑轉到特定的頁數。
+
+### 組件結構
+
+#### JSX 結構
+
+```jsx
+<Carousel pagination navigation>
+  <CarouselItem />
+  <CarouselItem />
+  ...
+</Carousel>
+```
+
+#### 渲染後的 HTML
+
+```html
+<div>
+  <div className="scroll-container">
+    <-- Carousel Item -->
+    <div />
+    ...
+  </div>
+  <-- Navigation -->
+  <div>
+    <button />
+    <button />
+  </div>
+  <-- Pagination -->
+  <div>
+    <button />
+    ...
+  </div>
+</div>
+```
+
+### API
+
+Carousel 組件的 API，主要包含以下幾個屬性：
+
+| 屬性名稱         | 類型        | 預設值 | 說明                                                 |
+| ---------------- | ----------- | ------ | ---------------------------------------------------- |
+| items            | ReactNode[] | []     | 輪播元素                                             |
+| navigation       | boolean     | false  | 當設置時，顯示輪播元素的導航按鈕                     |
+| pagination       | boolean     | false  | 當設置時，顯示輪播元素的頁籤組件                     |
+| loop             | boolean     | false  | 當設置時，允許使用者無限制地在同一方向上導航輪播元素 |
+| steps            | number      | 1      | 每次滾動的步數                                       |
+| autoplay         | boolean     | false  | 當設置時，會自動播放輪播元素                         |
+| autoplayInterval | number      | 3000   | 指定每次自動滾動之間的時間間隔，以毫秒為單位         |
+| slidesPerPage    | number      | 1      | 每頁顯示的幻燈片數                                   |
+
+### 資料模型 (Data Model)
+
+在 Carosuel 中所需要的資料模型，主要包含以下，
+
+| 欄位名稱    | 類型    | 說明               |
+| ----------- | ------- | ------------------ |
+| scrolling   | boolean | 是否正在滾動中     |
+| activeSlide | number  | 目前顯示的輪播元素 |
+
+而在之後的實作部分，我們會根據這些欄位建立 React 的狀態。
+
+### 進階設計
+
+#### 滾動效果 (Scroll Behavior)
+
+Carousel 在導航或是換頁的實作中，通常都會使用 `scrollTo({ top, left, behavior })` 或是 `scrollBy({ top, left, behavior })` 來實現。
+
+其中 `behavior` 參數有三種：
+
+1. 設置為 `smooth` 來讓滾動有平滑的效果，可以帶來更佳的使用者體驗。
+2. 設置為 `instant` 來讓滾動有直接的效果。在實現無限輪播時，會透過這個方式來實現。
+3. 設置為 `auto` 則會根據瀏覽器的預設行為來決定滾動的方式
+
+#### CSS Scroll Snap
+
+<Image
+  alt="carousel"
+  src="/static/images/blog/design-system/carousel/carousel_example.gif"
+  width={564}
+  height={316.5}
+/>
+
+CSS Scroll Snap 透過它的屬性可以讓我們在滾動時，讓滾動的元素停留在特定的位置。如果想了解更多可以參考 [CSS - Scroll Snap](/series/frontend/css-scroll-snap)。
+
+#### 無限輪播
+
+<Image
+  alt="carousel"
+  src="/static/images/blog/design-system/carousel/carousel_clone.png"
+  width={640}
+  height={162}
+/>
+
+無限輪播也是 Carousel 中常見的功能之一，當使用者滾動到最後一個元素時，如果再向左滾動，則會回到第一個元素，反之亦然。
+
+最常見的實踐方式就是在第一與最後一個個元素的前後插入複製的元素，而複製的元素會根據滾動的步數 (`steps`) 來決定，舉例來說，如果滾動的步數為 `1`，則在第一與最後一個元素前後插入複製元素。
+
+而當使用者滾動到複製的元素時，我們會在滾動結束後，將滾動的位置設置到原本的第一個或最後一個元素，這過程中就會將 `behavior` 設置為 `instant` 來達到無縫移動的效果。
+
+#### A11y (無障礙設計)
+
+**ARIA**
+
+| 組件     | 屬性名稱      | 類型    | 說明                            |
+| -------- | ------------- | ------- | ------------------------------- |
+| 共同     | tabIndex      | number  | 鍵盤導航                        |
+| 滑動容器 | aria-busy     | boolean | 是否正在滾動中                  |
+|          | aria-atomic   | boolean | 是否會在滾動時更新 (TODO: 確認) |
+| 導覽按鈕 | aria-label    | string  | 按鈕的描述                      |
+|          | aria-disabled | boolean | 是否禁用按鈕                    |
+|          | aria-controls | string  | 控制的元素 ID                   |
+| 頁籤     | aria-label    | string  | 頁籤的描述                      |
+|          | aria-selected | boolean | 是否選中頁籤                    |
+|          | role          | string  | 元素的角色                      |
+
+**鍵盤支援**
+
+為了讓使用者也能夠使用鍵盤來導航 Carousel，我們需要在導覽按鈕上監聽 `keydown` 事件，當使用者按下 `Enter` 或是 `Space` 時進行導航。

@@ -1,0 +1,471 @@
+---
+title: Design System 101 - 常見的 Hooks
+date: '2023-09-26'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'core'
+order: 4
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## useSafeLayoutEffect
+
+### 用途
+
+`useLayoutEffect` 是 React 提供的一個 Hook，跟 `useEffect` 一樣，都是用來處理 Side Effect 的，不同的是 `useLayoutEffect` 其執行時間是瀏覽器繪製 DOM 之前，且在 SSR 的時候，會噴出錯誤：
+
+```bash
+Warning: useLayoutEffect does nothing on the server, because its effect cannot be encoded into the server renderer's output format. This will lead to a mismatch between the initial, non-hydrated UI and the intended UI. To avoid this, useLayoutEffect should only be used in components that render exclusively on the client. See https://fb.me/react-uselayouteffect-ssr for common fixes.
+```
+
+主要是因為 `useLayoutEffect` 不會在 Server Side 執行，這時候就可以使用 `useSafeLayoutEffect` 來解決這個問題。
+
+而 `useSafeLayoutEffect` 的實作，概念上很簡單就是將 `useLayoutEffect` 在 Server Side 的時候，改用 `useEffect` 來執行。
+
+```JSX
+import {useLayoutEffect, useEffect} from 'react';
+
+const useSafeLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+```
+
+## useComposedRefs
+
+> `useComposedRefs` 通常是用來合併多個 ref, 而這在 Design System 中是很常見的。
+
+例如有時後我們的需要同時控制組件內部某個元素，並且也能夠讓外部開發者也能控制這個元素。這時候就可以使用 `useComposedRefs` 來解決這個問題。
+
+舉例來說：
+
+當這個組件 mounted (渲染完成) 的時候，自動 focus 到輸入框上。同時，如果也希望讓其他使用者可以拿到輸入框的值，這時候就可以使用 `useComposedRefs` 來解決這個問題。
+
+<Sandpack>
+
+```js file=App.js
+import React, { forwardRef, useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { useComposedRefs } from './compose-refs'
+
+const FocusableInput = forwardRef((props, externalRef) => {
+  const internalRef = useRef()
+
+  const composedRef = useComposedRefs(externalRef, internalRef)
+
+  useEffect(() => {
+    if (internalRef.current) {
+      // internalRef.current.focus();
+    }
+  }, [])
+
+  return <input ref={composedRef} {...props} />
+})
+
+export default () => {
+  const inputRef = useRef(null)
+
+  const handleButtonClick = () => {
+    if (inputRef.current) {
+      console.log('輸入框的值是', inputRef.current.value)
+    }
+  }
+
+  return (
+    <div>
+      <FocusableInput ref={inputRef} placeholder="Placeholder" />
+      <button onClick={handleButtonClick}>Submit</button>
+    </div>
+  )
+}
+```
+
+```js file=compose-refs.js
+import React, { useCallback } from 'react'
+
+function assignRef(ref, value) {
+  if (ref == null) {
+    return
+  }
+
+  if (typeof ref === 'function') {
+    ref(value)
+  } else {
+    Reflect.set(ref, 'current', value)
+  }
+}
+
+export function useComposedRefs(...refs) {
+  return React.useCallback(
+    (value) => {
+      refs.forEach((ref) => {
+        assignRef(ref, value)
+      })
+    },
+    [refs]
+  )
+}
+```
+
+</Sandpack>
+
+## useCallbackRef
+
+> `useCallbackRef` 主要是要解決傳入子組件的 props 不會因為父層組件重新渲染 (re-render) 進而導致子組件不必要的渲染。
+
+為了確保子組件不會因為其他原因而重新渲染，我們可以使用 `React.memo` 來確保子組件不會因為其他原因而重新渲染，接下來透過下面的例子來說明。
+
+首先在父層先加入 count 的 state，並且在子組件中加入一個 `renderCountRef` 來計算子組件重新渲染的次數。
+
+<Sandpack>
+
+```js file=App.js
+import React, { useState, useCallback, useRef, memo } from 'react'
+
+const ChildComponenet = memo(({ callback }) => {
+  const renderCountRef = useRef(0)
+
+  renderCountRef.current++
+
+  return (
+    <div>
+      <div>Child re-render: {renderCountRef?.current}</div>
+    </div>
+  )
+})
+
+export default () => {
+  const [count, setCount] = React.useState(0)
+
+  const callback = () => {
+    console.log('count', count)
+  }
+
+  return (
+    <>
+      <h1>Without useCallbackRef</h1>
+      <ChildComponenet callback={callback} />
+      <button onClick={() => setCount((count) => count + 1)}>parent render: {count}</button>
+    </>
+  )
+}
+```
+
+</Sandpack>
+
+由上面的例子可以看到，當父層組件重新渲染的時候，子組件也會重新渲染，這是因為每次父層組件重新渲染的時候，會重新建立一個新的 callback。而這時候就可以使用 `useCallbackRef` 來解決這個問題。
+
+<Sandpack>
+
+```js file=App.js
+import React, { useState, useCallback, useRef, memo } from 'react'
+import { useCallbackRef } from './callback-ref'
+
+const ChildComponenet = memo(({ callback }) => {
+  const renderCountRef = useRef(0)
+
+  renderCountRef.current++
+
+  return (
+    <div>
+      <div>Child re-render: {renderCountRef?.current}</div>
+    </div>
+  )
+})
+
+export default () => {
+  const [count, setCount] = React.useState(0)
+
+  const callback = () => console.log(count)
+  const stableCallback = useCallbackRef(callback)
+
+  return (
+    <>
+      <h1>With useCallbackRef</h1>
+      <ChildComponenet callback={stableCallback} />
+      <button onClick={() => setCount((count) => count + 1)}>parent render: {count}</button>
+    </>
+  )
+}
+```
+
+`useCallbackRef` 主要是先將 callback 存在 `useRef` 中，並且透過 `useEffect` 來更新 callback 的值，這樣就可以確保 callback 不會因為父層組件重新渲染而重新建立。
+
+```js file=callback-ref.js
+import React, { useRef, useEffect, useMemo } from 'react'
+
+export function useCallbackRef(callback) {
+  const callbackRef = useRef(callback)
+
+  useEffect(() => {
+    callbackRef.current = callback
+  })
+
+  return useMemo(
+    () =>
+      (...args) => {
+        if (callbackRef.current) {
+          return callbackRef.current(...args)
+        }
+      },
+    []
+  )
+}
+```
+
+</Sandpack>
+
+## useControlledState
+
+在 Design System 中，許多 UI 都會需要管理當前狀態，像是 checkbox 組件的 check 與 un-check, accordion 組件的展開與收合等等。
+
+而這些狀態通常都是由外部傳入，也有可能是由內部控制，這時候就可以使用 `useControlledState` 來處理這個問題。
+
+### API
+
+而通常組件需要包含幾種狀態：
+
+| Name               | Type     | Description                                                                        |
+| ------------------ | -------- | ---------------------------------------------------------------------------------- |
+| props.defaultValue | any      | 組件的初始狀態，這也是組件的預設狀態，可以不需要經由外部控制。                     |
+| props.value        | any      | 組件的當前狀態，當外部想要傳入狀態去控制組件時，就可以傳入 value。                 |
+| props.onChange     | function | 當其他開發者想透過狀態改變時，處理其他的邏輯，這時候就可以傳入 onChange callback。 |
+
+### useUncontrolledState
+
+在實作 `useControlledState` 之前我們先實作 `useUncontrolledState` ，其就是 `useState` 加上 `callback`。
+
+```js
+import { useState, useCallback, useRef } from 'react'
+import { useCallbackRef } from './callback-ref'
+
+export function useUncontrolledState({ defaultValue, onChange }) {
+  const [value, setValue] = useState(defaultValue)
+  const previousValueRef = useRef(value)
+  const callback = useCallbackRef(onChange)
+
+  useEffect(() => {
+    if (value !== previousValueRef?.current) {
+      callback(value)
+      previousValueRef.current = value
+    }
+  }, [value, previousValueRef, onChange])
+
+  return [value, setValue]
+}
+```
+
+### useControlledState
+
+當外部傳入 value 時，就使用外部傳入的 value，否則就使用 `useUncontrolledState` 的 defaultValue。
+
+```js
+import { useCallback } from 'react'
+import { useUncontrolledState } from './uncontrolled-state'
+import { useCallbackRef } from './callback-ref'
+
+const useControlledState = ({ defaultValue, value, onChange }) => {
+  const [uncontrolledState, setUncontrolledState] = useUncontrolledState({
+    defaultValue,
+    onChange,
+  })
+
+  const isControlled = value != null
+  const state = isControlled ? value : uncontrolledState
+  const callback = useCallbackRef(onChange)
+
+  const setState = useCallback(
+    (nextValue) => {
+      if (isControlled) {
+        const setter = nextValue
+        const v = typeof nextValue === 'function' ? setter(value) : nextValue
+        if (v !== value) callback?.(v)
+      } else {
+        setUncontrolledState(nextValue)
+      }
+    },
+    [value, isControlled, callback]
+  )
+
+  return [state, setState]
+}
+```
+
+接著我們就可以透過下面的例子來看 `useControlledState` 如何處理從外部傳入的狀態，內部狀態，以及 onChange callback。
+
+<Sandpack>
+
+```js file=App.js
+import React, { useState, useCallback, useRef, memo } from 'react'
+import { useControlledState } from './controlled-state'
+
+const Counter = ({ like, onChange, defaultLike }) => {
+  const [likeCount, setLikeCount] = useControlledState({
+    value: like,
+    onChange,
+    defaultValue: defaultLike,
+  })
+  return (
+    <>
+      <p>{likeCount}</p>
+      <button onClick={() => setLikeCount(likeCount + 1)}>👍</button>
+    </>
+  )
+}
+
+export default () => {
+  const [like, setLike] = useState(0)
+
+  return <Counter defaultLike={0} like={like} onChange={() => setLike(like + 1)} />
+  // return <Counter defaultLike={0} />;
+}
+```
+
+```js file=controlled-state.js
+import { useCallback } from 'react'
+import { useUncontrolledState } from './uncontrolled-state'
+import { useCallbackRef } from './callback-ref'
+
+export const useControlledState = ({ defaultValue, value, onChange }) => {
+  const [uncontrolledState, setUncontrolledState] = useUncontrolledState({
+    defaultValue,
+    onChange,
+  })
+
+  const isControlled = value != null
+  const state = isControlled ? value : uncontrolledState
+  const callback = useCallbackRef(onChange)
+
+  const setState = useCallback(
+    (nextValue) => {
+      if (isControlled) {
+        const setter = nextValue
+        const v = typeof nextValue === 'function' ? setter(value) : nextValue
+        if (v !== value) callback?.(v)
+      } else {
+        setUncontrolledState(nextValue)
+      }
+    },
+    [value, isControlled, callback]
+  )
+
+  return [state, setState]
+}
+```
+
+```js file=uncontrolled-state.js
+import { useState, useCallback, useRef, useEffect } from 'react'
+import { useCallbackRef } from './callback-ref'
+
+export function useUncontrolledState({ defaultValue, onChange }) {
+  const [value, setValue] = useState(defaultValue)
+  const previousValueRef = useRef(value)
+  const callback = useCallbackRef(onChange)
+
+  useEffect(() => {
+    if (value !== previousValueRef?.current) {
+      callback(value)
+      previousValueRef.current = value
+    }
+  }, [value, previousValueRef, onChange])
+
+  return [value, setValue]
+}
+```
+
+```js file=callback-ref.js
+import React, { useRef, useEffect, useMemo } from 'react'
+
+export function useCallbackRef(callback) {
+  const callbackRef = useRef(callback)
+
+  useEffect(() => {
+    callbackRef.current = callback
+  })
+
+  return useMemo(
+    () =>
+      (...args) => {
+        if (callbackRef.current) {
+          return callbackRef.current(...args)
+        }
+      },
+    []
+  )
+}
+```
+
+</Sandpack>
+
+## useMediaQuery
+
+> `useMediaQuery` 主要是用來處理 RWD 的問題，當瀏覽器的寬度改變時，就會重新計算 media query 的結果。
+
+### API
+
+| Name  | Type   | Description                                      |
+| ----- | ------ | ------------------------------------------------ |
+| query | string | media query 的條件，例如：`'(min-width: 768px)'` |
+
+### 實作
+
+首先我們可以先透過 browse 的 API `window.matchMedia` 來取得 media query 的結果，在透過 `useCallback` 來訂閱瀏覽器的寬度變化，最後透過 `useSyncExternalStore` 來同步狀態。
+
+```js
+import { useCallback, useSyncExternalStore } from 'react';
+
+export const useMediaQuery = (query: string) => {
+  const subscribe = useCallback(
+    (onChange) => {
+      if (!canUseMatchMedia) {
+        return;
+      }
+      const mq = window.matchMedia(query);
+      mq.addEventListener('change', onChange);
+      return () => mq.removeEventListener('change', onChange);
+    },
+    [query],
+  );
+
+  const getSnapshot = useCallback(() => (canUseMatchMedia ? window.matchMedia(query).matches : false), [query]);
+
+  return useSyncExternalStore(subscribe, getSnapshot);
+};
+```
+
+<Sandpack>
+
+```js file=App.js
+import React from 'react'
+import { useMediaQuery } from './media-query'
+
+export default () => {
+  const isMobile = useMediaQuery('(max-width: 768px)')
+
+  return <div>{isMobile ? 'Mobile' : 'Desktop'}</div>
+}
+```
+
+```js file=media-query.js
+import { useCallback, useSyncExternalStore } from 'react';
+
+const canUseMatchMedia = typeof window !== 'undefined' && typeof window.matchMedia !== 'undefined';
+
+export const useMediaQuery = (query: string) => {
+  const subscribe = useCallback(
+    (onChange) => {
+      if (!canUseMatchMedia) {
+        return;
+      }
+      const mq = window.matchMedia(query);
+      mq.addEventListener('change', onChange);
+      return () => mq.removeEventListener('change', onChange);
+    },
+    [query],
+  );
+
+  const getSnapshot = useCallback(() => (canUseMatchMedia ? window.matchMedia(query).matches : false), [query]);
+
+  return useSyncExternalStore(subscribe, getSnapshot);
+};
+```
+
+</Sandpack>

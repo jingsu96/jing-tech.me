@@ -1,0 +1,110 @@
+---
+title: Design System 101 - Visually Hidden
+date: '2023-09-21'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'accessibility'
+github: 'https://github.com/jingsu96/tocino/tree/main/packages/components/visually-hidden'
+order: 3
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 什麼是 Visually Hidden
+
+Visually Hidden 是一個可以讓某些資訊在畫面上隱藏，但在螢幕閱讀器 (Screen Reader) 上可以讀取到的元件。在 WebAim 有提到相關的內容，大家可以參考一下 [WebAim - Visually Hidden](https://webaim.org/techniques/css/invisiblecontent/)。
+
+## 為什麼要使用 Visually Hidden
+
+當今天你一如往常地開啟 [X (前身 Twitter)](https://x.com)，學習當今最新潮的技術，這時你看到一個 thread 裡面的內容大概是這樣的：
+
+```html
+🐔 👬 🦆 🗣
+```
+
+明眼人一看就知道這是『雞同鴨講』的意思並且嘴角上揚了一下。但如果是透過 Screen Reader 的使用者可能就沒辦法有這種體驗，可能會遇到沒辦法辨識又或是會產生出奇怪的解釋。
+
+所以就有了 `<VisuallyHidden />` 這個元件，並且可以這樣使用：
+
+```html
+<div>
+  <VisuallyHidden>雞同鴨講</VisuallyHidden>
+  <span>🐔 👬 🦆 🗣</span>
+</div>
+```
+
+如此一來，我們就可以透過 Screen Reader 將『雞同鴨講』傳達給使用者！
+
+## Visually Hidden 的實作
+
+### 第一步驟 - 透過 plop 建立 Visually Hidden 的組件
+
+首先我們需要透過先前提到的 [組件模板](/series/design-system/setup#plop---產生元件模板) 產生出一個新的組件專案，來建立 Visually Hidden 的元件。如果還沒建立專案，可以先看[這裡篇文章](/series/design-system/setup)！
+
+```bash
+pnpm generate // name: visually-hidden
+```
+
+### 第二步驟 - 實作 Visually Hidden 的組件
+
+<Sandpack>
+
+```jsx file=App.js
+import VisuallyHidden from './visually-hidden'
+
+export default () => {
+  return (
+    <div>
+      <VisuallyHidden>雞同鴨講</VisuallyHidden>
+      <span>🐔 👬 🦆 🗣</span>
+    </div>
+  )
+}
+```
+
+```jsx file=visually-hidden.js
+import React from 'react'
+
+const VisuallyHidden = React.forwardRef((props, ref) => {
+  const { as: ElementType = 'div', children, ...restProps } = props
+  return (
+    <ElementType
+      style={{
+        border: 0,
+        clip: 'rect(0 0 0 0)',
+        clipPath: 'inset(50%)',
+        height: '1px',
+        margin: '-1px',
+        overflow: 'hidden',
+        padding: 0,
+        position: 'absolute',
+        width: '1px',
+        whiteSpace: 'nowrap',
+      }}
+      {...restProps}
+      ref={ref}
+    >
+      {children}
+    </ElementType>
+  )
+})
+
+export default VisuallyHidden
+```
+
+</Sandpack>
+
+這樣就完成了，主要就是把元件內容透過 CSS 的方式讓元件在畫面中隱藏，但是在螢幕閱讀器上可以讀取到。
+
+這裡也附上 Visually Hidden 的 [測試](https://github.com/jingsu96/tocino/blob/main/packages/components/visually-hidden/src/VisuallyHidden.test.tsx) 與 [Storybook](https://github.com/jingsu96/tocino/blob/main/packages/components/visually-hidden/src/VisuallyHidden.stories.tsx)，讓大家參考！
+
+最後再透過 changest 來產生 changelog，就完成了我們的第一個元件了！
+
+```bash
+> design-system/ pnpm changest
+```
+
+## 參考資料
+
+1. [Beware smushed off-screen accessible text](https://medium.com/@jessebeach/beware-smushed-off-screen-accessible-text-5952a4c2cbfe)

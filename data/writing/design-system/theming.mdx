@@ -1,0 +1,215 @@
+---
+title: Design System 101 - 深淺主題 (Theming)
+date: '2023-10-11'
+lastmod: '2023-11-11'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'workflow'
+order: 3
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+深淺主題已經在前端社群風靡多年，小至個人部落格大至世界級客戶端應用 (例如: [Github](https://github.com/settings/appearance))，都有深淺色的切換功能，提供使用者可以自由地切換主題。
+
+而要讓一個網站可以無痛的切換深淺色，筆者認為最主要的原則就是在開發時遵循 [設計標籤 Design Token](/series/design-system/design-tokens)，也在先前 [設計標籤到 CSS](/series/design-system/style-dictionary) 的章節提到過其好處，如果色票沒有列在 Token 內則需要在應用層的 CSS 中去處理。本篇會介紹如何透過 `useTheme` 去控制應用的深淺主題。
+
+## 回顧
+
+### 設計標籤 (Materal Design)
+
+在最初的一開始我們介紹 Token 這個概念，透過 [System Token](https://github.com/jingsu96/tocino/blob/main/packages/design-tokens/tokens/color/alias.json#L5-L6) (`alias.json`) 的深淺色模式分別指向不同的 [Ref Token](https://github.com/jingsu96/tocino/blob/main/packages/design-tokens/tokens/color/base.json) (`base.json`)，這一步讓我們有能力可以讓同一個 System Token 的 alias 根據某些條件轉換成不同的值。
+
+<Image
+  src="https://lh3.googleusercontent.com/opAsUeGby-hiKQvHsnBwaBvaEqFRIUy7icpiiKPMApkshH6pfDRHdlWbQejvYZyCslj5MDN1pabWo66XJs7s6WYVPxGYj_Lih3MQGo-sVHBY=s0"
+  height="373"
+  width="637"
+  showalt
+  sourceTitle="Materal Design"
+  sourceUrl="https://m3.material.io/foundations/design-tokens/how-to-read-tokens"
+/>
+
+### Normalized CSS
+
+接著再透過設計標籤建置時，將 `:root` 拆分成 light 與 dark 到 `normalized.css` [(Source Code)](https://www.npmjs.com/package/@tocino-ui/design-tokens?activeTab=code)，並在網頁一開始載入該 [CSS](https://cdn.jsdelivr.net/npm/@tocino-ui/design-tokens/dist/normalize/normalize.css) ，最後透過 `data-theme` 去控制要使用哪種主題色。
+
+```css
+html[data-theme='light'],
+.tocino-light {
+  --tocino-sys-color-primary: #6750a4;
+  // ... All System Token (淺色)
+}
+
+:root {
+  --tocino-sys-color-primary: #d0bcff;
+  // ... All System Token (深色)
+}
+```
+
+接下來將會介紹如何實作讓使用者可以切換深淺色模式的一個功能，也就是本篇要介紹的 `useTheme`。
+
+## useTheme
+
+### 描述
+
+`useTheme` 要做的事情很簡單，就是控制 `data-theme` 的值。
+
+### API
+
+理想上我們希望當使用 `useTheme` 時可以讓它可以讓我們更新 `data-theme` 以及知道當前的 `theme`。
+
+```js
+import { useTheme } from '@tocino-ui/core/hooks'
+
+export default () => {
+  const { theme, toggleTheme } = useTheme()
+
+  return (
+    <div>
+      <span>Current Theme: {theme}</span>
+      <button onClick={toggleTheme}>Toggle Theme</button>
+    </div>
+  )
+}
+```
+
+#### 參數
+
+| 名稱         | 型別   | 初始值 | 描述       |
+| ------------ | ------ | ------ | ---------- |
+| initialTheme | string | -      | 初始的主題 |
+
+#### 回傳 API
+
+| 名稱        | 型別           | 初始值 | 描述       |
+| ----------- | -------------- | ------ | ---------- |
+| theme       | `string`       | `dark` | 當前的主題 |
+| toggleTheme | `() => void`   | -      | 切換主題   |
+| setTheme    | SetStateAction | -      | 設定主題   |
+
+## 實作
+
+### `useTheme`
+
+首先會先透過 `getTheme` 取得 `localStorage` 的前次所存取的模式，如果 localStorage 沒有值，就將深色主題作為預設值，並且頁面渲染時透過 `useEffect` 中去更新 `data-theme`。最後將 `theme`, `toggleTheme` 與 `setTheme` 這三個 API 作為 `useTheme` 的回傳值。
+
+### `themeManager`
+
+其主要負責 `localStorage` 的存取與透過 `documentElement.setAttribute` 去更新 `data-theme` 的值。
+
+<Sandpack>
+
+```js App.js
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import { Button } from '@tocino-ui/button'
+
+/**
+ * ====== CONST ======
+ */
+const THEME_KEY = 'tocino-theme'
+const THEME = {
+  LIGHT: 'light',
+  DARK: 'dark',
+  SYSTEM: 'system',
+}
+
+/**
+ * ====== THEME MANAGER ======
+ */
+
+const themeManager = {
+  getTheme: () => {
+    return window?.localStorage.getItem(THEME_KEY) ?? THEME.DARK
+  },
+  setTheme: (theme) => {
+    document?.documentElement.setAttribute('data-theme', theme)
+    window?.localStorage.setItem(THEME_KEY, theme)
+  },
+}
+
+/**
+ * ====== `useTheme` ======
+ */
+
+function useTheme(initialTheme) {
+  const [theme, setTheme] = useState(() => {
+    return initialTheme ?? themeManager.getTheme() // 取得 Default Theme
+  })
+
+  useEffect(() => {
+    themeManager.setTheme(theme)
+  }, [theme])
+
+  const toggleTheme = useCallback((theme) => {
+    setTheme((prev) => (prev === THEME.DARK ? THEME.LIGHT : THEME.DARK))
+  }, [])
+
+  return useMemo(
+    () => ({
+      theme,
+      toggleTheme,
+      setTheme,
+    }),
+    [theme, toggleTheme]
+  )
+}
+
+export default () => {
+  const { theme, toggleTheme } = useTheme()
+
+  return (
+    <div className="container">
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@tocino-ui/design-tokens/dist/normalize/normalize.css"
+      />
+      <h2 className="header">Current Theme: {theme}</h2>
+      <Button variant="outline" onClick={toggleTheme}>
+        Toggle Theme
+      </Button>
+    </div>
+  )
+}
+```
+
+```css
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  height: 80vh;
+  background: var(--tocino-sys-color-background);
+}
+
+.header {
+  color: var(--tocino-sys-color-on-background);
+  margin-bottom: 20px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+```
+
+```json file=package.json
+{
+  "dependencies": {
+    "@tocino-ui/button": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  }
+}
+```
+
+</Sandpack>
+
+可以看到上面引入了我們先前做的 [Button](/series/design-system/button) 組件，並且透過 `useTheme` 去控制 `data-theme` 的值，這樣就可以讓設計系統能夠支援切換深淺色主題。

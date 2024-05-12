@@ -1,9 +1,26 @@
 'use client';
 
 import siteMetadata from '@/data/siteMetadata';
-import { useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { ArrowUp, MessageCircleMore } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+
+const FloatButton = ({
+  onClick,
+  label,
+  children,
+}: PropsWithChildren<{
+  onClick: () => void;
+  label: string;
+}>) => (
+  <button
+    aria-label={label}
+    onClick={onClick}
+    className="rounded-xl bg-bg-alt p-2 text-text-1 shadow-jt2 transition-all hover:bg-gray-200 dark:bg-bg-elv dark:text-gray-400 dark:hover:bg-gray-600"
+  >
+    {children}
+  </button>
+);
 
 const ScrollTopAndComment = () => {
   const [show, setShow] = useState(false);
@@ -39,21 +56,13 @@ const ScrollTopAndComment = () => {
           className={'fixed bottom-8 right-8 hidden flex-col gap-3 md:flex'}
         >
           {siteMetadata.comments?.provider && (
-            <button
-              aria-label="Scroll To Comment"
-              onClick={handleScrollToComment}
-              className="rounded-lg bg-bg-alt p-2 text-text-1 shadow-jt2 transition-all hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600"
-            >
+            <FloatButton label="Scroll To Comment" onClick={handleScrollToComment}>
               <MessageCircleMore size={16} />
-            </button>
+            </FloatButton>
           )}
-          <button
-            aria-label="Scroll To Top"
-            onClick={handleScrollTop}
-            className="rounded-lg bg-bg-alt p-2 text-text-1 shadow-jt2 transition-all hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600"
-          >
+          <FloatButton label="Scroll To Top" onClick={handleScrollTop}>
             <ArrowUp size={16} />
-          </button>
+          </FloatButton>
         </motion.div>
       )}
     </AnimatePresence>

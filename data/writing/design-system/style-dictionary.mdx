@@ -1,0 +1,397 @@
+---
+title: Design System 101 - 設計標籤到 CSS
+date: '2023-09-28'
+lastmod: '2023-11-11'
+tags: ['設計系統']
+draft: false
+summary: Design Token
+authors: ['default']
+topic: 'core'
+order: 3
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+本篇將會介紹設計標籤 (Design Tokens) 與 CSS 之間的關係以及如何透過 [Style Dictionary](https://github.com/amzn/style-dictionary) 將設計標籤轉換成 CSS。關於設計標籤已經在先前篇章介紹過，如果想瞭解更多可以參考[設計標籤](/series/design-system/design-tokens)。
+
+## 為什麼需要 Style Dictionary?
+
+在還沒有 Style Dictionary 之前，不同平台的工程師可能都會有自己一套管理系統去管理設計團隊所定義的視覺元素，例如前端工程師可能使用 Sass/Scss 來管理，而 iOS 的工程師可能使用 Swift 來管理等等。
+
+然而每個平台定義顏色的方式不盡相同，例如 iOS 使用 RGB 十進制來定義顏色，而 Android 則是使用十六進制來定義顏色，這樣的情況下，設計師在定義視覺元素時，就必須要考慮到不同平台的差異，從上至設計標籤到下至組件的管理，一旦某個環節出錯，可能就會造成不同平台的視覺不一致的情況。
+
+## 什麼是 Style Dictionary?
+
+[Style Dictionary](https://github.com/amzn/style-dictionary) 是一個由 Amazon 所開源的工具，可以透過它管理設計標籤，並且可以產生各種平台的 Styling，例如 CSS、SCSS、JS、Swift、Android 等等。
+
+除此之外 Style Dictionary 可以進行客製化的需求，讓我們可以更彈性的管理 Design Token。
+
+## 如何透過 Style Dictionary 來管理 Design Token?
+
+許多大廠的設計團隊通常會將設計系統裡所需要的視覺元素定義在 Figma，例如顏色、字體、間距等等。
+
+<Image
+  src="https://imgur.com/pAZlY8i.png"
+  width="708"
+  height="407"
+  showalt
+  sourceTitle="Material 3 Design Kit"
+/>
+
+<Image
+  src="https://imgur.com/7bEZBTK.png"
+  width="708"
+  height="407"
+  showalt
+  sourceTitle="Polaris Design Kit"
+/>
+
+而前端工程師們可以將這些視覺元素以鍵值對（Key-Value Pair) 的方式來管理，並且透過 Style Dictionary 來將其進行轉換成不同平台的 Styling。
+
+假設現在我們的 Styling 只有 `color-primary`
+
+```json
+{
+  "color": {
+    "red": {
+      "100": {
+        "type": "color",
+        "value": "#FFCDD2"
+      },
+      "200": {
+        "type": "color",
+        "value": "#EF9A9A"
+      }
+    }
+  }
+}
+```
+
+以 Web 來說，我們就可以透過 CLI 工具，產生 CSS, SCSS 或是 JS 的檔案，之後在引入到專案中，就可以使用這些變數來進行開發。
+
+**CSS:**
+
+```css
+:root {
+  --ui-color-red-100: #ffcdd2;
+  --ui-color-red-200: #ef9a9a;
+}
+```
+
+**JS:**
+
+```js
+export const ColorRed100 = '#ffcdd2'
+export const ColorRed200 = '#ef9a9a'
+```
+
+[Style Dictionary Playground](https://www.style-dictionary-play.dev/#project=rVJNT4QwEP0rpN4IoeseTHZvG1e8ehdjChRtxZZ0CtFs+O+2lI92D6uJy4F25r15mffSEyplIxUuCNBUyw8qIOUgBdqjUy6iKHd4jvbRWNuOopVX287tZhN0bE9/t9Q2F4XER3vSdBN8k2X3x+M2RzM+JKvy9l/KD9nusDt4yu4yHuY3oMRIiJq9nXkG2alyFHmeTccxjv2AnOhL4gbahuhaqk8IgioBzoLSigiwxEclu3YyYVme5VbRmn05rGMBVHSsqZ6IfnfoWGIzjwNWzRoK3vL28wK0lIqCZoJoZo1YqdeeKEYKM5iG+0ySZmWil33xwl6zXdI1qUwxJ3MQ/C85cPjdK7+C1dUpv2yUk55AqVirMYW7i06XBzX8AA==)
+
+## CTI (Category/Type/Item)
+
+在[設計標籤](/series/design-system/design-tokens)這篇文章提到，設計標籤不只有最上層的 Reference Token 也有像是 System Token 跟 Component Token，這種分類方式我們稱 CTI，也正是 Style Dictionary 所建議的分類方式。而 System Token 跟 Component Token 就是參照 Reference Token 來定義。
+
+舉例來說 `color-primary` 就可透過參照 `color.red.200` 與 `color.red.100` 來定義。
+
+```json
+{
+  "color": {
+    "primary": {
+      "dark": {
+        "value": "{color.red.200}"
+      },
+      "light": {
+        "value": "{color.red.100}"
+      }
+    }
+  }
+}
+```
+
+而產生出來的 CSS 就會是這樣：
+
+```css
+:root {
+  --ui-color-primary-dark: #ef9a9a;
+  --ui-color-primary-light: #ffcdd2;
+}
+```
+
+## 建立 Design Token
+
+<Image src="https://imgur.com/0XCBQ6e.png" height="403" width="708" />
+
+了解什麼是 Style Dictionary 以及如何使用它來管理視覺元素後，接下來將介紹如何實踐從設計標籤到 CSS 的流程。
+
+1. 建立一個新的專案，專案名稱為 **design-tokens**。
+2. 了解視覺元素的結構，本篇會以 [Material Design](https://m3.material.io/) 當作基底。
+3. 將視覺元素 (color, space 以及 shadow 等等) 轉換成鍵值對（Key-Value Pair) 的 JSON 檔。
+4. 最後在透過 [Style Dictionary](https://github.com/amzn/style-dictionary) 來產生不同平台的 Styling (本篇會以 Web 的 CSS 作為範例)。
+
+### 專案目錄
+
+本篇將加入 `design-tokens` 這個 package，而以下是從系列的第一篇文章至今，整體的設計系統專案目錄結構：
+
+```bash
+design-system
+├── README.md
+├── package.json
+├── pnpm-lock.yaml
+├── packages
+│   ├── components
+|   |  ├── focus-scope
+|   |  |── visually-hidden
+│   └── tsconfig
+|   |── design-tokens <-- new
+...
+```
+
+### Step.1 - 初始化 design-tokens
+
+#### 建立 packages.json
+
+首先在 `packages` 下新增一個 `design-tokens` 的資料夾，並且初始化 packages.json。
+
+```bash
+design-system > mkdir design-tokens
+design-system > cd design-tokens
+design-system > pnpm init
+```
+
+#### 安裝相關套件
+
+在 `design-tokens` 專案下安裝以下套件：
+
+- **style-dictionary**: 管理 Design Token 的套件
+- **sass**: 為 CSS 的預處理器，可以用更有組織性的方式來寫 CSS
+- **stylelint**: CSS 的 linter
+
+```bash
+pnpm add style-dictionary sass postcss stylelint stylelint-config-prettier stylelint-config-standard stylelint-config-standard-scss stylelint-order stylelint-prettier -D
+```
+
+#### 設定 Stylelint
+
+在 `design-tokens` 的根目錄底下建立 `stylelintrc.json`
+
+```bash
+design-system > touch stylelintrc.json
+```
+
+可以根據喜好設定 Stylelint，這是筆者的[設定檔](https://github.com/jingsu96/tocino/blob/main/packages/design-tokens/stylelintrc.json)。
+
+### Step.2 - 將視覺元素轉換成設計標籤
+
+> 這次筆者會以 Material Design 的視覺元素與組件設計檔來作為設計系統的基底。
+
+Material Design 將設計標籤切分成三個層級，分別為 Reference Token, System Token 以及 Component Token。
+
+<Image
+  src="https://lh3.googleusercontent.com/IrMn3VR2Ub4-G9UVzUVYhlVTaLvAdSVkbgBHXWrMZ_YIdE3s42HgiRroQPKH10qCOwT2aLS-TABxCyLk6_pzo4nKgKFEfFafe0b2FgnJKTSC=s0"
+  height="363"
+  width="615"
+/>
+
+### Step.3 - 管理設計標籤
+
+由於 Material Design 將 Token 切分成三個層級，第一個問題就是要先定義哪一層級的 Token 需要納入 design-token 這個 packages 中管理？
+
+在目前的架構中，筆者會將 Reference Token 與 System Token 納入 design-token，而 Component Token 則是放在各個組件中。這也是現今許多大廠設計系統的做法，如 Pinterest 的 [Gestalt](https://github.com/pinterest/gestalt/tree/master/packages/gestalt-design-tokens) 或是 Shopify 的 [Polaris](https://polaris.shopify.com/design/colors) 等等。
+
+#### 視覺元素轉化成 JSON
+
+接下來要將 Material Design 的視覺元素轉換成鍵值對（Key-Value Pair) 的形式，這裡會以 `color` 作為範例，而以下是 design-tokens 的結構：
+
+```bash
+design-tokens
+├── README.md
+├── package.json
+├── pnpm-lock.yaml
+├── tokens
+│   ├── color
+│   |  ├── base.json <--- Reference Token
+│   |  ├── alias.json <-- System Token
+...
+```
+
+我們會將 Reference Token 與 System Token 分別存放在 `base.json` 與 `alias.json`，而在 `alias.json` 內的值則會參照 `base.json`。
+
+這也呼應了前面所提到的一致性，當設計師或是當今天想要 rebrand，就只需要更改 Reference Token 的值，而不需要更改所有層級的設計標籤。
+
+#### 參考資料 Token - base.json
+
+<Image src="https://imgur.com/UHvpD5R.png" height="839" width="609" />
+
+在 Material Design 中 (如上圖)，可以看到所有 Reference Token 這是最上層也是最抽象的，而將其轉換成 Token 就會如下:
+
+```json
+{
+  "ref": {
+    "palette": {
+      "primary": {
+        "0": { "value": "#000000" },
+        "10": { "value": "#21005D" },
+        ...
+        "100": { "value": "#FFFFFF" }
+      },
+      "secondary": {
+        "0": { "value": "#000000" },
+        "10": { "value": "#1D192B" },
+        ...
+        "100": { "value": "#FFFFFF" }
+      },
+    }
+  }
+}
+```
+
+#### System Token - alias.json
+
+<Image src="https://imgur.com/2tkVzIB.png" height="584" width="708" />
+
+System Token 相較於 Reference Token 會有更明確的定義，例如 `--sys-color-primary-container` 可以清楚知道這是 primary 的顏色，且是用在 container 上。
+
+大部分的 System Token 其背後都會有對應的 Reference Token，在 color 中便是如此:
+
+```json
+{
+  "sys": {
+    "color": {
+      "primary": {
+        "light": { "value": "{ref.palette.primary.40.value}" },
+      },
+      "primary-container": {
+        "light": { "value": "{ref.palette.primary.90.value}" },
+      }
+    }
+    ...
+  }
+}
+```
+
+也可以定義該 System Token 在深色模式 (Dark Mode) 中的值
+
+```json
+{
+  "sys": {
+    "color": {
+      "primary": {
+        "light": { "value": "{ref.palette.primary.40.value}" },
+        "dark": { "value": "{ref.palette.primary.80.value}" }
+      },
+      "primary-container": {
+        "light": { "value": "{ref.palette.primary.90.value}" },
+        "dark": { "value": "{ref.palette.primary.30.value}" }
+      }
+    }
+    ...
+  }
+}
+```
+
+當然視覺元素不會只有顏色，也會有字體、間距等等，其概念都是一樣的，這裡就不再一一贅述，可以參考筆者的 [design-tokens](https://github.com/jingsu96/tocino/tree/main/packages/design-tokens)。
+
+### Step.4 - 透過 Style Dictionary 來產生不同平台的 Styling
+
+最後在透過 [Style Dictionary](https://github.com/amzn/style-dictionary) 來產生不同平台的 Styling，而其會需要一個 `config.js` 來定義所有建置邏輯。其還有另一個優點就是可以透過一些客製化的 script 來對其進行擴充。
+
+#### 建立 config.js
+
+```bash
+{
+  "source": ['./tokens/**/*.json'],
+  "platforms": {
+    "css": {
+      "transformGroup": "css",
+      "buildPath": "dist/css/",
+      "files": [
+        {
+          "destination": "_variables.css",
+          "format": "css/variables"
+        }
+      ]
+    },
+    "js": {
+      "transformGroup": "js",
+      "buildPath": "dist/js/",
+      "files": [
+        {
+          "destination": "variables.js",
+          "format": "javascript/es6"
+        }
+      ]
+    }
+  }
+}
+```
+
+首先 `source` 是用來定義要轉換的檔案，像是上面的例子，我們會將所有的 token 都放在 `tokens` 底下，故設定為 `./tokens/**/*.json`。接下來就是 `platforms`，這裡會定義要轉換成哪些平台，像是 CSS、JS 等等，而每個平台都會有 `transformGroup` 與 `files`，可以參考 [Style Dictionary - Architecture](https://amzn.github.io/style-dictionary/#/architecture) 的文檔。
+
+以下是則是筆者的設定
+
+1. 透過 [build.js](https://github.com/jingsu96/tocino/blob/main/packages/design-tokens/build.cjs) 將 config.json 做延伸，並且定義對應的 `transformGroup` 與 `files`。
+2. 再來當 Style Dictionary 將先前定義好的 Token 轉換成 CSS 後，我們可以透過 SASS 建立 CSS 基底，並將所有 CSS 引入 [normalized.scss](https://github.com/jingsu96/tocino/blob/main/packages/design-tokens/normalize.scss) 作為入口，在打包時建立出 [dist/normalize/normalize.css](https://cdn.jsdelivr.net/npm/@tocino-ui/design-tokens/dist/normalize/normalize.css)。
+
+這個好處是可以把一些基本的 CSS 與設計標籤的 CSS 整理成一個檔案，而在引用的時候就可以直接引用 `normalize.css`。也可以透過以下方式來將其引用到 Storybook 中。
+
+```html
+// .storybook/preview-head.html
+<link
+  href="https://cdn.jsdelivr.net/npm/@tocino-ui/design-tokens/dist/normalize/normalize.css"
+  rel="stylesheet"
+/>
+```
+
+## 小結
+
+最後，有了屬於自己 Design System 的 `normalize.css` 之後，就可以在專案中引入它，並且使用 Design Token 來進行開發了！
+
+<Sandpack>
+
+```js file=App.js
+import { useEffect, useState, useRef } from 'react'
+import './styles.css'
+
+export default function App() {
+  const [theme, setTheme] = useState('light')
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+  }, [theme])
+
+  return (
+    <div className="App">
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@tocino-ui/design-tokens/dist/normalize/normalize.css"
+      />
+      <h1>Content</h1>
+      <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>Toggle Theme</button>
+    </div>
+  )
+}
+```
+
+```css styles.css
+.App {
+  background-color: var(--tocino-sys-color-primary-container);
+  font-family: sans-serif;
+  text-align: center;
+  height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 0 20px;
+}
+
+h1 {
+  color: var(--tocino-sys-color-primary);
+}
+```
+
+</Sandpack>
+
+可以嘗試將點擊 `Toggle Theme` 來切換主題，並且觀察 `data-theme` 的變化。

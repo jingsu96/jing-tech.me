@@ -64,7 +64,7 @@ const icon = fromHtmlIsomorphic(
   </svg>
   </span>
 `,
-  { fragment: true },
+  { fragment: true }
 );
 
 const computedFields: ComputedFields = {
@@ -108,7 +108,7 @@ function createSearchIndex(allBlogs) {
   if (siteMetadata?.search?.provider === 'kbar' && siteMetadata.search.kbarConfig.searchDocumentsPath) {
     writeFileSync(
       `public/${siteMetadata.search.kbarConfig.searchDocumentsPath}`,
-      JSON.stringify(allCoreContent(sortPosts(allBlogs))),
+      JSON.stringify(allCoreContent(sortPosts(allBlogs)))
     );
     console.log('Local search index generated...');
   }
@@ -130,6 +130,8 @@ export const Blog = defineDocumentType(() => ({
     layout: { type: 'string' },
     bibliography: { type: 'string' },
     canonicalUrl: { type: 'string' },
+    topic: { type: 'string' },
+    order: { type: 'number' },
   },
   computedFields: {
     ...computedFields,

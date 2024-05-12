@@ -1,0 +1,64 @@
+---
+title: Design System 101 - Internationalization
+date: '2023-10-12'
+tags: ['設計系統']
+draft: true
+authors: ['default']
+topic: 'workflow'
+order: 9999
+---
+
+## 前言
+
+全球化不僅是只有翻譯這麼簡單，還需要讓不同文化及語言的使用者都可以接受，而 Design System 作為網頁應用的核心基礎，除了提供一致的 UI 組件外，另外一點就是當服務從本地走向世界時，必須要讓使用者在不同語系的環境下，都能夠有一致的體驗。而本篇將帶大家介紹這些差異。
+
+## RTL
+
+在台灣大多數人最熟悉的語言不外乎就是中文、日文跟英文，而這些語言都是從左到右的書寫方式，但像是阿拉伯或是希伯來語等等則是從右到左的書寫方式，我們稱為 Bi-directional (雙向) 的語言，因為這些語言的書寫方式不只是單純的從右到左，也被稱為 RTL (Right-to-left) 的語言。
+
+> 之所以稱為 Bi-directional，是因為這些語言的書寫方式不只是單純的從右到左，還會有從左到右的情況，像是數字、英文等等。
+
+在設計 UI 時，就需要考慮以下幾點：
+
+### 版面
+
+RTL 的語言，由於版面是向右對齊，文字和圖像皆是按照從右到左的順序排列。這種排列方式可就需要考慮像是 Icon, Navigation Bar, Menu 等等的排列方式，也需要考慮其對整體設計和內容視覺層次的影響。例如，將圖形翻轉，並將 Menu 和 Navigation Bar 移至螢幕的右側。同時也盡量不要設定固定寬度或是高度在組件上，因為當文字的長度不一樣時，就會造成版面的破壞。
+
+以 Airbnb 來舉例，當切換到 RTL 語言時，使用者介面就會像被鏡像過一樣
+
+|          LTR (Left-to-right)          |          RTL (Right-to-left)          |
+| :-----------------------------------: | :-----------------------------------: |
+| ![LTR](https://imgur.com/BNL8eRb.png) | ![RTL](https://imgur.com/Kc3EbF4.png) |
+
+### 字型
+
+有些語言有很多連續性 (像是希伯來語) 也有語言有更多垂直的字型，因此在設計時，就需要考慮到這些差異。所以當在設計像是 Text 或是 Heading 這種組件時就可以將一些會影響到字體呈現的元素先處理好，像是 **line-height**、**underlined link**、**line break** 等等。
+
+![rtlstyling](https://rtlstyling.com/img/ar-kasra.png)
+
+### 圖標
+
+Icon 則也會需要根據 RTL 語言來做調整，而當我們在建立 Icon 組件時，也需要將其考慮進去。
+
+當 Icon 的種類是有方向的、問號、聲音、進度條等等，就需要將其鏡像過來
+
+<Image
+  src="https://imgur.com/OwSRJsF.png"
+  alt="icon"
+  width={244}
+  height={297}
+  sourceTitle="Pinterest example"
+  sourceUrl="https://m3.material.io/foundations/design-tokens/how-to-read-tokens"
+/>
+
+但也有例外像是播放鍵、Icon 是固定的、或是沒有方向的，就不需要做鏡像
+
+![ICON](https://imgur.com/OsclVPk.png)
+
+## 格式
+
+另一個要點就是格式，有些我們習以為常的格式，在其他國家可能就不是這麼直覺。像是日期、時間、數字、貨幣等等，這些都是需要根據不同語言及文化來做調整。而 [Atlassian 有列出一些指南](https://atlassian.design/content/writing-guidelines/date-and-time-guideline) 可以參考!
+
+## 小結
+
+明天見～

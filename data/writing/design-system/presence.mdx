@@ -1,0 +1,504 @@
+---
+title: Design System 101 - Animation Presence
+date: '2023-12-04'
+lastmod: '2023-12-09'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'core'
+status: 'NEW ✨'
+order: 3
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+作為前端工程師，處理動畫效果是日常工作中常見的需求。但 React 並沒有提供一個生命週期方法，讓我們可以在組件被卸載 (unmount) 之前進行邏輯處理。這也導致我們在處理動畫效果時，即使加了退場動畫的邏輯，在組件被卸載時的動畫效果根本沒開始，組件就已經被卸載了。
+
+舉一個淡出/淡入 (fade out/fade in) 的例子，當點擊 "toggle" 時，可以看到 "Content" 淡入，但是當點擊 "toggle" 時，"Content" 沒有淡出，而是直接消失了。
+
+<Sandpack>
+
+```jsx file=App.js
+import React from 'react'
+import './style.css'
+
+export default () => {
+  const [open, setOpen] = React.useState(false)
+
+  return (
+    <>
+      <button className="btn" onClick={() => setOpen(!open)}>
+        toggle
+      </button>
+      <div data-state={open} className="content-animation">
+        Content
+      </div>
+    </>
+  )
+}
+```
+
+```css file=style.css
+body {
+  height: 80vh;
+}
+
+.btn {
+  display: flex;
+  margin-bottom: 30px;
+}
+
+[data-state='true'].content-animation {
+  opacity: 1;
+  display: block;
+  animation: contentAnimateIn 0.5s ease;
+}
+
+[data-state='false'].content-animation {
+  opacity: 0;
+  display: none;
+  animation: contentAnimateOut 0.5s ease;
+  pointer-events: none;
+}
+
+@keyframes contentAnimateIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes contentAnimateOut {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+```
+
+</Sandpack>
+
+如果我們希望在組件消失之前進行淡出效果，就需要在組件被卸載之前，將組件執行完動畫邏輯，再改變組件的狀態，讓組件消失。
+
+這時我們可以將上面的例子改寫成如下：
+
+<Sandpack>
+
+```jsx file=App.js
+import React from 'react'
+import useStateMachine from './useStateMachine'
+import './style.css'
+
+const machine = {
+  mounted: {
+    UNMOUNT: 'unmounted',
+    ANIMATION_OUT: 'unmountSuspended',
+  },
+  unmountSuspended: {
+    MOUNT: 'mounted',
+    ANIMATION_END: 'unmounted',
+  },
+  unmounted: {
+    MOUNT: 'mounted',
+  },
+}
+
+export default () => {
+  // 如果是 false，則會禁用在組件第一次渲染時存在的子組件上的任何初始動畫
+  const present = false
+
+  const [open, setOpen] = React.useState(present)
+  const [animationState, send] = useStateMachine(!present ? 'unmounted' : 'mounted', machine)
+
+  // 處理當 animation name 為 none 時，直接將組件從 DOM 中移除
+  const [node, setNode] = React.useState(null)
+  const stylesRef = React.useRef({})
+
+  React.useEffect(() => {
+    if (node) {
+      stylesRef.current = getComputedStyle(node)
+    }
+    setNode(node)
+  }, [open])
+
+  React.useEffect(() => {
+    const styles = stylesRef?.current
+
+    if (open) {
+      send('MOUNT')
+    } else if (styles?.animationName === 'none') {
+      send('UNMOUNT')
+    } else {
+      send('ANIMATION_OUT')
+    }
+  }, [open, send])
+
+  return (
+    <>
+      <button className="btn" onClick={() => setOpen(!open)}>
+        toggle
+      </button>
+      {['mounted', 'unmountSuspended'].includes(animationState) && (
+        <div
+          ref={setNode}
+          data-state={open}
+          className="content-animation"
+          onAnimationEnd={() => {
+            if (!open) {
+              send('ANIMATION_END')
+            }
+          }}
+        >
+          Content
+        </div>
+      )}
+    </>
+  )
+}
+```
+
+```jsx file=useStateMachine.js
+import React from 'react'
+
+export default function useStateMachine(initialState, machine) {
+  return React.useReducer((state, event) => {
+    const nextState = machine[state][event]
+    return nextState || state
+  }, initialState)
+}
+```
+
+```css file=style.css
+body {
+  height: 80vh;
+}
+
+.btn {
+  display: flex;
+  margin-bottom: 30px;
+}
+
+[data-state='true'].content-animation {
+  opacity: 1;
+  animation: contentAnimateIn 0.5s ease;
+}
+
+[data-state='false'].content-animation {
+  opacity: 0;
+  animation: contentAnimateOut 0.5s ease;
+  pointer-events: none;
+}
+
+@keyframes contentAnimateIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes contentAnimateOut {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+```
+
+</Sandpack>
+
+上面的實作主要有幾個重點：
+
+1. 實作出一個 [狀態機 (State Machine)](https://zh.wikipedia.org/zh-tw/%E6%9C%89%E9%99%90%E7%8A%B6%E6%80%81%E6%9C%BA)，用來管理組件的狀態
+
+   這個狀態機有三個狀態，分別是 `mounted`、`unmountSuspended`、`unmounted`：
+
+   - `mounted`：組件已經被掛載 (mount)，並且正在顯示中，下一個狀態會是 `unmounted` 或 `unmountSuspended`。
+   - `unmountSuspended`：組件已經被掛載 (mount)，但是正在進行退場動畫，下一個狀態會是 `unmounted` 或 `mounted`。
+   - `unmounted`：組件已經被卸載 (unmount)，下一個狀態會是 `mounted`。
+
+2. 首先一開始如果將 `present` 設為 `false`，則會禁用在組件第一次渲染時存在的子組件上的任何初始動畫
+3. 當點擊 "toggle" 時，`open` 會改變成 `true`，則將狀態機的狀態會從 `unmounted` 改為 `mounted`，這樣組件本身的 animtaion 就會開始執行。
+4. 當再次點擊 "toggle" 時， `open` 會改變成 `false`，則將狀態機的狀態會從 `mounted` 改為 `unmountSuspended`，這樣組件本身的 animtaion 就會開始執行。直到執行結束，才會將狀態機的狀態從 `unmountSuspended` 改為 `unmounted`，這樣組件就會被卸載。
+
+## 什麼是 Presence？
+
+**Presence** 能夠讓組件在從 React 樹狀結構 (DOM Tree) 中移除之前進行動畫處理，進而實現更好的用戶體驗。
+
+## 為什麼需要 Presence？
+
+如前面所提到 React 本身並沒有提供一個生命週期方法，可以讓在組件被卸載 (unmount) 之前進行邏輯處理。如果我們希望在組件消失之前進行動畫效果，像是淡出 (fade out) 效果，就需要 Presence 這樣的工具。
+
+Presence 就是將上面的實作進行模組化，其功能就是在當如果有動畫時，在動畫完成之前，讓組件保持在 DOM 中，直到動畫完成之後再將其從 DOM 中移除。
+
+## 使用方式
+
+```jsx
+;() => {
+  const [open, setOpen] = React.useState(true)
+
+  return (
+    <>
+      <button onClick={() => setOpen(!open)}>toggle</button>
+      <Presence present={open}>
+        <div>Content</div>
+      </Presence>
+    </>
+  )
+}
+```
+
+## 實作
+
+與上面實作不同的是，我們將 Presence 進行一定程度的模組化，讓其自身達到開箱及用的效果。不用讓使用 `<Presence>` 的人，需要去實作狀態機。
+
+所以將 animation 的狀態改用 `addEventListener` 進行監聽，並在動畫結束時，透過 `ReactDOM.flushSync` 來強制更新狀態機的狀態。
+
+而同時會監聽 `present` 的變化，如果 `present` 的值改變，則會根據 `present` 的值，來決定狀態機的狀態。
+
+<Sandpack>
+
+```jsx file=App.js
+import React from 'react'
+import useStateMachine from './useStateMachine'
+import { Presence } from './presence'
+import './styles.css'
+
+export default () => {
+  const [open, setOpen] = React.useState(false)
+
+  return (
+    <>
+      <button className="btn" onClick={() => setOpen(!open)}>
+        toggle
+      </button>
+      <Presence present={open}>
+        <div data-state={open} className="content-animation">
+          Content
+        </div>
+      </Presence>
+    </>
+  )
+}
+```
+
+```jsx file=presence.js
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { useComposedRefs } from './composedRefs'
+import useStateMachine from './useStateMachine'
+
+function getAnimationName(styles) {
+  return styles?.animationName || 'none'
+}
+
+export const Presence = (props) => {
+  const { present, children } = props
+  const presence = usePresence(present)
+
+  const child =
+    typeof children === 'function'
+      ? children({ present: presence.isPresent })
+      : React.Children.only(children)
+
+  const ref = useComposedRefs(presence.ref, child.ref)
+  const forceMount = typeof children === 'function'
+  return forceMount || presence.isPresent ? React.cloneElement(child, { ref }) : null
+}
+
+export const usePresence = (present) => {
+  const [node, setNode] = React.useState(null)
+  const stylesRef = React.useRef({})
+
+  const prevPresentRef = React.useRef(present)
+  const prevAnimationNameRef = React.useRef('none')
+  const initialState = present ? 'mounted' : 'unmounted'
+
+  const [state, send] = useStateMachine(initialState, {
+    mounted: {
+      UNMOUNT: 'unmounted',
+      ANIMATION_OUT: 'unmountSuspended',
+    },
+    unmountSuspended: {
+      MOUNT: 'mounted',
+      ANIMATION_END: 'unmounted',
+    },
+    unmounted: {
+      MOUNT: 'mounted',
+    },
+  })
+
+  React.useEffect(() => {
+    const currentAnimationName = getAnimationName(stylesRef.current)
+    prevAnimationNameRef.current = state === 'mounted' ? currentAnimationName : 'none'
+  }, [state])
+
+  React.useLayoutEffect(() => {
+    const styles = stylesRef.current
+    const wasPresent = prevPresentRef.current
+    const hasPresentChanged = wasPresent !== present
+
+    if (hasPresentChanged) {
+      const prevAnimationName = prevAnimationNameRef.current
+      const currentAnimationName = getAnimationName(styles)
+
+      if (present) {
+        send('MOUNT')
+      } else if (currentAnimationName === 'none' || styles?.display === 'none') {
+        send('UNMOUNT')
+      } else {
+        const isAnimating = prevAnimationName !== currentAnimationName
+
+        if (wasPresent && isAnimating) {
+          send('ANIMATION_OUT')
+        } else {
+          send('UNMOUNT')
+        }
+      }
+      prevPresentRef.current = present
+    }
+  }, [present, send])
+
+  React.useLayoutEffect(() => {
+    if (!node) {
+      send('ANIMATION_END')
+      return
+    }
+
+    const handleAnimationEnd = (event) => {
+      const currentAnimationName = getAnimationName(stylesRef.current)
+      const isCurrentAnimation = currentAnimationName.includes(event.animationName)
+
+      if (event.target === node && isCurrentAnimation) {
+        ReactDOM.flushSync(() => send('ANIMATION_END'))
+      }
+    }
+
+    const handleAnimationStart = (event) => {
+      if (event.target === node) {
+        prevAnimationNameRef.current = getAnimationName(stylesRef.current)
+      }
+    }
+
+    node.addEventListener('animationstart', handleAnimationStart)
+    node.addEventListener('animationend', handleAnimationEnd)
+    node.addEventListener('animationcancel', handleAnimationEnd)
+
+    return () => {
+      node.removeEventListener('animationstart', handleAnimationStart)
+      node.removeEventListener('animationend', handleAnimationEnd)
+      node.removeEventListener('animationcancel', handleAnimationEnd)
+    }
+  }, [node, send])
+
+  return {
+    isPresent: ['mounted', 'unmountSuspended'].includes(state),
+    ref: React.useCallback((node) => {
+      if (node) {
+        stylesRef.current = getComputedStyle(node)
+      }
+      setNode(node)
+    }, []),
+  }
+}
+```
+
+```jsx file=composedRefs.js hidden=true
+import React, { useCallback } from 'react'
+
+function assignRef(ref, value) {
+  if (ref == null) {
+    return
+  }
+
+  if (typeof ref === 'function') {
+    ref(value)
+  } else {
+    Reflect.set(ref, 'current', value)
+  }
+}
+
+export function useComposedRefs(...refs) {
+  return React.useCallback(
+    (value) => {
+      refs.forEach((ref) => {
+        assignRef(ref, value)
+      })
+    },
+    [refs]
+  )
+}
+```
+
+```jsx file=useStateMachine.js
+import React from 'react'
+
+export default function useStateMachine(initialState, machine) {
+  return React.useReducer((state, event) => {
+    const nextState = machine[state][event]
+    return nextState || state
+  }, initialState)
+}
+```
+
+```css file=styles.css
+body {
+  height: 80vh;
+}
+
+.btn {
+  display: flex;
+  margin-bottom: 30px;
+}
+
+[data-state='true'].content-animation {
+  opacity: 1;
+  animation: contentAnimateIn 0.5s ease;
+}
+
+[data-state='false'].content-animation {
+  opacity: 0;
+  animation: contentAnimateOut 0.5s ease;
+  pointer-events: none;
+}
+
+@keyframes contentAnimateIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes contentAnimateOut {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+```
+
+</Sandpack>
+
+## 參考資料
+
+1. [Framer Motion - Presence](https://www.framer.com/motion/animate-presence/)
+2. [Radix UI - Presence](https://github.com/radix-ui/primitives/blob/main/packages/react/presence/)

@@ -9,7 +9,7 @@ import CodeBlock from './code-block/';
 
 export const components: MDXComponents = {
   Image,
-  TOCInline,
+  TOCInline: (props: any) => <TOCInline {...props} collapse={true} />,
   a: Link,
   pre: (props: React.HTMLProps<HTMLPreElement>) => <pre {...props} />,
   code: CodeBlock,

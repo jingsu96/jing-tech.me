@@ -1,0 +1,94 @@
+---
+title: Design System 101 - 介紹設計系統
+date: '2023-09-11'
+tags: ['設計系統']
+draft: false
+summary: 設計系統 Design System
+authors: ['default']
+topic: 'introduce'
+order: 1
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+回想 3 年前我剛入行的時候，那時候加入的公司 Web Team 才剛建立，只有主管帶著我這個菜鳥應付四面而來的需求。當時我什麼都不懂，沒有做過產品、不知道什麼是套件跟什麼是前端基礎建設，就迎來了人生第一個專案，一個後台發券系統，而這專案對我來說簡直像地獄般的試練。
+
+當初拿到設計稿就是一股腦兒的做，反正把東西刻出來就對了，複製貼上練得爐火純青，也都忘記 JavaScript 已經有模組化系統了 (`import` / `export`)。在搞定第一頁之後自信滿滿的給我的主管 code review，只見主管臉色鐵青，我想他當時可能覺得自己被騙了，怎麼會把我這種人面試進來。
+
+但主管還是耐心的跟我說可以建立一個叫 `/components` 的檔案夾，然後看到有類似的組件就放到這裡面，例如 button 就建立一個 `/components/button` 之後就可以從這裡取用該組件。然後可以透過 Storybook 的方式展示，將小的組件展示給設計師看，這樣就不用每頁去檢查同一個 button 了！
+
+我當時覺得這太酷了，在這個專案我也學到模組化跟怎麼用 Storybook！雖然專案期間跟設計師對 UI 時雷到多花一倍的時間, 被 SDET 團隊測出上百個 bugs 但這就是另一個故事了。
+
+之後參與了 UI Library 的建置，從一開始四、五個左右的共用組件到二十多個，當時的我瞭解到一個好用的組件需要多次和設計師溝通，更重要的是要讓其他工程師在使用時達到開箱即用的狀態，這樣才能讓其價值發揮出來。
+
+然而如何說服產品經理和設計師不要在每個專案中都使用不同的設計，以及如何確保組件具有彈性並可擴充，都是必須面對和解決的問題，而設計系統則是解決這些問題的一個方法。
+
+## 什麼是設計系統 (Design System)
+
+> A design system offers a library of visual style, components, and other concerns documented and released by an individual, team or community as code and design tools so that adopting products can be more efficient and cohesive. -- by Nathan Curtis in [Defining Design Systems](https://medium.com/eightshapes-llc/defining-design-systems-6dd4b03e0ff6)
+
+這段來自 Nathan Curtis 對於設計系統的解釋，是最貼近我對設計系統的定義，Design System 含了品牌價值、設計原則 (Design Principles)、設計標籤 (Design Token)、組件庫 (UI Library)、設計模式（Design pattern）以及可訪問性，而最終的目的是為了讓產品的開發更有效率，並且提供一致的用戶體驗。
+
+## 如何設計一個設計系統
+
+**|** **_沒有一個設計系統可以解決所有問題，只有適合自己團隊的設計系統。_**
+
+設計系統是一個龐大的系統，需要漫長的時間去建置。然而大多數公司的設計系統不一定是這麼的完全，也不需要一開始就要建立完美的設計系統。
+
+畢竟在公司不斷的成長的過程中，其產品是快速迭代的，如果一開始就要建立完美的設計系統，這過程中會因為產品的需求而不斷的去修改設計系統，反而需要花更多人力成本去維護設計系統。
+
+雖然不同公司 / 團隊所需要的設計系統不一樣，但依然有一些基本的步驟可以參考，根據 [Invision design system handbook](https://www.designbetter.co/design-systems-handbook) 這本書，我們可以知道大致的方向
+
+#### 1. 哪些人需要參與這個設計系統的建置?
+
+- 設計師: 負責設計視覺元素 (Visual Element) 從顏色，字體到按鈕，輸入框等等
+- 前端工程師: 負責將設計師設計的組件實作出來，並且將其封裝成一個組件。
+- 產品經理: 負責產品的方向，並且確保設計系統的組件可以符合產品的需求。
+- Accessibility 專家: 負責確保設計系統的組件是可訪問的 (Accessibility)。
+
+#### 2. 團隊要如何設置？
+
+根據 Jina Anne 的 [The Salesforce Team Model for Scaling a Design System](https://medium.com/salesforce-ux/the-salesforce-team-model-for-scaling-a-design-system-d89c2a2d404b) 的文章提到，
+
+設計系統的團隊可以分成三種模型，分別是孤立式 (isolated model)，集中式 (centralized model) 以及分佈式 (distributed model)。
+
+1. 孤立式 (isolated model)
+   如果一開始團隊才剛建立起來這種模型最為常見，因為往往只會有一個人負責開發設計系統，優點是快速以及不用太多討論就可以彈性的調整，缺點是一個人可能會因為其他事情而忽略設計系統的維護。
+
+2. 集中式 (centralized model)
+   這種模型是將設計系統的維護交給一個專門的團隊（通常是 frontend infra team)，優點是可以專注在設計系統的維護，缺點是可能不像那些直接參與產品開發的人那樣了解客戶的需求。
+
+3. 分佈式 (distributed model)
+   這種模型是讓不同團隊的人員一起設計系統，讓每個人都參與其中，優點是讓產品端的開發者有更好的用戶洞察力，可以建立更符合客戶需求的用戶體驗，缺點是可能會因為不同團隊的人員不一定會有足夠的時間貢獻在設計系統上。
+
+#### 3. 讓設計系統可以符合公司的品牌價值
+
+每個公司都會有自己的品牌價值，而這個品牌價值就會反映在設計系統的視覺元素 (Visual Element) 上，其通常包括顏色、字體、間距與動畫。
+
+例如 Shopify 的 Polaris Design System
+
+<Image src="https://imgur.com/iFtGo6w.png" height="358" width="708" />
+
+又或是 AWS 的 CloudSpace Design System
+
+<Image src="https://i.imgur.com/7iwGGRY.png" height="358" width="708" />
+
+都可以了解到視覺元素代表的是一個設計系統的基礎，設計師會根據這些視覺元素來設計組件，前端工程師則加以實踐。
+
+#### 4. 建立 UI Library 以及建立設計系統的文件
+
+上述都完成後，接下來就是 UI Library 的建置，將可複用的組件模塊化，可以遵循 Atomic Design 的概念，從一個最小的不可分割的組件開始，透過這些小組件如同拼樂高積木般，最後組成一個完整的頁面。
+
+<Image src="https://imgur.com/XPqcDrl.png" height="199" width="615" />
+
+> Atomic Design 就是將組件分成五個層級，分別是原子 (atoms), 分子 (molecules), 組織 (organisms), 模板 (templates) 以及頁面 (pages)。
+
+最後將設計系統文件化，讓每位成員都知道其團隊設計系統的規範準則、設計標籤以及既有組件，讓產品在開發時能夠快速開發且保持一致的用戶體驗。
+
+## 參考資料
+
+1. [Invision design system handbook](https://www.designbetter.co/design-systems-handbook)
+2. [Defining Design Systems](https://medium.com/eightshapes-llc/defining-design-systems-6dd4b03e0ff6)
+3. [Atomic Design](https://atomicdesign.bradfrost.com/table-of-contents/)

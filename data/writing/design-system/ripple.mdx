@@ -1,0 +1,408 @@
+---
+title: Design System 101 - Ripple
+date: '2023-11-11'
+lastmod: '2023-11-11'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'component'
+github: 'https://github.com/jingsu96/tocino/tree/main/packages/components/ripple'
+order: 3
+---
+
+<Image src="https://imgur.com/33uqvm0.gif" height="140" width="316" />
+
+## 前言
+
+Ripple Effect 是 Material Design 中的一個動畫效果，當使用者點擊 Button 時，會有一個水波紋的效果，讓使用者知道自己點擊的位置。本篇將會介紹如何來實作 Ripple 組件！
+
+## API 設計
+
+Ripple 的 API 設計相對簡單，其功能主要會有以下：
+
+1. 首先我們需要一個元素作為其附著的範圍，讓 Ripple 組件可以在點擊時呈現水波紋的動畫。
+2. 讓使用者能夠客製化水波紋的顏色。
+
+| 屬性      | 描述                                                 | 型別   | 預設值 |
+| --------- | ---------------------------------------------------- | ------ | ------ |
+| color     | Ripple 的顏色                                        | string | -      |
+| target    | Ripple 的附著範圍，Ripple 組件會在這個範圍內呈現動畫 | node   | -      |
+| className | Ripple Container 的額外樣式                          | string | -      |
+
+## HTML 結構
+
+我們會透過 `<span />` 定義其動畫擴張的範圍，由於 Ripple 只是屬於動畫呈現組件，可以用 `aria-hidden` 來隱藏其元素，增強網頁的無障礙 (Accessibility) 使用性。
+
+```html
+<-- container -->
+<span aria-hidden="{true}">
+  <-- animation effect -->
+  <span />
+</span>
+```
+
+## 使用方式
+
+```jsx
+() => (
+  <div ref={containerRef}>
+    <span>Ripple Effect</span>
+    <Ripple target={containerRef} />
+  <div>
+)
+```
+
+## 建立 Ripple 組件
+
+### 第一步驟 - 透過 plop 建立 Ripple 的組件
+
+```bash
+design-system > pnpm generate // name: ripple
+design-system > cd packages/ripple
+design-system/packages/ripple > pnpm i // 安裝相依套件
+```
+
+### 第二步驟 - CSS
+
+透過 CSS 來實作 Ripple 的動畫效果，首先先定義 Ripple 的容器，並且透過 `overflow: hidden` 來限制 Ripple Effect 只會在容器內呈現。
+
+```css
+.tocino-Ripple__container {
+  display: block;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+
+  height: 100%;
+  width: 100%;
+
+  overflow: hidden;
+  pointer-events: none;
+}
+```
+
+再來就是 Ripple 的動畫效果，當 style 改變時，會透過 transition 來呈現動畫。
+
+```css
+.tocino-Ripple {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.0001, 0.0001);
+
+  &.tocino--Ripple-animating {
+    transform: none;
+    transition:
+      transform 0.15s linear,
+      width 0.15s linear,
+      height 0.15s linear,
+      opacity 0.15s linear;
+    will-change: transform, width, height, opacity;
+  }
+
+  &.tocino--Ripple-visible {
+    opacity: 0.3;
+  }
+}
+```
+
+### 第三步驟 - 核心邏輯
+
+最後我們就需要監聽使用者點擊或是觸碰的事件，來觸發 Ripple 的動畫效果！
+
+用 `useRipple` 將主要核心邏輯封裝載該 hook 中：
+
+#### 狀態設計
+
+- rippleStyle: 存放 Ripple 的樣式，並當 Style 改變時，會觸發動畫效果。
+- rippleIsVisible: 控制 Ripple 是否可見。
+- rippleElRef: Ripple 元素的參考。
+
+```js
+export const useRipple = ({ target, color }) => {
+  const [rippleStyle, setRippleStyle] = useState({});
+  const [rippleIsVisible, setRippleIsVisible] = useState(false);
+  const rippleElRef = useRef(null);
+  ...
+}
+```
+
+#### 事件邏輯
+
+接著透過 `target` 的傳入，我們可以使用 `useEffect` 來訂閱 tocuh 以及 mouse 事件。
+
+```js
+useEffect(() => {
+  target.current?.addEventListener('touchstart', showRipple, { passive: true })
+  target.current?.addEventListener('mousedown', showRipple, { passive: true })
+  target.current?.addEventListener('mouseup', hideRipple, { passive: true })
+  target.current?.addEventListener('mouseleave', hideRipple, { passive: true })
+  return () => {
+    target.current?.removeEventListener('touchstart', showRipple)
+    target.current?.removeEventListener('mousedown', showRipple)
+    target.current?.removeEventListener('mouseup', hideRipple)
+    target.current?.removeEventListener('mouseleave', hideRipple)
+  }
+}, [])
+```
+
+當使者點擊容器時，會觸發 `showRipple` 事件，並且透過 `rippleElRef` 來取得 ripple 的元素，並且計算出 ripple 的位置。
+
+```js
+const showRipple = useCallback(
+  (evt) => {
+    const buttonEl = target.current
+
+    const offset = domUtils.offset(buttonEl)
+    const clickEvent = evt.type === 'touchstart' && evt.touches ? evt.touches[0] : evt
+
+    const radius = Math.sqrt(offset.width * offset.width + offset.height * offset.height)
+    const diameterPx = radius * 2 + 'px'
+
+    setRippleStyle({
+      top: Math.round(clickEvent.pageY - offset.top - radius) + 'px',
+      left: Math.round(clickEvent.pageX - offset.left - radius) + 'px',
+      width: diameterPx,
+      height: diameterPx,
+      backgroundColor: color,
+    })
+
+    setRippleIsVisible(true)
+  },
+  [rippleElRef, color]
+)
+```
+
+最後在事件結束後，觸發 `hideRipple` 事件，讓 Ripple Effect 消失。
+
+```js
+const hideRipple = useCallback(() => {
+  setRippleIsVisible(false)
+}, [])
+```
+
+<Sandpack>
+
+```js file=App.js
+import React from 'react'
+import { Ripple } from './ripple'
+
+export default () => {
+  const containerRef = React.useRef(null)
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        position: 'relative',
+        width: '200px',
+        height: '200px',
+        border: '1px solid gray',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: '50%',
+      }}
+    >
+      <span>Ripple Effect</span>
+      <Ripple target={containerRef} />
+    </div>
+  )
+}
+```
+
+```js file=ripple.js
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import './ripple.css'
+
+const domUtils = {
+  offset: function (element) {
+    const rect = element.getBoundingClientRect()
+
+    return {
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+    }
+  },
+  addClass: function (element, className) {
+    if (element.classList) {
+      element.classList.add(className)
+    } else {
+      element.className = `${element.className} ${className}`
+    }
+  },
+  removeClass: function (element, className) {
+    if (element.classList) {
+      element.classList.remove(className)
+    } else {
+      element.className = element.className.replace(
+        new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'),
+        ' '
+      )
+    }
+  },
+}
+
+/**
+ * =================
+ *  useRipple
+ * =================
+ */
+
+export const useRipple = ({ target }) => {
+  const [rippleStyle, setRippleStyle] = useState({})
+  const [rippleIsVisible, setRippleIsVisible] = useState(false)
+  const rippleElRef = useRef(null)
+
+  useEffect(() => {
+    const targetRef = target.current
+
+    if (!targetRef) {
+      return null
+    }
+
+    targetRef.addEventListener('touchstart', showRipple, { passive: true })
+    targetRef.addEventListener('mousedown', showRipple, { passive: true })
+    targetRef.addEventListener('mouseup', hideRipple, { passive: true })
+    targetRef.addEventListener('mouseleave', hideRipple, { passive: true })
+    return () => {
+      targetRef.removeEventListener('touchstart', showRipple)
+      targetRef.removeEventListener('mousedown', showRipple)
+      targetRef.removeEventListener('mouseup', hideRipple)
+      targetRef.removeEventListener('mouseleave', hideRipple)
+    }
+  }, [])
+
+  const showRipple = useCallback(
+    (evt) => {
+      const buttonEl = target.current
+
+      if (!buttonEl || ('ontouchstart' in buttonEl && evt.type === 'mousedown')) {
+        return
+      }
+
+      const offset = domUtils.offset(buttonEl)
+      const clickEvent = evt.type === 'touchstart' && evt.touches ? evt.touches[0] : evt
+
+      const radius = Math.sqrt(offset.width * offset.width + offset.height * offset.height)
+      const diameterPx = radius * 2 + 'px'
+
+      setRippleStyle({
+        top: Math.round(clickEvent.pageY - offset.top - radius) + 'px',
+        left: Math.round(clickEvent.pageX - offset.left - radius) + 'px',
+        width: diameterPx,
+        height: diameterPx,
+      })
+
+      setRippleIsVisible(true)
+    },
+    [rippleElRef]
+  )
+
+  const hideRipple = useCallback(() => {
+    setRippleIsVisible(false)
+  }, [])
+
+  useEffect(() => {
+    const rippleEl = rippleElRef.current
+
+    if (!rippleEl) return
+
+    if (rippleIsVisible) {
+      domUtils.removeClass(rippleEl, 'tocino--Ripple-animating')
+      domUtils.addClass(rippleEl, 'tocino--Ripple-visible')
+
+      requestAnimationFrame(() => {
+        domUtils.addClass(rippleEl, 'tocino--Ripple-animating')
+      })
+    } else {
+      requestAnimationFrame(() => {
+        domUtils.removeClass(rippleEl, 'tocino--Ripple-visible')
+      })
+    }
+  }, [rippleIsVisible])
+
+  return {
+    rippleStyle,
+    rippleElRef,
+  }
+}
+
+export const Ripple = React.forwardRef((props) => {
+  const { rippleStyle, rippleElRef } = useRipple(props)
+
+  return (
+    <span className="tocino-Ripple__container" aria-hidden={true}>
+      <span className="tocino-Ripple" ref={rippleElRef} style={rippleStyle} />
+    </span>
+  )
+})
+
+Ripple.displayName = 'Ripple'
+```
+
+```css file=ripple.css
+:root {
+  --tocino-ripple-container-shape: var(--tocino-sys-shape-corner-large, 100px);
+}
+
+.tocino-Ripple__container {
+  border-radius: var(--tocino-ripple-container-shape);
+  display: block;
+  height: 100%;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 0;
+}
+
+.tocino-Ripple {
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  transform: scale(0.0001, 0.0001);
+  background-color: rgb(103 80 164 / 40%);
+  border-radius: 50%;
+
+  &.tocino--Ripple-animating {
+    transform: none;
+    transition:
+      transform 0.15s linear,
+      width 0.15s linear,
+      height 0.15s linear,
+      opacity 0.15s linear;
+    will-change: transform, width, height, opacity;
+  }
+
+  &.tocino--Ripple-visible {
+    opacity: 0.3;
+  }
+}
+```
+
+</Sandpack>
+
+### 開啟 Storybook & 測試
+
+```bash
+design-system/ pnpm run test -w
+design-system/ pnpm run storybook
+```
+
+### 透過 changeset 來產生 changelog 以及 commit
+
+```bash
+pnpm changeset
+```

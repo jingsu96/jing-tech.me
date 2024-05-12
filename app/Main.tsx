@@ -6,45 +6,15 @@ import { FloatingHeader } from '@/components/lab/floating-header';
 import { MDXLayoutRenderer } from 'pliny/mdx-components';
 import { components } from '@/components/MDXComponents';
 import Image from '@/components/Image';
+import { WORK_EXPERIENCE } from '@/lib/constants';
 
 const MAX_DISPLAY = 5;
-
-const WORK_EXPERIENCE = [
-  {
-    name: 'Houzz',
-    link: 'https://www.houzz.com',
-    image: '/static/images/experience/houzz.png',
-    experience: [
-      {
-        title: 'Software Engineer',
-        level: 'L4',
-        period: 'November 2022 - Present',
-      },
-      {
-        title: 'Software Engineer',
-        level: 'L3',
-        period: 'January-October 2022',
-      },
-    ],
-  },
-  {
-    name: 'Jkopay',
-    link: 'https://www.jkopay.com',
-    image: '/static/images/experience/jkopay.png',
-    experience: [
-      {
-        title: 'Frontend Engineer',
-        period: 'October 2019 - October 2021',
-      },
-    ],
-  },
-];
 
 export default function Home({ posts: items, authors }) {
   return (
     <ScrollArea useScrollAreaId={true}>
       <FloatingHeader scrollTitle="Home" />
-      <section className="mx-auto mt-4 max-w-[840px] px-4 md:m-auto">
+      <section className="mx-auto max-w-[840px] px-4 pt-10 md:m-auto">
         <div className="grid grid-cols-1 gap-x-16 gap-y-1 sm:grid-cols-3">
           {/* ABOUT ME */}
           <div className="sm:col-span-2 sm:row-span-2">
@@ -93,11 +63,11 @@ export default function Home({ posts: items, authors }) {
             </div>
           </div>
         </div>
-        <div className="my-5 lg:my-12">
+        <div className="my-4 lg:my-4">
           <h1 className="text-m mb-m font-bold leading-tight text-[#ff0a78] dark:text-[#ff0a78] sm:text-lg">
             最新文章
           </h1>
-          <WritingList items={items.slice(0, MAX_DISPLAY)} />
+          <WritingList items={items} maxDisplay={MAX_DISPLAY} />
         </div>
       </section>
     </ScrollArea>

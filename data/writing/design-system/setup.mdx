@@ -1,0 +1,255 @@
+---
+title: Design System 101 - 專案建置
+date: '2023-09-19'
+tags: ['設計系統']
+draft: false
+summary: 設計系統 Design System
+authors: ['default']
+topic: 'setup'
+github: 'https://github.com/jingsu96/design-system-starter-kit'
+---
+
+<Image src="https://imgur.com/4MtV9wl.png" height="206" width="708" />
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+接下來將會介紹如何建置一個 Design System 的 Repo，本篇會分成兩個部分:
+
+- **第一部分**: 會著重於 repo 的基本設置，包含 Monorepo 的建置，以及如何使用 pnpm 來管理 packages。
+- **第二部分**: 加入 Template, Storybook 與單元測試。
+
+## 技術選型
+
+以下將會列出這次建立 Design System Repo 所使用到的技術，大部分都是目前比較主流的，而會採用這些技術，一部分是參考了很多公司的 Design System 所整理出來的，另一部分則是在現在的公司都不會碰到這些技術，想要藉由這個機會當作練習。
+
+如果有任何錯誤、問題或是建議，都歡迎給我回饋！
+
+### pnpm
+
+pnpm 是一個 package manager，跟 npm、yarn 一樣到工具，但是它有一些特別的地方，就跟官方文件所說的一樣:
+
+> pnpm is a fast, disk space efficient package manager
+
+就是快！而且省空間！
+
+當然它也解決了一直以來 npm 與 yarn 為人詬病的問題，
+
+假設現在我們有一個專案 app 其安裝 package-a 與 package-b 作為相依套件，而 package-a 跟 package-b 都有 package-c 作為其相依套件
+
+#### npm 的重複安裝問題
+
+在 npm@3 之前，node_modules 就會像是這樣:
+
+```bash
+node_modules
+├── package-a
+│   └── node_modules
+│       └── package-c
+└── package-b
+    └── node_modules
+        └── package-c
+```
+
+會發現 package-c 被安裝了兩次，是因為 npm 會將所有的 package 都安裝在專案的 node_modules 裡，而不管這個 package 是不是已被其他 package 所依賴，最終 node_modules 就會像是巨無霸一樣。
+
+#### npm@3 與 yarn 的幻影依賴問題
+
+<Image src="https://imgur.com/U78d0km.png" height="206" width="708" />
+
+npm@3 與 yarn 則會將所有的 package 安裝在專案的 node_modules 裡，但是會將相依套件的 package 移到上層的 node_modules 裡，達到 node_modules 結構扁平化，這樣就不會有重複安裝的問題了。
+
+```bash
+node_modules
+├── package-a
+├── package-b
+└── package-c
+```
+
+但因為這樣的扁平化結構，就會使 app 可以直接使用 package-c，進而導致幻影依賴的產生。
+
+假設 `app/index.js` 剛好直接引用 package-c，那麼假設今天 package-a 升級，裡面使用到的 package-c 有重大 API 更新，這樣 app 使用的 package-c 就會產生問題。
+
+<Image src="https://imgur.com/9MBme2g.png" height="206" width="708" />
+
+#### 為什麼要用 pnpm
+
+然而上述的問題，pnpm 都解決了，其方法就是將所有 package 先存到 .store 的倉庫裡面，然後產生像樹狀結構的 node_modules，而 pnpm 不是像 npm 那樣把每個套件所需的東西都複製一份，而是透過軟連結 symlink 的方式，把相依的套件連結到 store 裡面的套件，這樣就不會有重複安裝的問題，也不會有幻影依賴的問題。
+
+```bash
+node_modules
+├── package-a
+│   └── node_modules
+│       └── package-c -(symlink)-> .store/package-c@1.0.0
+└── package-b
+    └── node_modules
+        └── package-c -(symlink)-> .store/package-c@1.0.0
+```
+
+這也是這次想要嘗試使用 pnpm 的原因！
+
+### Monorepo 工具 - turbo
+
+#### 什麼是 Monorepo
+
+通常 Monorepo 是指一個 repo 同時有多個 packages，而這些 packages 可以是 library、app 或是 documentation 等等。
+
+#### 為什麼要用 Monorepo
+
+之所以這次用 monorepo 是因為之後我們 design system 的架構會是這樣，會分成多個 packages:
+
+- `@ui/design-tokens`: 裡面會包含所有的 color、typography、spacing、border-radius 等等。
+- `@ui/components`: 裡面會包含所有的 components。
+- `@ui/a11y`: 裡面會包含所有元件對應的 accessibility 相關的東西。
+- `@ui/core`: 裡面會包含所有的 utils、hooks、context 等等。
+
+<Image src="https://imgur.com/lt8aDK6.png" height="520" width="708" />
+
+而目前最常見的 monorepo 就是透過 yarn workspace + lerna 或是 turbo + pnpm，這次我們會使用 turbo + pnpm 來管理 monorepo。
+
+### 版本管理 changeset
+
+changesets 主要是做兩件事:
+
+> Changesets hold two key bits of information: a version type (following semver), and change information to be added to a changelog.
+
+這次 Design System 就會透過 changeset 來管理 packages 的版本號，以及產生 changelog。
+
+### 專案建置
+
+以下是專案建置的步驟 (由於將所有設定步驟列出來會佔太多片幅，所以只會列出重點 commit):
+
+1. [建立 REAMDE.md & gitignore](https://github.com/jingsu96/tocino/commit/fc30fd282080511f81a2fe795c8536e8271ac815)
+2. [建立 pnpm workspace & setup turbo, changeset](https://github.com/jingsu96/tocino/commit/1ee103784351ccbd9418dd244df6fa76a7d40fbd)
+3. [tsconfig 設定](https://github.com/jingsu96/tocino/commit/48266c061ca5d753fe3bc89c3d9514bf6808b6a5)
+4. [新增 commitlint, husky, lint-staged](https://github.com/jingsu96/tocino/commit/2d2c4ef7dae660850a0f2379249951512130bd1e)
+5. [eslint 設定](https://github.com/jingsu96/tocino/commit/81a73cf6e4cb4610b3c369778e77d9118038e88e)
+
+[Github Repo](https://github.com/jingsu96/tocino)
+
+#### 方法二
+
+如果沒有特別的客製化可以直接用 Turbo CLI 來建立專案。Template 連結: [turbo-design-system-template](https://github.com/vercel/turbo/tree/main/examples/design-system):
+
+```bash
+npx create-turbo@latest -e design-system
+```
+
+## Plop - 產生元件模板
+
+在開發組件的時候，為了避免反覆的複製貼上一些基礎的設定，通常我們會透過 Plop 來產生組件的模板，也可以讓整個團隊的組件開發流程更加一致。
+
+> Plop is a little tool that saves you time and helps your team build new files with consistency.
+
+### 安裝 Plop
+
+```bash
+> design-system/ pnpm add -Dw plop
+```
+
+### 建立組件模板
+
+這時候可以根據開發者的喜好建立組件模板，每個團隊的設定不盡相同，以下是筆者的檔案結構 [Plop Template](https://github.com/jingsu96/tocino/tree/7b211c0943c9a50470b3aa3801e9a1a616518cb0/plop-templates/components)
+
+```bash
+plop-templates/components
+├── src
+│   ├── {{component}}.tsx // 組件的主要程式碼
+│   ├── {{component}}.test.tsx // 組件的測試程式碼
+│   ├── {{component}}.stories.tsx // 組件的 storybook
+│   └── index.ts
+└── CHANGELOG.md // 主要用來記錄組件的變更
+└── README.md // 組件的說明文件
+└── tsconfig.json // 組件的 tsconfig
+└── packages.json // 組件的 packages.json
+```
+
+### 設定 Plop
+
+先建立一個 plopfile.js 的檔案，並且在裡面設定我們的 plop，以下是筆者的設定 [Plopfile.js](https://github.com/jingsu96/tocino/blob/7b211c0943c9a50470b3aa3801e9a1a616518cb0/plopfile.js)
+
+```bash
+> design-system/ touch plopfile.js
+```
+
+最後再加上一個 script，讓我們可以透過 `pnpm generate` 來產生組件模板。
+
+```bash
+// packages.json
+{
+  "scripts": {
+    "generate": "plop",
+  }
+}
+```
+
+### 產生組件模板
+
+```bash
+> design-system/ pnpm generate
+```
+
+之後回答完問題，就會產生一個組件模板拉～
+
+<Image src="https://imgur.com/hK6t3Nd.png" height="148" width="708" />
+
+## Storybook 以及測試環境建置
+
+### Storybook 元件開發環境
+
+> Storybook 就是一個 UI 組件開發的協助工具，可以讓開發者在開發組件的時候，可以快速的看到組件的樣子，並且可以透過不同的 props 或是 story 來測試組件的各種狀態。
+
+### 安裝 Storybook
+
+```bash
+> design-system/ pnpm add storybook @storybook/addon-a11y @storybook/addon-actions @storybook/addon-essentials @storybook/addon-interactions @storybook/addon-links @storybook/react-webpack5 @storybook/react -Dw
+```
+
+- `@storybook/addon-a11y`: 幫助我們檢查組件是否符合無障礙規範 (accessibility)
+- `@storybook/addon-actions & @storybook/addon-interactions`: 用來觸發組件的事件
+- `@storybook/addon-links`: 幫助我們在 storybook 上面跳轉到其他 story
+
+### 設定 Storybook
+
+建立一個 .storybook 的資料夾，並且在裡面建立一個 main.js 與 preview.js 的檔案，用來設定 storybook。
+
+```bash
+> design-system/ mkdir .storybook
+> design-system/ touch ./storybook/main.js ./storybook/preview.js
+```
+
+詳細內容可以參考筆者的設定 [./storybook](https://github.com/jingsu96/tocino/tree/main/.storybook)
+
+## Jest & React Testing Library - 單元測試
+
+最後則是建立單元測試的環境，這邊我們使用 Jest 與 React Testing Library 來建立單元測試的環境。
+
+```bash
+> design-system/ pnpm add -Dw ts-jest jest @testing-library/dom @testing-library/jest-dom @testing-library/react @testing-library/user-event @types/jest jest-environment-jsdom
+```
+
+這次測試環境建置主要是用 ts-jest 來幫助我們在 typescript 環境下建立測試環境，並且使用 jest-environment-jsdom 來幫助我們在測試環境下使用 jsdom。
+
+### 設定 Jest
+
+建立一個 jest.config.js 的檔案，並且在裡面設定 jest。這是筆者設定的 [jest.config.js](https://github.com/jingsu96/tocino/blob/main/jest.config.js) 以及 [custom-env.ts](https://github.com/jingsu96/tocino/blob/main/custom-env.ts)
+
+```bash
+> design-system/ touch jest.config.js
+```
+
+以及在 package.json 中加上一個 script，讓我們可以透過 `pnpm test` 來執行測試。
+
+```bash
+// packages.json
+{
+  "scripts": {
+    "test": "jest --passWithNoTests",
+  }
+}
+```
+
+最後再 `pnpm test` 一下，就可以測試跑成功拉～
+
+<Image src="https://imgur.com/egtC7Pb.png" height="148" width="708" />

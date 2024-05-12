@@ -1,0 +1,581 @@
+---
+title: Design System 101 - Roving Focus
+date: '2023-11-14'
+lastmod: '2023-11-18'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'accessibility'
+order: 2
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+在設計系統中，有許多組件都是以群集 (Group) 的方式去呈現，如 `TabList`, `Radio Group` 又或是 `Checkbox` 等等，而當鍵盤使用者在操作頁面時，往往都需要透過 `Tab` 一個個去切換聚焦又或是沒辦法對聚焦到群集裡面的項目。
+
+Roving Focus (或又稱 Roving TabIndex) 就是在群集組件中，提供能夠讓鍵盤使用者能夠更輕易與更有效率的方式操作頁面。能夠透過 `Arrow` 鍵來對聚焦進行切換，當使用者想要切換到下一個區塊只需要再按一次 `Tab` 鍵即可。
+
+## 前後對比
+
+### 加了 Roving Focus 之前
+
+使用者聚焦在群集的第一個項目後，如果想要到將聚焦移到輸入框必須連續按好幾下 `Tab` 鍵且無法透過 `Arrow` 鍵來切換項目間的聚焦。
+
+<Sandpack lang="static">
+
+```html file=index.html
+<script type="module"></script>
+
+<style>
+  .radiogroup {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .radiogroup li {
+    display: inline-block;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    margin: 0.2rem;
+    cursor: pointer;
+  }
+
+  .radiogroup li[checked] {
+    background-color: #f4f4f4;
+  }
+</style>
+
+<h3 id="drink-options">Drink Options</h3>
+<section id="group1" class="radiogroup" role="radiogroup" aria-labelledby="drink-options">
+  <div>
+    <input type="radio" class="radio" id="Water" name="Water" value="Water" checked />
+    <label for="Water">Water</label>
+  </div>
+  <div>
+    <input type="radio" class="radio" id="Tea" name="Tea" value="Tea" />
+    <label for="Tea">Tea</label>
+  </div>
+  <div>
+    <input type="radio" class="radio" id="Coffee" name="Coffee" value="Coffee" />
+    <label for="Coffee">Coffee</label>
+  </div>
+  <div>
+    <input type="radio" class="radio" id="Cola" name="Cola" value="Cola" />
+    <label for="Cola">Cola</label>
+  </div>
+  <div>
+    <input type="radio" class="radio" id="Ginger Ale" name="Ginger Ale" value="Ginger Ale" />
+    <label for="Ginger Ale">Ginger Ale</label>
+  </div>
+</section>
+<input type="text" placeholder="Tab Me" />
+```
+
+</Sandpack>
+
+### 加了 Roving Focus 之後
+
+使用者可以透過 `Arrow` 鍵來切換聚焦，並且當使用者想要切換到下一個區塊只需要再按一次 `Tab` 鍵即可。
+
+其概念就是監聽 `group` 中的 `keydown` 事件，當使用者按下 `Arrow` 鍵時，就會將 `selected` 移動到下一個 `index`, 並將 `tabIndex` 設為 `0`，以及將原本的項目 `tabIndex` 設為 `-1`，並將新的項目進行聚焦。
+
+<Sandpack lang="static">
+
+```html file=index.html
+<script type="module">
+  const group = document.querySelector('#group1')
+  const buttons = Array.from(group1.querySelectorAll('.radio'))
+  const buttonLength = buttons.length
+  let selected = 0
+  let focusedButton = buttons[selected]
+
+  group.addEventListener('keydown', handleKeyDown)
+  group.addEventListener('click', handleClick)
+
+  function handleKeyDown(e) {
+    switch (e.key) {
+      case 'ArrowUp':
+      case 'ArrowLeft': {
+        e.preventDefault()
+
+        if (selected === 0) {
+          selected = buttonLength - 1
+        } else {
+          selected--
+        }
+        break
+      }
+
+      case 'ArrowDown':
+      case 'ArrowRight': {
+        e.preventDefault()
+
+        if (selected === buttonLength - 1) {
+          selected = 0
+        } else {
+          selected++
+        }
+        break
+      }
+    }
+
+    changeFocus(selected)
+  }
+
+  function handleClick(e) {
+    const children = e.target.parentNode.children
+    const selected = Array.from(children).indexOf(e.target)
+    changeFocus(selected)
+  }
+
+  function changeFocus(idx) {
+    // 將原本的 button 的 tabindex 設為 -1
+    focusedButton.tabIndex = -1
+    focusedButton.removeAttribute('checked')
+
+    // 將新的 button 的 tabindex 設為 0 以及 focus
+    focusedButton = buttons[idx]
+    focusedButton.tabIndex = 0
+    focusedButton.focus()
+    focusedButton.setAttribute('checked', 'checked')
+  }
+</script>
+
+<style>
+  .radiogroup {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .radiogroup li {
+    display: inline-block;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    margin: 0.2rem;
+    cursor: pointer;
+  }
+
+  .radiogroup li[checked] {
+    background-color: #f4f4f4;
+  }
+</style>
+
+<h3 id="drink-options">Drink Options</h3>
+<section id="group1" class="radiogroup" role="radiogroup" aria-labelledby="drink-options">
+  <div>
+    <input type="radio" class="radio" id="Water" name="Water" value="Water" checked />
+    <label for="Water">Water</label>
+  </div>
+  <div>
+    <input type="radio" class="radio" id="Tea" name="Tea" value="Tea" />
+    <label for="Tea">Tea</label>
+  </div>
+  <div>
+    <input type="radio" class="radio" id="Coffee" name="Coffee" value="Coffee" />
+    <label for="Coffee">Coffee</label>
+  </div>
+  <div>
+    <input type="radio" class="radio" id="Cola" name="Cola" value="Cola" />
+    <label for="Cola">Cola</label>
+  </div>
+  <div>
+    <input type="radio" class="radio" id="Ginger Ale" name="Ginger Ale" value="Ginger Ale" />
+    <label for="Ginger Ale">Ginger Ale</label>
+  </div>
+</section>
+<input type="text" placeholder="Tab Me" />
+```
+
+</Sandpack>
+
+## React 實作
+
+在介紹如何用 React 實作 Roving Focus 時，會使用到先前在 [設計模式 x 複合組件](/series/design-system/compound-component/#方法四collection-api) 中 Collection API 的概念，如果還沒看過的讀者，可以先閱讀一下。
+
+### 使用方式
+
+```jsx
+// <GroupItem />
+;() => (
+  <RovingFocusGroup reachable loop>
+    <GroupItem />
+  </RovingFocusGroup>
+)
+
+// <Item />
+;() => {
+  const rovingFocusProps = useRovingFocus({ disabled, active: isSelected })
+  return <Item {...rovingFocusProps} />
+}
+```
+
+### \`RovingFocus\` 的實作概念
+
+1. `createCollection`:
+   - 將 `group` 內可被聚焦的 `item` 進行收集，並透過 `useContext` 來取得 collection。
+2. `useRovingFocus`:
+   - 透過 `useEffect` 來監聽 `tabStopId` 的變化，當 `tabStopId` 變化時，就會將 `tabIndex` 設為 0，並將原本的項目 `tabIndex` 設為 -1，以及將新的項目進行聚焦。
+   - 將聚焦邏輯進行封裝，讓 `group` 底下的 `item` 能夠根據不同的鍵盤事件進行聚焦狀態的改變。
+3. `<RovingFocusGroup />`:
+   - 主要是將 `groupId`, `collection` 與 `tabStopId` 等的狀態透過 `createContext` 傳遞給子組件。
+
+<Sandpack>
+
+```jsx file=App.js
+import React from 'react'
+import { RadioGroup, Radio } from './radioGroup.jsx'
+
+export default () => {
+  return (
+    <>
+      <h3 id="drink-options">Drink Options</h3>
+      <RadioGroup loop>
+        <Radio value="Water">Water</Radio>
+        <Radio value="Tea">Tea</Radio>
+        <Radio disabled value="Coffee">
+          Coffee
+        </Radio>
+        <Radio value="Ginger Ale">Ginger Ale</Radio>
+      </RadioGroup>
+      <div>
+        <input type="text" placeholder="Tab Me" />
+      </div>
+    </>
+  )
+}
+```
+
+```jsx file=radioGroup.jsx
+import React from 'react'
+import { RovingFocusGroup, useRovingFocus } from './rovingFocus.jsx'
+import createContext from './createContext'
+import './styles.css'
+
+const [RadioGroupContextProvider, useRadioGroupContext] = createContext('RadioGroupContext', {})
+
+export const RadioGroup = ({ loop, reachable, defaultValue, children }) => {
+  const [value, setValue] = React.useState(defaultValue)
+  return (
+    <RadioGroupContextProvider value={{ value, setValue }}>
+      <RovingFocusGroup reachable={reachable} loop={loop}>
+        <div className="radio-group">{children}</div>
+      </RovingFocusGroup>
+    </RadioGroupContextProvider>
+  )
+}
+
+export const Radio = ({ disabled, tabIndex, value, ...props }) => {
+  const ref = React.useRef(null)
+  const { value: contextValue, setValue } = useRadioGroupContext()
+  const isSelected = contextValue !== undefined && value !== undefined && contextValue === value
+  const rovingFocusProps = useRovingFocus({ disabled, active: isSelected })
+
+  const handleClick = () => {
+    if (disabled) {
+      return
+    }
+
+    setValue(value)
+  }
+
+  return (
+    <div>
+      <input
+        name={value}
+        checked={isSelected}
+        disabled={disabled}
+        type="radio"
+        data-selected={isSelected ? 'selected' : 'unselected'}
+        className="radio"
+        onClick={handleClick}
+        onFocus={contextValue && handleClick}
+        {...rovingFocusProps}
+      />
+      <label for={value}>{value}</label>
+    </div>
+  )
+}
+```
+
+```css file=styles.css hidden=true
+.radio-group {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.radio {
+  border: 1px solid;
+  border-color: #ccc;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.radio[data-selected='selected'] {
+  border-color: black;
+  background-color: black;
+  color: white;
+}
+```
+
+```jsx file=rovingFocus.jsx
+import React from 'react'
+import { createCollection } from './collection'
+import createContext from './createContext'
+const [RovingFocusContextProvider, useRovingFocusContext] = createContext('RovingFocusGroup')
+const [CollectionProvider, useCollectionItem, useCollectionItems] = createCollection(
+  'RovingFocusGroupCollection'
+)
+
+const MAP_KEY_TO_FOCUS_INTENT = {
+  ArrowLeft: 'prev',
+  ArrowUp: 'prev',
+  ArrowRight: 'next',
+  ArrowDown: 'next',
+  PageUp: 'first',
+  Home: 'first',
+  PageDown: 'last',
+  End: 'last',
+}
+
+const KEYS = Object.keys(MAP_KEY_TO_FOCUS_INTENT)
+
+export const RovingFocusGroup = (props) => (
+  <CollectionProvider>
+    <RovingFocusGroupImp {...props} />
+  </CollectionProvider>
+)
+
+export const RovingFocusGroupImp = ({ children, loop }) => {
+  const [tabStopId, setTabStopId] = React.useState(null)
+  const [reachable, setReachable] = React.useState(true)
+  const collection = useCollectionItems()
+
+  const groupId = React.useId()
+  const context = React.useMemo(
+    () => ({ groupId, tabStopId, setTabStopId, loop, reachable, setReachable, collection }),
+    [groupId, tabStopId, setTabStopId, loop, reachable, collection]
+  )
+
+  return <RovingFocusContextProvider value={context}>{children}</RovingFocusContextProvider>
+}
+
+export const useRovingFocus = ({ disabled, active }) => {
+  const itemId = React.useId()
+  const context = useRovingFocusContext('useRovingFocus')
+  const { collection, reachable, setTabStopId } = context
+  const isTabStop = context.tabStopId === itemId
+
+  const { index, ref: rovingFocusRef } = useCollectionItem({})
+
+  React.useEffect(() => {
+    setTabStopId((prevTabStopId) => {
+      if (reachable) {
+        return active || !prevTabStopId ? itemId : prevTabStopId
+      } else {
+        return null
+      }
+    })
+  }, [active, itemId, setTabStopId])
+
+  if (disabled) {
+    return {
+      tabIndex: -1,
+      'aria-disabled': true,
+      onMouseDown: (event) => {
+        event.preventDefault()
+      },
+    }
+  }
+
+  return {
+    index,
+    ref: rovingFocusRef,
+    tabIndex: isTabStop ? 0 : -1,
+    onFocus: () => {
+      context.setTabStopId(itemId)
+      context.setReachable(true)
+    },
+    onKeyDown: (event) => {
+      const focusIntent = MAP_KEY_TO_FOCUS_INTENT[event.key]
+
+      if (KEYS.includes(event.key)) {
+        event.stopPropagation()
+      }
+
+      if (!focusIntent) {
+        return
+      }
+
+      const items = collection.filter((item) => item.ref.current).map((item) => item.ref.current)
+
+      const count = items.length
+      const currentItem = document.activeElement
+      const currentIndex = currentItem ? items.indexOf(currentItem) : -1
+      const map = {
+        first: 0,
+        last: count - 1,
+        prev: currentIndex - 1,
+        next: currentIndex + 1,
+      }
+
+      let nextIndex = map[focusIntent]
+      nextIndex = context.loop ? wrap(nextIndex, count) : clamp(nextIndex, [0, count - 1])
+      const nextItem = items[nextIndex]
+      if (nextItem) {
+        /**
+         * Imperative focus during keydown is risky so we prevent React's batching updates
+         * to avoid potential bugs. See: https://github.com/facebook/react/issues/20332
+         */
+        setTimeout(() => nextItem.focus())
+      }
+    },
+  }
+}
+
+function clamp(value, [min, max]) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function wrap(index, max) {
+  return (max + index) % max
+}
+```
+
+```jsx file=collection.js
+import React from 'react'
+import createContext from './createContext.js'
+
+export const createCollection = (name) => {
+  const [CollectionContextProvider, useCollectionContext] = createContext(
+    `${name}CollectionContext`
+  )
+
+  const CollectionProvider = ({ children }) => {
+    const [items, setItems] = React.useState([])
+
+    // 主要是用來追蹤在 SSR 時，有多少個 useCollectionItem 被呼叫，並且透過此變數去紀錄，這樣在第二次渲染時，就可以知道有多少個子組件。
+    const ssrSyncUseCollectionItemCountRef = React.useRef(0)
+
+    const addItem = React.useCallback(
+      (item) => {
+        setItems((prevItems) => {
+          const exists = prevItems.find(({ ref }) => item.ref.current === ref.current)
+          return exists ? prevItems : [...(prevItems ?? []), item]
+        })
+      },
+      [setItems]
+    )
+
+    const removeItem = React.useCallback(
+      (ref) => {
+        setItems((prevItems) => prevItems.filter((item) => item.ref.current !== ref.current))
+      },
+      [setItems]
+    )
+
+    React.useLayoutEffect(() => {
+      setItems([])
+    }, [children])
+
+    return (
+      <CollectionContextProvider
+        value={React.useMemo(
+          () => ({ items, addItem, removeItem, ssrSyncUseCollectionItemCountRef }),
+          [items, addItem, removeItem]
+        )}
+      >
+        {children}
+      </CollectionContextProvider>
+    )
+  }
+
+  const useCollectionItem = (state = {}) => {
+    const ref = React.useRef(null)
+    const { items, addItem, removeItem, ssrSyncUseCollectionItemCountRef } =
+      useCollectionContext('useCollectionItem')
+
+    // 在第一次渲染時，existingIndex 會是 -1
+    const existingIndex = items.findIndex((item) => ref.current === item.ref.current)
+    const index = existingIndex !== -1 ? existingIndex : ssrSyncUseCollectionItemCountRef.current++
+
+    React.useLayoutEffect(() => {
+      if (existingIndex !== -1) {
+        return
+      }
+      addItem({ ...state, ref })
+    })
+
+    React.useLayoutEffect(() => {
+      return () => {
+        removeItem(ref)
+      }
+    }, [removeItem])
+
+    return {
+      ref,
+      index,
+    }
+  }
+
+  const useCollectionItems = () => {
+    return useCollectionContext('useCollectionItem')?.items
+  }
+
+  return [CollectionProvider, useCollectionItem, useCollectionItems]
+}
+```
+
+```jsx file=createContext.js
+import React from 'react'
+
+const createContext = (rootComponentName, defaultContext) => {
+  const Context = React.createContext(defaultContext)
+
+  // Provider
+  const Provider = (props) => {
+    const { children, value = {} } = props
+    const ctx = React.useMemo(() => value, [Object.values(value)])
+
+    return <Context.Provider value={ctx}>{children}</Context.Provider>
+  }
+
+  // Consumer
+  const useContext = (caller) => {
+    const context = React.useContext(Context)
+
+    if (context) {
+      return context
+    }
+
+    if (defaultContext) {
+      return defaultContext
+    }
+
+    throw new Error(`${caller} must be used within a ${rootComponentName}.`)
+  }
+
+  return [Provider, useContext]
+}
+
+export default createContext
+```
+
+</Sandpack>
+
+## 參考資料
+
+1. [Roving tabindex -- A11ycasts #06](https://www.youtube.com/watch?v=uCIC2LNt0bk)
+2. [Radix UI - react-roving-focus](https://github.com/radix-ui/primitives/tree/main/packages/react/roving-focus)
+3. [A11y Solution - Roving Focus](https://a11y-solutions.stevenwoodson.com/solutions/focus/roving-focus/)

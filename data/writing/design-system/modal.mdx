@@ -1,0 +1,764 @@
+---
+title: Design System 101 - Modal
+date: '2023-11-27'
+lastmod: '2023-12-03'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'component'
+status: 'Preview'
+order: 2
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 什麼是 Modal?
+
+Modal 與大多數組件一樣，為用來顯示內容的組件。它可以透過使用者操作或是背景程序的觸發
+
+### 何時使用
+
+- 當需要暫時離開主流程以完成特定操作時。例如：列表篩選視窗等等。
+- 攔截使用者當前的操作並顯示警示訊息。例如：[登入牆](https://www.uxdatabase.io/newsletter-issue/36-login-walls)。
+- 當某些資訊不夠重要以至於不需要常駐在主頁面上時。例如：產品樣式資訊等等。
+
+### 何時不使用
+
+- 當只需要簡單的提示時。
+  - 若僅為短暫資訊顯示，使用 Toast。
+  - 若需要使用者確認資訊，使用 Dialog。
+- 當只需要少量資訊的展示，避免中斷用戶操作，使用 Popover。
+
+## Anatomy
+
+### 組件架構
+
+| 組件            | 描述                                                     |
+| --------------- | -------------------------------------------------------- |
+| `Modal.Root`    | 根組件，讓子組件之間的事件與狀態共享                     |
+| `Modal.Trigger` | 用來觸發 Modal 開啟的組件                                |
+| `Modal.Portal`  | 用來包裹 Modal 的組件，主要是負責將 Modal 螢幕正確的位置 |
+| `Modal.Content` | Modal 的內容                                             |
+| `Modal.Overlay` | 主要將背景進行遮罩，通常會使頁面內容變暗。               |
+
+### 使用方式
+
+```jsx
+;() => (
+  <Modal.Root>
+    <Modal.Trigger />
+    <Modal.Portal>
+      <Modal.Overlay />
+      <Modal.Content />
+    </Modal.Portal>
+  </Modal.Root>
+)
+```
+
+## 組件資料模型
+
+Modal 本身沒有太多狀態需要進行管理，本篇將使用 [ControlledState](/series/design-system/hooks) 進行開啟與關閉的狀態管理。
+
+## 組件 API
+
+### General Props
+
+| 屬性名稱    | 型別                | 描述            |
+| ----------- | ------------------- | --------------- |
+| `children`  | `React.ReactNode`   | 組件的子組件    |
+| `className` | `string`            | 自定義 class    |
+| `as`        | `React.ElementType` | 自定義 HTML tag |
+
+### \`Modal\`
+
+| 屬性名稱       | 型別                      | 描述                    |
+| -------------- | ------------------------- | ----------------------- |
+| `defaultOpen`  | `string`                  | 預設 Modal 是否開啟     |
+| `open`         | `string`                  | 控制 Modal 是否開啟     |
+| `onOpenChange` | `(value: string) => void` | 當 Modal 狀態改變時觸發 |
+
+### \`Modal.Overlay\`
+
+| 屬性名稱    | 型別          | 描述                                        |
+| ----------- | ------------- | ------------------------------------------- |
+| `container` | `HTMLElement` | 指定掛載的 DOM 元素，預設為 `document.body` |
+
+### \`Modal.Trigger\`
+
+| 屬性名稱 (data-attribute) | 型別     | 描述              |
+| ------------------------- | -------- | ----------------- |
+| `[data-state]`            | `string` | `open` / `closed` |
+
+## \`Modal.Overlay\`
+
+### Data Attribute
+
+| 屬性名稱 (data-attribute) | 型別     | 描述              |
+| ------------------------- | -------- | ----------------- |
+| `[data-state]`            | `string` | `open` / `closed` |
+
+## Modal 實作
+
+### 實作重點
+
+本次實作會以三種方式實現 Modal 組件，並分別探討其優缺點。
+
+1. **背景鎖 (Background Lock)**: 當 Modal 顯示時，背景要是可以選擇不能滾動。
+2. **聚焦鎖 (Focus Lock)**: 當 Modal 顯示時，聚焦要在 Modal 內，並且不可以離開 Modal，而當 Modal 關閉時，聚焦要先前的聚焦位置。
+3. **動畫 (Animation)**: Modal 顯示與關閉時，要有動畫效果。
+4. **遮罩 (Backdrop)**: 當 Modal 顯示時，背景要有遮罩效果。
+
+### 1. 使用 `React.createPortal` 實作
+
+使用 React API `React.createPortal` 來實作 Modal，我們就必需處理可訪問性的問題，像是聚焦與鍵盤交互。但同時我們可以擁有更多彈性去客製化 Modal 的行為與樣式。
+
+實作會用到以下幾個先前章節有提過的概念：
+
+1. [ControlledState](/series/design-system/hooks)：用來管理 Modal 的開啟與關閉狀態。
+2. [FocusScope](/series/design-system/focus-scope)： 專門用來處理聚焦以及鍵盤交互的問題。
+
+<Sandpack>
+
+```js file=App.js
+import Modal from './modal'
+import './styles.css'
+
+export default () => {
+  return (
+    <div className="app">
+      <Modal>
+        <Modal.Trigger>Open Modal</Modal.Trigger>
+        <Modal.Portal>
+          <Modal.Overlay className="modal-overlay" />
+          <Modal.Content className="modal-contents-container">
+            {(context) => {
+              return (
+                <>
+                  <div className="modal-contents">
+                    Hi I'm Modal!{' '}
+                    <div>
+                      <button onClick={context.onOpenToggle}>Close</button>
+                    </div>
+                  </div>
+                </>
+              )
+            }}
+          </Modal.Content>
+        </Modal.Portal>
+      </Modal>
+    </div>
+  )
+}
+```
+
+```js file=modal.js
+import React, { useEffect } from 'react'
+import ReactDOM from 'react-dom'
+import { FocusScope } from '@tocino-ui/focus-scope'
+import createContext from './createContext'
+import { useComposedRefs } from './composedRefs'
+
+const clsx = (...classes) => classes.filter(Boolean).join(' ')
+const [ModalProvider, useModalContext] = createContext('Modal')
+
+const Modal = React.forwardRef(({ children, modalProps }, forwardRef) => {
+  const triggerRef = React.useRef(null)
+  const contentRef = React.useRef(null)
+  const [open, setOpen] = React.useState(modalProps?.defaultOpen || false)
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden'
+    }
+  }, [open])
+
+  const onOpenChange = React.useCallback(
+    (value) => {
+      setOpen(value)
+    },
+    [setOpen]
+  )
+
+  const onOpenToggle = React.useCallback(() => {
+    setOpen((prev) => !prev)
+  }, [setOpen])
+
+  return (
+    <ModalProvider
+      value={{
+        open: open,
+        triggerRef: triggerRef,
+        contentRef: contentRef,
+        contentId: React.useId(),
+        onOpenChange: onOpenChange,
+        onOpenToggle: onOpenToggle,
+      }}
+      {...modalProps}
+    >
+      {children}
+    </ModalProvider>
+  )
+})
+
+const Portal = React.forwardRef(({ containter = document.body, ...portalProps }, forwardRef) => {
+  const context = useModalContext('Modal.Portal')
+  return ReactDOM.createPortal(
+    <div {...portalProps} ref={forwardRef}>
+      {portalProps.children}
+    </div>,
+    containter
+  )
+})
+
+const Trigger = React.forwardRef(({ children, ...triggerProps }, forwardRef) => {
+  const context = useModalContext('Modal.Trigger')
+  const a11yProps = {
+    'aria-haspopup': 'dialog',
+    'aria-expanded': context.open,
+    'aria-controls': context.contentId,
+  }
+  const composedTriggerRef = useComposedRefs(forwardRef, context.triggerRef)
+
+  return (
+    <button
+      data-state={context.open}
+      {...a11yProps}
+      {...triggerProps}
+      ref={composedTriggerRef}
+      onClick={context.onOpenToggle}
+    >
+      {children}
+    </button>
+  )
+})
+
+const Content = React.forwardRef(({ children, ...contentProps }, forwardRef) => {
+  const context = useModalContext('Modal.Content')
+  const composedContentRef = useComposedRefs(forwardRef, context.contentRef)
+
+  if (!context.open) {
+    return null
+  }
+
+  return (
+    <FocusScope restoreFocus autoFocus contain>
+      <div
+        role="dialog"
+        id={context.contentId}
+        {...contentProps}
+        ref={composedContentRef}
+        data-state={context.open}
+      >
+        {typeof children === 'function' ? children?.(context) : children}
+      </div>
+    </FocusScope>
+  )
+})
+
+const Overlay = React.forwardRef(({ ...overlayProps }, forwardRef) => {
+  const context = useModalContext('Modal.Overlay')
+  const composedContentRef = useComposedRefs(forwardRef, context.contentRef)
+
+  if (!context.open) {
+    return null
+  }
+
+  return (
+    <div
+      {...overlayProps}
+      ref={composedContentRef}
+      data-state={context.open}
+      onClick={context.onOpenToggle}
+      className={clsx('modal-overlay', !context.open && 'modal-overlay--hidden')}
+    />
+  )
+})
+
+Modal.Overlay = Overlay
+Modal.Trigger = Trigger
+Modal.Content = Content
+Modal.Portal = Portal
+
+export default Modal
+```
+
+```js file=createContext.js hidden=true
+import React from 'react'
+
+const createContext = (rootComponentName, defaultContext) => {
+  const Context = React.createContext(defaultContext)
+
+  // Provider
+  const Provider = (props) => {
+    const { children, value = {} } = props
+    const ctx = React.useMemo(() => value, [Object.values(value)])
+
+    return <Context.Provider value={ctx}>{children}</Context.Provider>
+  }
+
+  // Consumer
+  const useContext = (caller) => {
+    const context = React.useContext(Context)
+
+    if (context) {
+      return context
+    }
+
+    if (defaultContext) {
+      return defaultContext
+    }
+
+    throw new Error(`${caller} must be used within a ${rootComponentName}.`)
+  }
+
+  return [Provider, useContext]
+}
+
+export default createContext
+```
+
+```js file=composedRefs.js hidden=true
+import React, { useCallback } from 'react'
+
+function assignRef(ref, value) {
+  if (ref == null) {
+    return
+  }
+
+  if (typeof ref === 'function') {
+    ref(value)
+  } else {
+    Reflect.set(ref, 'current', value)
+  }
+}
+
+export function useComposedRefs(...refs) {
+  return React.useCallback(
+    (value) => {
+      refs.forEach((ref) => {
+        assignRef(ref, value)
+      })
+    },
+    [refs]
+  )
+}
+```
+
+```js file=usePresence.js hidden=true
+import React, { useState, useCallback, useRef, useReducer, useEffect, useLayoutEffect } from 'react'
+import { useComposedRefs } from './composedRefs'
+
+function getAnimationName(styles) {
+  return styles?.animationName || 'none'
+}
+
+function useStateMachine(initialState, machine) {
+  return useReducer((state, event) => {
+    const nextState = machine[state][event]
+    return nextState ?? state
+  }, initialState)
+}
+
+const usePresence = (present) => {
+  const [node, setNode] = useState(null)
+  const stylesRef = useRef({})
+
+  const prevPresentRef = useRef(present)
+  const prevAnimationNameRef = useRef('none')
+  const initialState = present ? 'mounted' : 'unmounted'
+
+  const [state, send] = useStateMachine(initialState, {
+    mounted: {
+      UNMOUNT: 'unmounted',
+      ANIMATION_OUT: 'unmountSuspended',
+    },
+    unmountSuspended: {
+      MOUNT: 'mounted',
+      ANIMATION_END: 'unmounted',
+    },
+    unmounted: {
+      MOUNT: 'mounted',
+    },
+  })
+
+  useEffect(() => {
+    const currentAnimationName = getAnimationName(stylesRef.current)
+    prevAnimationNameRef.current = state === 'mounted' ? currentAnimationName : 'none'
+  }, [state])
+
+  useLayoutEffect(() => {
+    const styles = stylesRef.current
+    const wasPresent = prevPresentRef.current
+    const hasPresentChanged = wasPresent !== present
+
+    if (hasPresentChanged) {
+      const prevAnimationName = prevAnimationNameRef.current
+      const currentAnimationName = getAnimationName(styles)
+      if (present) {
+        send('MOUNT')
+      } else if (currentAnimationName === 'none' || styles?.display === 'none') {
+        send('UNMOUNT')
+      } else {
+        const isAnimating = prevAnimationName !== currentAnimationName
+
+        if (wasPresent && isAnimating) {
+          send('ANIMATION_OUT')
+        } else {
+          send('UNMOUNT')
+        }
+      }
+      prevPresentRef.current = present
+    }
+  }, [present, send])
+
+  useLayoutEffect(() => {
+    if (!node) {
+      send('ANIMATION_END')
+      return
+    }
+
+    const handleAnimationEnd = (event) => {
+      const currentAnimationName = getAnimationName(stylesRef.current)
+      const isCurrentAnimation = currentAnimationName.includes(event.animationName)
+
+      if (event.target === node && isCurrentAnimation) {
+        ReactDOM.flushSync(() => send('ANIMATION_END'))
+      }
+    }
+
+    const handleAnimationStart = (event) => {
+      if (event.target === node) {
+        prevAnimationNameRef.current = getAnimationName(stylesRef.current)
+      }
+    }
+
+    node.addEventListener('animationstart', handleAnimationStart)
+    node.addEventListener('animationcancel', handleAnimationEnd)
+    node.addEventListener('animationend', handleAnimationEnd)
+    return () => {
+      node.removeEventListener('animationstart', handleAnimationStart)
+      node.removeEventListener('animationcancel', handleAnimationEnd)
+      node.removeEventListener('animationend', handleAnimationEnd)
+    }
+  }, [node, send])
+
+  return {
+    isPresent: ['mounted', 'unmountSuspended'].includes(state),
+    ref: useCallback((node) => {
+      if (node) stylesRef.current = getComputedStyle(node)
+      setNode(node)
+    }, []),
+  }
+}
+
+const Presence = (props) => {
+  const { present, children } = props
+  const presence = usePresence(present)
+
+  const child =
+    typeof children === 'function'
+      ? children({ present: presence.isPresent })
+      : React.Children.only(children)
+
+  const ref = useComposedRefs(presence.ref, child.ref)
+  const forceMount = typeof children === 'function'
+  return forceMount || presence.isPresent ? React.cloneElement(child, { ref }) : null
+}
+
+export { Presence, usePresence }
+```
+
+```json file=package.json
+{
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@tocino-ui/focus-scope": "^1.0.0"
+  }
+}
+```
+
+```css file=styles.css
+body {
+  height: 85vh;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+  background-color: black;
+  padding: 20px;
+  transition: all 0.25s ease-out;
+}
+
+.modal-overlay.modal-contents-container {
+  opacity: 1;
+  animation: dialogAnimateIn 0.25s ease;
+}
+
+.modal-overlay.modal-contents-container {
+  opacity: 0;
+  animation: dialogAnimateOut 0.25s ease;
+  pointer-events: none;
+}
+
+.modal-overlay--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-contents-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  height: 100%;
+}
+
+.modal-contents {
+  background-color: white;
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+[data-state='true'].modal-contents-container {
+  opacity: 1;
+  animation: dialogAnimateIn 0.25s ease;
+}
+
+[data-state='false'].modal-contents-container {
+  opacity: 0;
+  animation: dialogAnimateOut 0.25s ease;
+  pointer-events: none;
+}
+
+@keyframes dialogAnimateIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(100%);
+    opacity: 1;
+  }
+}
+
+@keyframes dialogAnimateOut {
+  0% {
+    transform: scale(100%);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+```
+
+</Sandpack>
+
+#### 優點
+
+1. **DOM 層次自由性**：可以將子組件渲染到任何 DOM 節點，不受父組件 DOM 結構的限制。
+2. **客製化**：可以更客製化 Modal 的行為與樣式。
+3. **模組化**：Modal 是屬於 Overlay 的一種，可以將 Overlay 進行模組化，並且可以重複到其他組件上，像是 Tooltip, Modal Sheet, Alert 等等的。
+
+#### 缺點
+
+1. **需要開發者處理可訪問性**：比如聚焦管理和鍵盤導航。
+
+### 2. 使用原生 `<dialog>` 進行實作
+
+[dialog](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog) 是 HTML5 新增的元素，顧名思義就是顯示彈窗的 HTML 元素，它解決了幾個問題:
+
+<Sandpack>
+
+```js file=App.js
+import { useState, useRef } from 'react'
+import { Modal } from './modal'
+
+export default () => {
+  const dialogRef = useRef(null)
+
+  return (
+    <div className="app">
+      <button
+        onClick={() => {
+          dialogRef.current?.showModal()
+        }}
+      >
+        Open Modal
+      </button>
+      <Modal
+        ref={dialogRef}
+        onClose={() => {
+          dialogRef.current?.close()
+        }}
+      >
+        I'm a modal!
+      </Modal>
+    </div>
+  )
+}
+```
+
+```js file=modal.js
+import React, { useState } from 'react'
+import './styles.css'
+
+const Modal = React.forwardRef(({ children, onClose }, ref) => {
+  const [closing, setClosing] = useState(false)
+
+  return (
+    <dialog
+      role="dialog"
+      ref={ref}
+      data-close={closing}
+      onAnimationEnd={() => {
+        if (closing) {
+          onClose()
+          setClosing(false)
+        }
+      }}
+    >
+      <div className="modal-contents-container">
+        <div className="modal-contents">
+          <div>{children}</div>
+          <div>
+            <button
+              autoFocus
+              onClick={() => {
+                setClosing(true)
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+  )
+})
+
+export { Modal }
+```
+
+```css file=styles.css
+body {
+  height: 85vh;
+}
+
+dialog {
+  height: auto;
+  width: auto;
+  background: transparent;
+  border: none;
+}
+
+dialog::backdrop {
+  background-color: black;
+  transition: all 0.25s ease-in-out;
+  padding: 20px;
+  opacity: 0.5;
+}
+
+dialog[open] {
+  opacity: 1;
+  animation: dialogAnimateIn 0.25s ease;
+}
+
+dialog[data-close='true'] {
+  opacity: 0;
+  animation: dialogAnimateOut 0.25s ease;
+}
+
+.modal-contents-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-contents {
+  position: relative;
+  padding: 20px;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes dialogAnimateIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(100%);
+    opacity: 1;
+  }
+}
+
+@keyframes dialogAnimateOut {
+  0% {
+    transform: scale(100%);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+```
+
+</Sandpack>
+
+#### 優點
+
+1. **可訪問性**：`<dialog>` 元素會自動處理可訪問性問題，包含聚焦管理和鍵盤導航。
+2. **簡單**：不需要額外的 DOM 結構，只需要一個 `<dialog>` 元素就可以了。
+3. **原生支援**：因為是 HTML 標準的一部分，其會有更好的性能和較少的兼容性問題。
+
+#### 缺點
+
+1. **樣式較難客製化**：相比於 React 組件，`<dialog>` 的樣式和行為定制選項較少。
+2. **瀏覽器支援性**：雖然現代瀏覽器大多支持 `<dialog>`，但在一些舊瀏覽器中可能需要 polyfills。
+
+## Accessibility
+
+以下皆是參考 [WAI-ARIA 的 Modal Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/) 的規範。
+
+### 鍵盤交互
+
+| 鍵盤事件        | 描述                                                                   | 組件支援         |
+| --------------- | ---------------------------------------------------------------------- | ---------------- |
+| `Tab`           | 移動聚焦到下一個可聚焦的元素，若聚焦在最後一個元素，則移動到第一個元素 | `<FocusScope />` |
+| `Shift` + `Tab` | 移動聚焦到上一個可聚焦的元素，若聚焦在第一個元素，則移動到最後一個元素 | `<FocusScope />` |
+| `Escape`        | 關閉 Modal                                                             | `<Modal />`      |
+
+### ARIA 屬性
+
+| 屬性名稱      | 型別      | 描述                                                             | 組件        |
+| ------------- | --------- | ---------------------------------------------------------------- | ----------- |
+| `role`        | `string`  | `dialog`，讓輔助技術知道這是對話框，可以使用 `aria-labelledby`。 | `<Modal />` |
+| `aria-hidden` | `boolean` | `true`，讓輔助技術知道 Modal 關閉時，不需要將 Modal 內容讀出來。 | `<Modal />` |
+| `aria-modal`  | `boolean` | `true`，防止輔助技術讓使用者感知到對話框以外的內容 。            | `<Modal />` |

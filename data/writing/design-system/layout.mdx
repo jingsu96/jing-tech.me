@@ -1,0 +1,295 @@
+---
+title: Design System 101 - 佈局 (Layout)
+date: '2023-09-30'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'core'
+order: 5
+---
+
+## 前言
+
+Layout，它就像是一個家的格局，通常裝潢房子前的第一件事就是先規劃格局，規劃好格局後，就能夠更清楚知道如何運用空間，例如傢俱的擺設、電器的放置等等。而好的格局可以讓整體空間看起來更舒適。
+
+同樣的道理也適用在網頁中，Layout 扮演了整個頁面的骨架，將其架好之後，就可以將想傳達給使用者的訊息組件放入。當這個骨架重複應用在各個頁面中，就可以讓使用者擁有一致的使用體驗，而這也是 Design System 的基礎。
+
+## Grid System
+
+在網頁中最常見的排列方式為網格系統，其為排列的工具。它定義了怎麼放組件、以及其間距和大小。這一套規則不只應用在網格，還包括字型和 Icon 的設定。組件應該要遵照這個規則，讓整個頁面看起來更一致。
+
+今天將來介紹兩種 Layout 的排列方式，分別是 Grid 和 Flex。
+
+## Flex
+
+大家對於 CSS 的 flexbox 應該不陌生，通常是用來處理單維度的排列，例如水平或垂直。
+
+### API
+
+| 屬性        | 說明     | 值                                 |
+| ----------- | -------- | ---------------------------------- |
+| `align`     | 對齊方式 | `start`, `center`, `end` ...       |
+| `gap`       | 元素間距 | number                             |
+| `wrap`      | 換行方式 | `nowrap`, `wrap`..                 |
+| `direction` | 排列方向 | `row`, `row-reverse`, `column` ... |
+| `justify`   | 對齊方式 | `start`, `center`, `end` ...       |
+
+### 實作
+
+接著就開始來實作 Flex 組件，而這也是相對簡單的組件，想要詳細知道 flexbox 是如何使用，可以參考 [flexbox](https://css-tricks.com/snippets/css/a-guide-to-flexbox/)。
+
+1. 首先先建立 `FlexEl` 組件，並將 `props` 傳入 `useFlexProps` 中。
+2. 建立`useFlexProps` 會根據 `props` 產生對應的 `style`，並且會根據 `breakpoint` 來決定要使用哪個值。
+
+<Sandpack>
+
+```js file=App.js
+import React from 'react'
+import { useBreakpoint } from './useBreakpoint'
+
+const useFlexProps = (props) => {
+  const { align, gap, wrap, direction, justify } = props
+  const breakpoint = useBreakpoint()
+
+  const resolveResponsiveValue = (value) => {
+    if (Array.isArray(value)) {
+      const index = ['xxs', 'xs', 's', 'm', 'l'].indexOf(breakpoint)
+      return value[Math.min(index, value.length - 1)]
+    }
+    return value
+  }
+
+  return {
+    style: {
+      display: 'flex',
+      'align-items': resolveResponsiveValue(align),
+      'flex-wrap': resolveResponsiveValue(wrap),
+      'flex-direction': resolveResponsiveValue(direction),
+      'justify-content': resolveResponsiveValue(justify),
+      gap: resolveResponsiveValue(gap),
+    },
+  }
+}
+
+const FlexEl = (props, ref) => {
+  const flexProps = useFlexProps(props)
+  return (
+    <div {...flexProps} ref={ref}>
+      {props.children}
+    </div>
+  )
+}
+
+const Flex = React.forwardRef(FlexEl)
+
+export default () => {
+  return (
+    <Flex direction={['column', 'row']} gap={['10px', '40px']}>
+      <div style={{ width: '100px', height: '100px', backgroundColor: '#4F378B' }} />
+      <div style={{ width: '100px', height: '100px', backgroundColor: '#4A4458' }} />
+    </Flex>
+  )
+}
+```
+
+```js file=useBreakpoint.js
+import { useState, useEffect } from 'react'
+
+export const useBreakpoint = () => {
+  const getBreakpoint = () => {
+    const width = window.innerWidth
+
+    if (width < 600) return 'xxs'
+    if (width < 905) return 'xs'
+    if (width < 1240) return 's'
+    if (width < 1440) return 'm'
+    return 'l'
+  }
+
+  const [breakpoint, setBreakpoint] = useState(getBreakpoint)
+
+  useEffect(() => {
+    const onResize = () => {
+      setBreakpoint(getBreakpoint())
+    }
+
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  return breakpoint
+}
+```
+
+</Sandpack>
+
+## Grid
+
+Grid 則是用在二維度的排列，使用 Grid 可以讓我們輕易地將網頁的版面切割成多個區塊。想要詳細知道 flexbox 是如何使用，可以參考 [grid](https://css-tricks.com/snippets/css/complete-guide-grid/)。
+
+### API
+
+#### `Grid`
+
+| 屬性  | 說明                                       | 值     |
+| ----- | ------------------------------------------ | ------ |
+| areas | 定義網格區域                               | string |
+| cols  | 義網格列的數量、寬度和輸入順序             | number |
+| gap   | 定義網格元素之間的間距，包括行間距和列間距 | string |
+| rows  | 定義網格行的數量、高度和輸入順序           | number |
+
+#### `GridItem`
+
+| 屬性 | 說明                                 | 值     |
+| ---- | ------------------------------------ | ------ |
+| area | 定義網格區域                         | string |
+| col  | 定義元素橫跨的網格列的起始和結束位置 | number |
+| row  | 定義元素橫跨的網格行的起始和結束位置 | number |
+
+### 實作
+
+在實作概念上跟 Grid 跟 Flex 組件差不多
+
+但為了讓 `useFlexProps` 能夠重複使用，所以將 `useFlexProps` 改成 `useLayoutProps`，並且透過 `useLayoutProps` 傳入的 name 來決定要使用哪種排列方式。
+
+<Sandpack>
+
+```js file=App.js
+import React from 'react'
+import { useBreakpoint } from './useBreakpoint'
+
+function getFormattedAreas(areas) {
+  return `'${areas.toString().replace(/,/g, "' '")}'`
+}
+
+const CSS_LAYOUT = {
+  grid: [
+    { areas: 'grid-template-areas' },
+    { cols: 'grid-template-columns' },
+    { rows: 'grid-template-rows' },
+    { gap: 'grid-column-gap' },
+  ],
+  flex: [
+    { align: 'align-items' },
+    { direction: 'flex-direction' },
+    { justify: 'justify-content' },
+    { gap: 'gap' },
+    { wrap: 'flex-wrap' },
+  ],
+  gridItem: [{ area: 'grid-area' }, { col: 'grid-column' }, { row: 'grid-row' }],
+}
+
+const DEFAULT_CSS = {
+  grid: {
+    display: 'grid',
+  },
+  flex: {
+    display: 'flex',
+  },
+}
+
+const useLayoutProps = (props = {}, name) => {
+  const breakpoint = useBreakpoint()
+
+  const resolveResponsiveValue = (value) => {
+    if (Array.isArray(value)) {
+      const index = ['xxs', 'xs', 's', 'm', 'l'].indexOf(breakpoint)
+      return value[Math.min(index, value.length - 1)]
+    }
+    return value
+  }
+
+  const layoutProps = CSS_LAYOUT[name]
+
+  const layoutStyle = layoutProps.reduce(
+    (acc, prop) => {
+      const [key, cssProp] = Object.entries(prop)[0]
+
+      const value = name === 'grid' ? getFormattedAreas(props[key]) : props[key]
+      if (value) {
+        acc[cssProp] = resolveResponsiveValue(value)
+      }
+      return acc
+    },
+    { ...(DEFAULT_CSS[name] || {}) }
+  )
+
+  return { style: { ...(props.style || {}), ...layoutStyle } }
+}
+
+const GridItemEl = (props, ref) => {
+  const gridItemProps = useLayoutProps(props, 'gridItem')
+  return (
+    <div {...gridItemProps} ref={ref}>
+      {props.children}
+    </div>
+  )
+}
+
+const GridEl = (props, ref) => {
+  const gridProps = useLayoutProps(props, 'grid')
+  return (
+    <div {...gridProps} ref={ref}>
+      {props.children}
+    </div>
+  )
+}
+
+const Grid = React.forwardRef(GridEl)
+const GridItem = React.forwardRef(GridItemEl)
+
+export default () => {
+  return (
+    <Grid
+      areas={['header header', 'nav main', 'footer footer']}
+      cols="12"
+      gap="6"
+      rows="2rem 10rem 5rem"
+    >
+      <GridItem area="header" col="1 / span 12" style={{ backgroundColor: 'green' }}>
+        Header
+      </GridItem>
+      <GridItem area="nav" col="1 / span 3" style={{ backgroundColor: 'aliceblue' }}>
+        Navigation
+      </GridItem>
+      <GridItem area="main" col="4 / span 9" style={{ backgroundColor: 'yellow' }}>
+        Main
+      </GridItem>
+      <GridItem area="footer" col="1 / span 12" style={{ backgroundColor: 'red' }}>
+        Footer
+      </GridItem>
+    </Grid>
+  )
+}
+```
+
+```js file=useBreakpoint.js
+import { useState, useEffect } from 'react'
+
+export const useBreakpoint = () => {
+  const getBreakpoint = () => {
+    const width = window.innerWidth
+
+    if (width < 600) return 'xxs'
+    if (width < 905) return 'xs'
+    if (width < 1240) return 's'
+    if (width < 1440) return 'm'
+    return 'l'
+  }
+
+  const [breakpoint, setBreakpoint] = useState(getBreakpoint)
+
+  useEffect(() => {
+    const onResize = () => {
+      setBreakpoint(getBreakpoint())
+    }
+
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  return breakpoint
+}
+```
+
+</Sandpack>

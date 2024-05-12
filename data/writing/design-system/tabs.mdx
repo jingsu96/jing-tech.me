@@ -1,0 +1,555 @@
+---
+title: Design System 101 - Tabs
+date: '2023-11-19'
+lastmod: '2023-11-19'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'component'
+order: 2
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 什麼是 Tabs？
+
+Tabs 是一種常見的組件，用來在同一畫面中將內容劃分為多個區塊，並可透過 Tab 來切換不同的內容。這種設計有助於整合並有效地展現分類資訊。
+
+## Tabs 的使用時機
+
+### 何時使用
+
+- **內容組織**： 當有大量內容可以邏輯上分隔成不同類別時，使用 Tabs 有助於管理和呈現這些不同的資料集，而不會讓使用者感到信息過載。
+- **任務分割**： 如果內容包含多個相關的任務或動作，Tabs 可以讓使用者輕鬆在這些任務之間導航，而不需要離開當前的上下文。
+
+### 何時不使用
+
+- **分組過多**： 如果我們有大量的分類或群組（例如，超過 6 個），使用 Tabs 可能不是最佳選擇，因為它們可能變得擁擠且難以閱覽。 - 使用 Drawer 組件可能更合適。
+- **跨螢幕內容連結**： 如果是需要在不同螢幕間連結內容，或是讓用戶同時看到多個 Tabs 的內容，Tabs 也不是最好的選擇。- 使用 Navigation Bar 組件可能更適合。
+
+## Anatomy
+
+### 組件結構
+
+<Image src="https://imgur.com/gGAsNFa.png" height="254" width="469" />
+
+| 組件           | 描述                                                  |
+| -------------- | ----------------------------------------------------- |
+| `Tabs`         | 包含了所有 Tabs 組件，主要控制當前 active 的 Tab 狀態 |
+| `Tabs.List`    | 包含所有 Tabs 的觸發控制                              |
+| `Tabs.Trigger` | 用來觸發切換 Tabs 的事件                              |
+| `Tabs.Content` | 用來顯示當前 active 的 Tab 內容                       |
+
+### 使用方式
+
+```jsx
+;() => {
+  ;<Tabs>
+    <Tabs.List>
+      <Tabs.Trigger>Tab 1</Tabs.Trigger>
+      <Tabs.Trigger>Tab 2</Tabs.Trigger>
+    </Tabs.List>
+    <Tabs.Content>Content 1</Tabs.Content>
+    <Tabs.Content>Content 2</Tabs.Content>
+  </Tabs>
+}
+```
+
+## 組件 API
+
+### General Props
+
+| 屬性名稱    | 型別                | 描述            |
+| ----------- | ------------------- | --------------- |
+| `children`  | `React.ReactNode`   | 組件的子組件    |
+| `className` | `string`            | 自定義 class    |
+| `as`        | `React.ElementType` | 自定義 HTML tag |
+
+### \`Tabs\`
+
+| 屬性名稱        | 型別                      | 描述                     |
+| --------------- | ------------------------- | ------------------------ |
+| `defaultValue`  | `string`                  | 預設 active 的 Tab       |
+| `value`         | `string`                  | 當前 active 的 Tab       |
+| `onValueChange` | `(value: string) => void` | 當 Tab 改變時的 callback |
+
+### \`Tabs.List\`
+
+| 屬性名稱 | 型別      | 描述                             |
+| -------- | --------- | -------------------------------- |
+| `loop`   | `boolean` | 當在使用鍵盤作為導航時，是否循環 |
+
+### \`Tabs.Trigger\`
+
+| 屬性名稱   | 型別      | 描述     |
+| ---------- | --------- | -------- |
+| `disabled` | `boolean` | 是否禁用 |
+| `value`    | `string`  | Tab 的值 |
+
+### \`Tabs.Content\`
+
+| 屬性名稱 | 型別     | 描述     |
+| -------- | -------- | -------- |
+| `value`  | `string` | Tab 的值 |
+
+## 實作的重點整理：
+
+在實作前，我們會用到先前介紹的幾個概念：
+
+1. [Controlled & Uncontrolled State](/series/design-system/hooks): 用來處理組件的狀態管理，可以讓使用者自行決定是否要控制組件的狀態，或是交由組件自行管理。
+2. [Collection API](/series/design-system/compound-component): 用來處理組件的 `index` 問題的設計模式。
+3. [Roving Focus](/series/design-system/roving-focus): 用來處理鍵盤導航問題的設計模式，其適用於所有有群集的組件，例如：Tabs、Menu、Radio Group 等等。
+
+了解上面這些概念之後，就可以很輕易的實作出一個 Tabs 組件了。
+
+- `Tabs`: 主要是控制當前 active 的 Tab 狀態，並且提供 `onValueChange` callback 給使用者使用。
+- `Tabs.List`: 主要是用來包含所有的 `Tabs.Trigger`，並且將 `<RovingFocusGroup />` 的邏輯套用在上面，讓鍵盤使用者可以透過鍵盤導航來切換 Tabs。
+- `Tabs.Trigger`: 主要是用來觸發切換 Tabs 的事件，以及使用 `useRovingFocus` hook 將本身的 `ref` 加到 collection 中，這樣 `<RovingFocusGroup />` 就可以知道當前有多少個可聚焦的組件，以便在鍵盤導航時可以正確的切換。
+- `Tabs.Content`: 根據 `value` 顯示對應 Tab 的內容。
+
+<Sandpack>
+
+```jsx file=App.js
+import React from 'react'
+import { Tabs } from './tabs.jsx'
+
+export default () => {
+  return (
+    <Tabs defaultValue="tab1">
+      <Tabs.List loop>
+        <Tabs.Trigger value="tab1">Tab 1</Tabs.Trigger>
+        <Tabs.Trigger value="tab2">Tab 2</Tabs.Trigger>
+      </Tabs.List>
+      <Tabs.Content value="tab1">Content 1</Tabs.Content>
+      <Tabs.Content value="tab2">Content 2</Tabs.Content>
+    </Tabs>
+  )
+}
+```
+
+```jsx file=tabs.jsx
+import React from 'react'
+import { useControlledState } from './useControlledState'
+import { RovingFocusGroup, useRovingFocus } from './rovingFocus.jsx'
+import createContext from './createContext'
+import './styles.css'
+
+const [TabsContextProvider, useTabsContext] = createContext('TabsContext', {})
+
+export const Tabs = ({ onValueChange, defaultValue, value, children }) => {
+  const [tabValue, setTabValue] = useControlledState({
+    defaultValue,
+    value,
+    onChange: onValueChange,
+  })
+  return (
+    <TabsContextProvider value={{ value: tabValue, setValue: setTabValue }}>
+      {children}
+    </TabsContextProvider>
+  )
+}
+
+export const List = React.forwardRef(({ children, loop }, ref) => {
+  return <RovingFocusGroup loop={loop}>{children}</RovingFocusGroup>
+})
+
+export const Trigger = React.forwardRef(({ value, disabled, children }, ref) => {
+  const { value: contextValue, setValue } = useTabsContext('Trigger')
+  const isSelected = contextValue !== undefined && value !== undefined && contextValue === value
+  const rovingFocusProps = useRovingFocus({ disabled, active: isSelected })
+
+  const handleClick = () => {
+    if (disabled) {
+      return
+    }
+
+    setValue(value)
+  }
+
+  return (
+    <button
+      ref={ref}
+      className="tab"
+      data-selected={isSelected ? 'selected' : 'unselected'}
+      onClick={handleClick}
+      {...rovingFocusProps}
+    >
+      {children}
+    </button>
+  )
+})
+
+export const Content = React.forwardRef(({ children, value }, ref) => {
+  const { value: contextValue } = useTabsContext('Content')
+  const isSelected = contextValue !== undefined && contextValue === value
+
+  return (
+    <div ref={ref} className="tab-content" data-selected={isSelected ? 'selected' : 'unselected'}>
+      {children}
+    </div>
+  )
+})
+
+Tabs.List = List
+Tabs.Trigger = Trigger
+Tabs.Content = Content
+```
+
+```css file=styles.css hidden=true
+.tab {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  border-radius: 0.25rem 0.25rem 0 0;
+  background-color: #fff;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.tab:focus-visible {
+  box-shadow: 0 0 0 2px #000;
+}
+
+.tab:not(:last-child) {
+  margin-right: 0.1rem;
+}
+
+.tab[data-selected='selected'] {
+  border-bottom: 1px solid #fff;
+  background-color: #fff;
+}
+
+.tab[data-selected='unselected'] {
+  border-bottom: 1px solid #ccc;
+  background-color: #f5f5f5;
+}
+
+.tab-content {
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0 0 0.25rem 0.25rem;
+  background-color: #fff;
+}
+
+.tab-content[data-selected='selected'] {
+  display: block;
+}
+
+.tab-content[data-selected='unselected'] {
+  display: none;
+}
+```
+
+```jsx file=rovingFocus.jsx
+import React from 'react'
+import { createCollection } from './collection'
+import createContext from './createContext'
+const [RovingFocusContextProvider, useRovingFocusContext] = createContext('RovingFocusGroup')
+const [CollectionProvider, useCollectionItem, useCollectionItems] = createCollection(
+  'RovingFocusGroupCollection'
+)
+
+const MAP_KEY_TO_FOCUS_INTENT = {
+  ArrowLeft: 'prev',
+  ArrowUp: 'prev',
+  ArrowRight: 'next',
+  ArrowDown: 'next',
+  PageUp: 'first',
+  Home: 'first',
+  PageDown: 'last',
+  End: 'last',
+}
+
+const KEYS = Object.keys(MAP_KEY_TO_FOCUS_INTENT)
+
+export const RovingFocusGroup = (props) => (
+  <CollectionProvider>
+    <RovingFocusGroupImp {...props} />
+  </CollectionProvider>
+)
+
+export const RovingFocusGroupImp = ({ children, loop }) => {
+  const [tabStopId, setTabStopId] = React.useState(null)
+  const [reachable, setReachable] = React.useState(true)
+  const collection = useCollectionItems()
+
+  const groupId = React.useId()
+  const context = React.useMemo(
+    () => ({ groupId, tabStopId, setTabStopId, loop, reachable, setReachable, collection }),
+    [groupId, tabStopId, setTabStopId, loop, reachable, collection]
+  )
+
+  return <RovingFocusContextProvider value={context}>{children}</RovingFocusContextProvider>
+}
+
+export const useRovingFocus = ({ disabled, active }) => {
+  const itemId = React.useId()
+  const context = useRovingFocusContext('useRovingFocus')
+  const { collection, reachable, setTabStopId } = context
+  const isTabStop = context.tabStopId === itemId
+
+  const { index, ref: rovingFocusRef } = useCollectionItem({})
+
+  React.useEffect(() => {
+    setTabStopId((prevTabStopId) => {
+      if (reachable) {
+        return active || !prevTabStopId ? itemId : prevTabStopId
+      } else {
+        return null
+      }
+    })
+  }, [active, itemId, setTabStopId])
+
+  if (disabled) {
+    return {
+      tabIndex: -1,
+      'aria-disabled': true,
+      onMouseDown: (event) => {
+        event.preventDefault()
+      },
+    }
+  }
+
+  return {
+    index,
+    ref: rovingFocusRef,
+    tabIndex: isTabStop ? 0 : -1,
+    onFocus: () => {
+      context.setTabStopId(itemId)
+      context.setReachable(true)
+    },
+    onKeyDown: (event) => {
+      const focusIntent = MAP_KEY_TO_FOCUS_INTENT[event.key]
+
+      if (KEYS.includes(event.key)) {
+        event.stopPropagation()
+      }
+
+      if (!focusIntent) {
+        return
+      }
+
+      const items = collection.filter((item) => item.ref.current).map((item) => item.ref.current)
+
+      const count = items.length
+      const currentItem = document.activeElement
+      const currentIndex = currentItem ? items.indexOf(currentItem) : -1
+      const map = {
+        first: 0,
+        last: count - 1,
+        prev: currentIndex - 1,
+        next: currentIndex + 1,
+      }
+
+      let nextIndex = map[focusIntent]
+      nextIndex = context.loop ? wrap(nextIndex, count) : clamp(nextIndex, [0, count - 1])
+      const nextItem = items[nextIndex]
+      if (nextItem) {
+        /**
+         * Imperative focus during keydown is risky so we prevent React's batching updates
+         * to avoid potential bugs. See: https://github.com/facebook/react/issues/20332
+         */
+        setTimeout(() => nextItem.focus())
+      }
+    },
+  }
+}
+
+function clamp(value, [min, max]) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function wrap(index, max) {
+  return (max + index) % max
+}
+```
+
+```jsx file=useControlledState.js hidden=true
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+
+export function useCallbackRef(callback) {
+  const callbackRef = useRef(callback)
+
+  useEffect(() => {
+    callbackRef.current = callback
+  })
+
+  return useMemo(
+    () =>
+      (...args) => {
+        if (callbackRef.current) {
+          return callbackRef.current(...args)
+        }
+      },
+    []
+  )
+}
+
+export function useUncontrolledState({ defaultValue, onChange }) {
+  const [value, setValue] = useState(defaultValue)
+  const previousValueRef = useRef(value)
+  const callback = useCallbackRef(onChange)
+
+  useEffect(() => {
+    if (value !== previousValueRef?.current) {
+      callback(value)
+      previousValueRef.current = value
+    }
+  }, [value, previousValueRef, onChange])
+
+  return [value, setValue]
+}
+
+export const useControlledState = ({ defaultValue, value, onChange }) => {
+  const [uncontrolledState, setUncontrolledState] = useUncontrolledState({
+    defaultValue,
+    onChange,
+  })
+
+  const isControlled = value != null
+  const state = isControlled ? value : uncontrolledState
+  const callback = useCallbackRef(onChange)
+
+  const setState = useCallback(
+    (nextValue) => {
+      if (isControlled) {
+        const setter = nextValue
+        const v = typeof nextValue === 'function' ? setter(value) : nextValue
+        if (v !== value) callback?.(v)
+      } else {
+        setUncontrolledState(nextValue)
+      }
+    },
+    [value, isControlled, callback]
+  )
+
+  return [state, setState]
+}
+```
+
+```jsx file=collection.js
+import React from 'react'
+import createContext from './createContext.js'
+
+export const createCollection = (name) => {
+  const [CollectionContextProvider, useCollectionContext] = createContext(
+    `${name}CollectionContext`
+  )
+
+  const CollectionProvider = ({ children }) => {
+    const [items, setItems] = React.useState([])
+
+    // 主要是用來追蹤在 SSR 時，有多少個 useCollectionItem 被呼叫，並且透過此變數去紀錄，這樣在第二次渲染時，就可以知道有多少個子組件。
+    const ssrSyncUseCollectionItemCountRef = React.useRef(0)
+
+    const addItem = React.useCallback(
+      (item) => {
+        setItems((prevItems) => {
+          const exists = prevItems.find(({ ref }) => item.ref.current === ref.current)
+          return exists ? prevItems : [...(prevItems ?? []), item]
+        })
+      },
+      [setItems]
+    )
+
+    const removeItem = React.useCallback(
+      (ref) => {
+        setItems((prevItems) => prevItems.filter((item) => item.ref.current !== ref.current))
+      },
+      [setItems]
+    )
+
+    React.useLayoutEffect(() => {
+      setItems([])
+    }, [children])
+
+    return (
+      <CollectionContextProvider
+        value={React.useMemo(
+          () => ({ items, addItem, removeItem, ssrSyncUseCollectionItemCountRef }),
+          [items, addItem, removeItem]
+        )}
+      >
+        {children}
+      </CollectionContextProvider>
+    )
+  }
+
+  const useCollectionItem = (state = {}) => {
+    const ref = React.useRef(null)
+    const { items, addItem, removeItem, ssrSyncUseCollectionItemCountRef } =
+      useCollectionContext('useCollectionItem')
+
+    // 在第一次渲染時，existingIndex 會是 -1
+    const existingIndex = items.findIndex((item) => ref.current === item.ref.current)
+    const index = existingIndex !== -1 ? existingIndex : ssrSyncUseCollectionItemCountRef.current++
+
+    React.useLayoutEffect(() => {
+      if (existingIndex !== -1) {
+        return
+      }
+      addItem({ ...state, ref })
+    })
+
+    React.useLayoutEffect(() => {
+      return () => {
+        removeItem(ref)
+      }
+    }, [removeItem])
+
+    return {
+      ref,
+      index,
+    }
+  }
+
+  const useCollectionItems = () => {
+    return useCollectionContext('useCollectionItem')?.items
+  }
+
+  return [CollectionProvider, useCollectionItem, useCollectionItems]
+}
+```
+
+```jsx file=createContext.js
+import React from 'react'
+
+const createContext = (rootComponentName, defaultContext) => {
+  const Context = React.createContext(defaultContext)
+
+  // Provider
+  const Provider = (props) => {
+    const { children, value = {} } = props
+    const ctx = React.useMemo(() => value, [Object.values(value)])
+
+    return <Context.Provider value={ctx}>{children}</Context.Provider>
+  }
+
+  // Consumer
+  const useContext = (caller) => {
+    const context = React.useContext(Context)
+
+    if (context) {
+      return context
+    }
+
+    if (defaultContext) {
+      return defaultContext
+    }
+
+    throw new Error(`${caller} must be used within a ${rootComponentName}.`)
+  }
+
+  return [Provider, useContext]
+}
+
+export default createContext
+```
+
+</Sandpack>
+
+## 參考資料
+
+1. [Radix UI - Tabs](https://www.radix-ui.com/primitives/docs/components/tabs)

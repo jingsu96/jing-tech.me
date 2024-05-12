@@ -1,0 +1,113 @@
+---
+title: Design System 101 - 設計標籤
+date: '2023-09-14'
+tags: ['設計系統']
+draft: false
+summary: Design Token
+authors: ['default']
+topic: 'introduce'
+order: 2
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+上一篇提到參與了 UI 組件庫的建置，起初在建置 UI 組件庫的旅程中，我的方法很簡單：看 UI 組件的設計稿，然後做出一模一樣的 UI，color, font-size 跟 line-height 全部都複製貼上！！
+
+並且在第一次 UI Day 時很自豪的透過 Storybook 展示 UI 組件的各種狀態，並喃喃地介紹，「這是錯誤的樣子，這是 Disabled 的狀態」，心想我都一次展現出來了～ 帥吧!
+
+但設計師突然指出某個 UI 的*錯誤顏色*有點怪，應該是 `#FF0000` 可以幫我確認一下嗎? 我大吃一驚，在緊張確認之餘，心想這就是設計師的火眼金睛，結果真的是自己的 hexcode 打錯，那剎那對設計師滿是敬佩。
+
+UI Day 結束後，跟主管分享剛剛設計師的超能力。主管看著我，半開玩笑地問「你是不是眼睛有問題呀？」我點點頭說到我有色弱，他則是笑著說：「Jing, 沒關係啦，工程師還有很多種可以不一定要做前端啊！」
+
+接著他向我展示當初建置這個 repo 的時候，已經有先將所有的 design token 都已放到全域的 style 裡了，跟我說不要再用 hexcode，並向我比喻 design token 就是我們和設計師的共通語言。
+
+## 什麼是設計標籤 (Design Token)
+
+> Design tokens represent the small, repeated design decisions that make up a design system's visual style. Tokens replace static values, such as hexcodes for color, with self-explanatory names. -- Material Design
+
+Design Token 最簡單的解釋就是將視覺元素 (e.g. color - hexcode, size - pixel, ...) 透過 key-value pair 的方式，將這些數值轉化成標籤，讓設計師與工程師有用同一種共通的語言。
+
+在上一篇提到 UI Library 建置可以參考原子設計的方法論，而在原子設計的世界中，如果作為系統最基本模塊的組件 (Component) 是原子，那麼設計標籤就是用來附著在組件的粒子。
+
+<Image src="https://imgur.com/nk8rkdp.png" height="350" width="1115" />
+
+## 為什麼要使用設計標籤 (Design Token)
+
+設計標籤就如同剛剛提到的可以讓設計師與工程師有共同的語言，讓雙方不必在透過 hexcode 以及 pixel 做溝通。
+
+除此之外，這些設計標籤是單一來源 (Single source of truth) 的數據集，當今天前端團隊需要維護多個平台 Web, iOS 與 Android 時，假設公司想要將品牌色進行更換，那所有平台的工程師們，可能就要花時間更新並且去檢查是否有改到對應的顏色，如果有設計標籤，設計師只要一鍵更改並發布就可以了，這樣大大減少了工程上的麻煩。
+
+而在 [Material Design](https://m3.material.io/foundations/design-tokens/overview#8ba3ccef-84fe-4462-acda-2cfb65820a86) 則哪些情況下適合引入設計標籤：
+
+1. 計劃更新產品的設計或建立新產品
+2. 團隊的設計系統應用於多個產品或平台
+3. 想要輕鬆維護或更新樣式
+
+也舉出哪些情況不適合使用設計標籤：
+
+1. 現有的應用使用 hardcode 的方式，且在接下來的 1-2 年不會改變
+2. 團隊 / 產品沒有設計系統
+
+## 如何設計標籤 (Design Token)
+
+上面提到設計標籤就是透過 key-value pair 方式將視覺元素轉化成語意化標籤，那實務上要怎麼語意化呢？
+
+### 定義設計標籤的層級
+
+讓我們來看看各大廠的做法
+
+1. [Material Design](https://m3.material.io/foundations/design-tokens/how-to-read-tokens): 將設計標籤拆分成四層: Value, Reference Token, System Token 以及 Component Token。
+
+<Image
+  src="https://lh3.googleusercontent.com/IrMn3VR2Ub4-G9UVzUVYhlVTaLvAdSVkbgBHXWrMZ_YIdE3s42HgiRroQPKH10qCOwT2aLS-TABxCyLk6_pzo4nKgKFEfFafe0b2FgnJKTSC=s0"
+  height="363"
+  width="615"
+/>
+
+2. [Pinterest](https://gestalt.pinterest.systems/foundations/design_tokens): 將設計標籤拆分成四層: Value, Base Variable, Common 以及 Component Token。
+
+<Image
+  src="https://imgur.com/pJVqpbp.png"
+  alt="https://uxdesign.cc/design-tokens-cheatsheet-927fc1404099"
+  height="363"
+  width="615"
+/>
+
+可以觀察到，越底層的設計標籤越抽象，越上層的設計標籤則越具體。
+
+#### 1. Reference Token / Base Variable
+
+Reference Token / Base Variable 最底層也是最抽象，直接指向的是 value, 例如：color - hexcode, size - pixel 等等
+
+#### 2. System Token / Common
+
+System Token / Common 是表示了該 value 在系統中的用途與意義，例如：當我們看到 `color-red-900` 可能沒辦法馬上知道這顏色的用途，但是當我們看到 `color-error` 就一目瞭然地知道這是用來表示錯誤的。
+
+#### 3. Component Token
+
+最後則是 Component Token 是最上層也是最具象化的，通常我們會遵從 CTI 的命名規則
+
+> CTI 命名結構是由 [Style Dictionary](https://amzn.github.io/style-dictionary/#/) 提出對於 component-level 的命名規範，這個命名結構是由五個層級組成，分別是：Category, Type, Item, Sub Item, Status。
+
+<Image src="https://amzn.github.io/style-dictionary/assets/cti.png" height="425" width="640" />
+
+- 類別 (Category): 別是最高層級的分類，例如：color, size, font, spacing
+- 類型 (Type): 描述類別的屬性，例如：background, text, border
+- 項目 (Item): 對於元素的描述，例如：dropdown, control, container
+- 子項目 (Sub Item):元素的變體 (variant)，例如：primary, secondary, success.
+- 狀態 (Status) : 用來描述狀態，例如：hover, focus, active, disabled
+
+## 小結
+
+說了這麼多概念，在之後的章節我們會透過 style-dictionary 將上述概念實踐出來，但在這裡我們可以窺探出整體的流程：
+
+<Image src="https://imgur.com/85ajFur.png" height="425" width="640" />
+
+## 參考資料
+
+1. [m3.material.io](https://m3.material.io/foundations/design-tokens)
+2. [cloudscape.design](https://cloudscape.design/foundation/visual-foundation/design-tokens/)
+3. [pinterest gestalt](https://gestalt.pinterest.systems/foundations/design_tokens)
+4. [style-dictionary](https://github.com/amzn/style-dictionary/tree/3d0d1c0356d42fc83f905a7e7e4b1c662c77de0b)

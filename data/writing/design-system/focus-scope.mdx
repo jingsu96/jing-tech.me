@@ -1,0 +1,1208 @@
+---
+title: Design System 101 - FocusScope
+date: '2023-09-22'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'accessibility'
+order: 3
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+繼上次介紹完 Accessibility 後，了解到建立無障礙網頁的重要性。使用者不一定是透過滑鼠來操作網頁，或許是使用其他裝置（例如: 鍵盤）來操作我們的應用，所以本章要來介紹一個在鍵盤操作上的重要概念 - Focus Management.
+
+## 什麼是 Focus Scope
+
+在討論 Focus Scope 之前，首先要了解什麼是「focus」。簡單來說，「focus」是當前正在被使用者操作或對話的元素。
+
+> Accessible focus management is the practice of using programmatic focus changes to enhance comprehension and usability of a website. -- Cloudscape.design
+
+而 Focus Scope 顧名思義，就是將 focus 限制在某個範圍內。最常看見的例子就是用在 Modal 組件上，當 Modal 打開時，希望使用者只能 focus 在 Modal 內的元素，而不能 focus 到 Modal 以外的元素。
+
+## 為什麼需要 Focus Scope
+
+想像一下，當今天我們是透過鍵盤來操作介面的使用者，可能需要透過 `tab` 鍵將 focus 移動到下一個 focusable 的元素。
+
+然而網頁不是只有一層 Layer。可能點擊某個 `Button` 會跳出 `Modal`, `Dropdown Menu` 等等對話窗形式的組件。對於滑鼠的使用者，他們可以很自然地與這類型的組件進行交互。但對於鍵盤使用者，如果沒有自動將可 focus 的範圍限縮到對話窗式的組件內，則使用者將無法互動到這些組件內的元素。
+
+因此，開發者通常會在這些組件上加入 `<FocusScope>`。當對話窗形式的組件打開時，自動的 focus 到組件內的元素，並且將 focus 限制在 `<FocusScope>` 裡，在關掉組件時才會 restore 到原本的觸發元素。
+
+## 設計 FocusScope
+
+接下來，我將介紹如何設計一個 FocusScope 組件，並且提供一個 hook 讓其他開發者可以透過它來控制 focus 的行為。
+
+### 需求
+
+整理一下我們目前的需求:
+
+1. 當 Modal 開啟時，將 button 組件的 reference 保存在 state 內
+2. 自動 focus 到 Modal 內的元素
+3. 當使用者透過鍵盤的 `tab` 去 focus 元素時，focus 不會移到 Modal 以外的元素
+4. Modal 關掉後要會 restore 到原本的 button 元素
+
+<Image
+  src="https://imgur.com/UBlBeFp.gif"
+  height="641"
+  width="708"
+  showalt
+  sourceTitle="舉 Radix UI 的 Dialog 為例，一個好的 Dialog 應該要可以透過鍵盤操作完成所有行為"
+/>
+
+### 綜觀架構
+
+如果將上述的問題拆解，可以將問題拆解成兩個部分：
+
+1. 取得特定範圍內的 focusable 元素 (例如 Modal 內的元素)
+2. 能夠控制 focus 的行為 (例如透過 `tab` 等鍵盤事件控制是否 focus 到下一個元素)
+
+若要提供一個 FocusScope 的組件來解決上述問題，應該要如何設計並且如何應用此組件呢？
+
+#### React Context Provider
+
+為了取得特定範圍內的 focusable 元素，我們可以用 `<span hidden />` 去包住範圍內的元素。並透過迭代所有的子元素，將 focusable 的元素保存在 state 內。接著，我們可以透過 React Context API 將 focus 的操作傳遞下去。
+
+```jsx
+<FocusScope>
+  <Component />
+</FocusScope>
+```
+
+#### useFocusManager
+
+並且提供一個 hook 讓其他開發者可以透過它來控制 focus 的行為。
+
+```jsx
+const Component = () => {
+  const focusManager = getFocusManager()
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowLeft') focusManager.focusNext()
+  }
+  // ...
+}
+```
+
+#### API 設計
+
+| 參數           | 型別      | 說明                      |
+| -------------- | --------- | ------------------------- |
+| `children`     | ReactNode | 容器的內容                |
+| `restoreFocus` | boolean   | 是否恢復到原始焦點        |
+| `autoFocus`    | boolean   | 是否自動 focus 內容元素   |
+| `contain`      | boolean   | 是否將 focus 限制在容器內 |
+
+## 實作
+
+### 專案建置
+
+#### 透過 plop 來快速產生 FocusScope 組件
+
+```bash
+> design-system/ pnpm generate // name: focus-scope
+```
+
+```bash
+> design-system/ cd packages/focus-scope
+> design-system/packages/focus-scope/ pnpm i // 安裝相依套件
+```
+
+#### 開啟 Storybook & 測試
+
+```bash
+> design-system/ pnpm run test -w
+> design-system/ pnpm run storybook
+```
+
+#### 透過 changeset 來產生 changelog 以及 commit
+
+```bash
+pnpm changeset
+```
+
+### FocusScope - 核心
+
+FocusScope 最重要的核心就是將其範圍內 (Scope) 找出所有 `focusable` 的元素，並且將其儲存起來。再來透過 `focusManager` 來控制 `focusable` 的元素，例如：`focusManager.focusNext()`、`focusManager.focusPrevious()`。
+
+> 在這裡，範圍 (Scope) 指的是 FocusScope 組件中的 children。
+
+```jsx
+<FocusScope>{children}</FocusScope>
+```
+
+#### FocusScopeContext
+
+首先，先建立 FocusScopeContext 將 `focusManager` 能夠傳遞給其子組件。而開發者可以在子組件透過 `useFocusManager` hook 取得 `focusManager`，進而根據不同的鍵盤事件控制 `focus` 的行為。
+
+```jsx
+// focus-scope/context
+export const FocusScopeContext = React.createContext(null)
+
+export const useFocusManager = () => {
+  const context = useContext(FocusScopeContext)
+
+  if (!context) {
+    throw new Error('useFocusManager hook must be used within a FocusManagerProvider')
+  }
+
+  return context.focusManager
+}
+
+export const FocusScopeProvider = (props) => {
+  return (
+    <FocusScopeContext.Provider value={{ focusManager: props.focusManager }}>
+      {props.children}
+    </FocusScopeContext.Provider>
+  )
+}
+```
+
+Github - [FocusScopeContext](https://github.com/jingsu96/tocino/blob/main/packages/components/focus-scope/src/context/index.tsx)
+
+#### 取得 `focusable` 元素
+
+接著，我們需要找出 Scope 裡所有 `focusable` 的元素，可以透過在用 `<span hidden ref={startRef} />` 與 `<span hidden ref={endRef} />`將 Scope 的範圍包起來，再來迭代 Scope 裡的所有元素，並且將其儲存起來。
+
+```jsx
+export const FocusScope = ({
+  children,
+  autoFocus = false,
+  contain = false,
+  restoreFocus = false,
+}) => {
+  const startRef = useRef(null)
+  const endRef = useRef(null)
+  const scopeRef = useRef([])
+
+  useEffect(() => {
+    let node = startRef.current?.nextSibling
+    const nodes = []
+
+    while (node && node !== endRef.current) {
+      nodes.push(node)
+      node = node.nextSibling
+    }
+    scopeRef.current = nodes
+  }, [children])
+
+  const focusManager = {} // createFocusManager(scopeRef); Not yet implement
+
+  return (
+    <FocusScopeProvider focusManager={focusManager}>
+      <span hidden ref={startRef} />
+      {children}
+      <span hidden ref={endRef} />
+    </FocusScopeProvider>
+  )
+}
+```
+
+#### createFocusManager
+
+再來，建立一個 `createFocusManager`，它會回傳一個物件，其包含了四種方法：
+
+- `focusNext`: 將 focus 移至下一個 `focusable` 元素
+- `focusPrevious`: 將 focus 移至上一個 `focusable` 元素
+- `focusFirst`: 將 focus 移至第一個 `focusable` 元素
+- `focusLast`: 將 focus 移至最後一個 `focusable` 元素
+
+這四種方法可以讓開發者根據不同的鍵盤事件來控制 `focus` 的行為。
+
+#### TreeWalker
+
+在實作 `createFocusManager` 之前，我們先來介紹一下 `TreeWalker`
+
+##### 什麼是 `TreeWalker`?
+
+`TreeWalker` 是一個 DOM 的物件，可以用來導航和遍歷 DOM 的結構。也就是可以使用它遍歷元素，並可以根據特定的過濾條件查找節點 (node)，這讓我們找 DOM 中某些特定的節點變得非常容易。
+
+##### 如何使用 `TreeWalker`?
+
+假設在一個頁面中，找出 focusable 的元素，並且我們已經將這些元素加入 `data-focusable` 屬性，這時候我們就可以透過 `TreeWalker` 來找出這些元素。
+
+<Sandpack lang="static">
+
+```html file=index.html
+<body>
+  <div id="root">
+    <button data-focusable>I'm focusable No.1</button>
+    <br />
+    <button data-focusable>I'm focusable No.2</button>
+    <br />
+    <span>I'm not focusable</span>
+    <br />
+    <button data-focusable>I'm focusable No.3</button>
+  </div>
+</body>
+
+<script>
+  function focusableFilter(node) {
+    return node.hasAttribute('data-focusable') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+  }
+
+  const walker = document.createTreeWalker(
+    document.querySelector('#root'),
+    NodeFilter.SHOW_ELEMENT,
+    { acceptNode: focusableFilter },
+    false
+  )
+
+  const focusableElements = []
+
+  while (walker.nextNode()) {
+    focusableElements.push(walker.currentNode)
+  }
+
+  console.log(focusableElements) // 可以打開 Console 看，將列印出所有 'data-focusable' 屬性的元素
+</script>
+```
+
+</Sandpack>
+
+讀者們可以打開 Console 看，將列印出所有 'data-focusable' 屬性的元素！
+
+#### createFocusManager
+
+介紹完 `TreeWalker` 之後，就可以來實作 `createFocusManager` 了!
+
+##### **Step 1, 先用 TreeWalker 找出 Scope 中的所有 focusable 元素**
+
+這邊當 TreeWalker 在遍 node 是 focusable 以及該 node 是在 Scope 內，就會將其加入 `focusableElements` 陣列中。
+
+```jsx
+// 確認元素是否在 Scope 中
+export function isElementInScope(el, scope) {
+  if (!scope || !el) {
+    return false
+  }
+  return scope.includes(el) || scope.some((node) => node.contains(el))
+}
+
+export function getFocusableTreeWalker(root, opts, scope) {
+  // Source: https://github.com/jingsu96/tocino/blob/main/packages/components/focus-scope/src/utils/index.tsx#L19-L39
+  const selector = opts?.tabbable ? TABBABLE_ELEMENT_SELECTOR : FOCUSABLE_ELEMENT_SELECTOR
+
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
+    acceptNode: (node) => {
+      if (opts.from?.contains(node)) {
+        return NodeFilter.FILTER_REJECT
+      }
+
+      if (node.matches(selector) && (!scope || isElementInScope(node, scope))) {
+        return NodeFilter.FILTER_ACCEPT
+      }
+
+      return NodeFilter.FILTER_SKIP
+    },
+  })
+
+  if (opts.from) {
+    walker.currentNode = opts.from
+  }
+
+  return walker
+}
+```
+
+##### **Step 2, 建立 FocusManager**
+
+接著，建立 FocusManager，這邊我們只實作 `focusNext`，其餘的 `focusPrevious`、`focusFirst`、`focusLast` 皆是類似的實作方式！
+
+還記得我們一開始在 Scope 外層包了兩個 `<span hidden ref={startRef} />` 與 `<span hidden ref={endRef} />` 嗎？ 這時我們就可以透過這兩個元素來當作 `sentinel`，並且用 `walker` 去遍歷 Scope 中的所有元素。
+
+```jsx
+// 建立 FocusManager
+export const createFocusManager = (scopeRef) => {
+  const getSentinelStart = (scope) => scope[0].previousElementSibling
+
+  const focusNode = (node) => {
+    if (node) {
+      focusElement(node)
+    }
+    return node
+  }
+
+  return {
+    focusNext: (opts = {}) => {
+      const scope = scopeRef.current
+      const { from, tabbable } = opts
+      const node = from || document.activeElement
+      const sential = getSentinelStart(scope)
+
+      const walker = getFocusableTreeWalker(getScopeRoot(scope), { tabbable }, scope)
+      walker.currentNode = isElementInScope(node, scope) ? node : sential
+      let nextNode = walker.nextNode()
+
+      return focusNode(nextNode)
+    },
+  }
+}
+```
+
+在這裡可以透過下面範例來玩看看，當我們按下 `->` 鍵時，就會將 focus 移至下一個 `focusable` 元素。
+
+<Sandpack>
+
+```js
+import React from 'react'
+import { FocusScope, useFocusManager } from './focusScope.js'
+
+const ButtonGroup = () => {
+  const focusManager = useFocusManager()
+
+  const onKeyDown = (e) => {
+    if (e.key === 'ArrowRight') {
+      focusManager.focusNext({ wrap: false })
+    }
+  }
+
+  return (
+    <>
+      <button onKeyDown={onKeyDown}>1</button>
+      <button onKeyDown={onKeyDown}>2</button>
+      <button onKeyDown={onKeyDown}>3</button>
+    </>
+  )
+}
+
+export default () => {
+  return (
+    <FocusScope>
+      <ButtonGroup />
+    </FocusScope>
+  )
+}
+```
+
+```js file=focusScope.js
+import React, { useContext, useRef, useEffect } from 'react'
+
+export const FocusScopeContext = React.createContext(null)
+
+export const useFocusManager = () => {
+  const context = useContext(FocusScopeContext)
+
+  if (!context) {
+    throw new Error('useFocusManager hook must be used within a FocusManagerProvider')
+  }
+
+  return context.focusManager
+}
+
+export const FocusScopeProvider = (props) => {
+  return (
+    <FocusScopeContext.Provider value={{ focusManager: props.focusManager }}>
+      {props.children}
+    </FocusScopeContext.Provider>
+  )
+}
+
+const focusableElements = [
+  'input:not([disabled]):not([type=hidden])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  'button:not([disabled])',
+  'a[href]',
+  'area[href]',
+  'summary',
+  'iframe',
+  'object',
+  'embed',
+  'audio[controls]',
+  'video[controls]',
+  '[contenteditable]',
+]
+
+export const FOCUSABLE_ELEMENT_SELECTOR = focusableElements.join(',') + ',[tabindex]'
+
+focusableElements.push('[tabindex]:not([tabindex="-1"])')
+
+export const TABBABLE_ELEMENT_SELECTOR = focusableElements.join(':not([tabindex="-1"]),')
+
+// 確認元素是否在 Scope 中
+export function isElementInScope(el, scope) {
+  if (!scope || !el) {
+    return false
+  }
+  return scope.includes(el) || scope.some((node) => node.contains(el))
+}
+
+export function getScopeRoot(scope) {
+  return scope[0].parentElement
+}
+
+export function focusElement(el) {
+  if (!el) {
+    return
+  }
+
+  try {
+    el.focus()
+  } catch (err) {
+    console.warn(err)
+  }
+}
+
+// 透過 TreeWalker 找出 focusable 的元素
+export function getFocusableTreeWalker(root, opts, scope) {
+  const selector = opts?.tabbable ? TABBABLE_ELEMENT_SELECTOR : FOCUSABLE_ELEMENT_SELECTOR
+
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
+    acceptNode: (node) => {
+      if (opts.from?.contains(node)) {
+        return NodeFilter.FILTER_REJECT
+      }
+
+      if (node.matches(selector) && (!scope || isElementInScope(node, scope))) {
+        return NodeFilter.FILTER_ACCEPT
+      }
+
+      return NodeFilter.FILTER_SKIP
+    },
+  })
+
+  if (opts.from) {
+    walker.currentNode = opts.from
+  }
+
+  return walker
+}
+
+// 建立 FocusManager
+export const createFocusManager = (scopeRef) => {
+  const getSentinelStart = (scope) => scope[0].previousElementSibling
+
+  const focusNode = (node) => {
+    if (node) {
+      focusElement(node)
+    }
+    return node
+  }
+
+  return {
+    focusNext: (opts = {}) => {
+      const scope = scopeRef.current
+      const { wrap, from, tabbable } = opts
+      const node = from || document.activeElement
+      const sential = getSentinelStart(scope)
+
+      const walker = getFocusableTreeWalker(getScopeRoot(scope), { tabbable }, scope)
+      walker.currentNode = isElementInScope(node, scope) ? node : sential
+      let nextNode = walker.nextNode()
+
+      if (!nextNode && wrap) {
+        walker.currentNode = sential
+        nextNode = walker.nextNode()
+      }
+
+      return focusNode(nextNode)
+    },
+  }
+}
+
+export const FocusScope = ({
+  children,
+  autoFocus = false,
+  contain = false,
+  restoreFocus = false,
+}) => {
+  const startRef = useRef(null)
+  const endRef = useRef(null)
+  const scopeRef = useRef([])
+
+  useEffect(() => {
+    let node = startRef.current?.nextSibling
+    const nodes = []
+
+    while (node && node !== endRef.current) {
+      nodes.push(node)
+      node = node.nextSibling
+    }
+    scopeRef.current = nodes
+  }, [children])
+
+  const focusManager = createFocusManager(scopeRef)
+
+  return (
+    <FocusScopeProvider focusManager={focusManager}>
+      <span hidden ref={startRef} />
+      {children}
+      <span hidden ref={endRef} />
+    </FocusScopeProvider>
+  )
+}
+```
+
+</Sandpack>
+
+##### **Step 3, 處理 `wrap` 的情況**
+
+可以看到上面的動畫，當 `->` 按到最後一個元素時，`focus` 就不會再往下移動了，如果想要讓跳回第一個，我們就需要加入 `wrap` 的功能。
+
+而 `sentinel` 在這裡就扮演重要的角色， 當 `focus` 移至 Scope 的最後一個元素時，就會移至 `sentinel`，這時候我們就可以將 `walker.currentNode` 設定為 `sentinel`，這樣就可以讓 `walker` 再次從 Scope 的第一個元素開始遍歷。
+
+```jsx
+// 建立 FocusManager
+export const createFocusManager = (scopeRef) => {
+  // ...
+  return {
+    focusNext: (opts = {}) => {
+      //...
+
+      // ---- 新增 ----
+      let nextNode = walker.nextNode()
+
+      if (!nextNode && wrap) {
+        walker.currentNode = sential
+        nextNode = walker.nextNode()
+      }
+      // -----------
+
+      return focusNode(nextNode)
+    },
+  }
+}
+```
+
+<Sandpack>
+
+```js
+import React from 'react'
+import { FocusScope, useFocusManager } from './focusScope.js'
+
+const ButtonGroup = () => {
+  const focusManager = useFocusManager()
+
+  const onKeyDown = (e) => {
+    if (e.key === 'ArrowRight') {
+      focusManager.focusNext({ wrap: true })
+    }
+  }
+
+  return (
+    <>
+      <button onKeyDown={onKeyDown}>1</button>
+      <button onKeyDown={onKeyDown}>2</button>
+      <button onKeyDown={onKeyDown}>3</button>
+    </>
+  )
+}
+
+export default () => {
+  return (
+    <FocusScope>
+      <ButtonGroup />
+    </FocusScope>
+  )
+}
+```
+
+```js file=focusScope.js
+import React, { useContext, useRef, useEffect } from 'react'
+
+export const FocusScopeContext = React.createContext(null)
+
+export const useFocusManager = () => {
+  const context = useContext(FocusScopeContext)
+
+  if (!context) {
+    throw new Error('useFocusManager hook must be used within a FocusManagerProvider')
+  }
+
+  return context.focusManager
+}
+
+export const FocusScopeProvider = (props) => {
+  return (
+    <FocusScopeContext.Provider value={{ focusManager: props.focusManager }}>
+      {props.children}
+    </FocusScopeContext.Provider>
+  )
+}
+
+const focusableElements = [
+  'input:not([disabled]):not([type=hidden])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  'button:not([disabled])',
+  'a[href]',
+  'area[href]',
+  'summary',
+  'iframe',
+  'object',
+  'embed',
+  'audio[controls]',
+  'video[controls]',
+  '[contenteditable]',
+]
+
+export const FOCUSABLE_ELEMENT_SELECTOR = focusableElements.join(',') + ',[tabindex]'
+
+focusableElements.push('[tabindex]:not([tabindex="-1"])')
+
+export const TABBABLE_ELEMENT_SELECTOR = focusableElements.join(':not([tabindex="-1"]),')
+
+// 確認元素是否在 Scope 中
+export function isElementInScope(el, scope) {
+  if (!scope || !el) {
+    return false
+  }
+  return scope.includes(el) || scope.some((node) => node.contains(el))
+}
+
+export function getScopeRoot(scope) {
+  return scope[0].parentElement
+}
+
+export function focusElement(el) {
+  if (!el) {
+    return
+  }
+
+  try {
+    el.focus()
+  } catch (err) {
+    console.warn(err)
+  }
+}
+
+// 透過 TreeWalker 找出 focusable 的元素
+export function getFocusableTreeWalker(root, opts, scope) {
+  const selector = opts?.tabbable ? TABBABLE_ELEMENT_SELECTOR : FOCUSABLE_ELEMENT_SELECTOR
+
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
+    acceptNode: (node) => {
+      if (opts.from?.contains(node)) {
+        return NodeFilter.FILTER_REJECT
+      }
+
+      if (node.matches(selector) && (!scope || isElementInScope(node, scope))) {
+        return NodeFilter.FILTER_ACCEPT
+      }
+
+      return NodeFilter.FILTER_SKIP
+    },
+  })
+
+  if (opts.from) {
+    walker.currentNode = opts.from
+  }
+
+  return walker
+}
+
+// 建立 FocusManager
+export const createFocusManager = (scopeRef) => {
+  const getSentinelStart = (scope) => scope[0].previousElementSibling
+
+  const focusNode = (node) => {
+    if (node) {
+      focusElement(node)
+    }
+    return node
+  }
+
+  return {
+    focusNext: (opts = {}) => {
+      const scope = scopeRef.current
+      const { wrap, from, tabbable } = opts
+      const node = from || document.activeElement
+      const sential = getSentinelStart(scope)
+
+      const walker = getFocusableTreeWalker(getScopeRoot(scope), { tabbable }, scope)
+      walker.currentNode = isElementInScope(node, scope) ? node : sential
+      let nextNode = walker.nextNode()
+
+      if (!nextNode && wrap) {
+        walker.currentNode = sential
+        nextNode = walker.nextNode()
+      }
+
+      return focusNode(nextNode)
+    },
+  }
+}
+
+export const FocusScope = ({
+  children,
+  autoFocus = false,
+  contain = false,
+  restoreFocus = false,
+}) => {
+  const startRef = useRef(null)
+  const endRef = useRef(null)
+  const scopeRef = useRef([])
+
+  useEffect(() => {
+    let node = startRef.current?.nextSibling
+    const nodes = []
+
+    while (node && node !== endRef.current) {
+      nodes.push(node)
+      node = node.nextSibling
+    }
+    scopeRef.current = nodes
+  }, [children])
+
+  const focusManager = createFocusManager(scopeRef)
+
+  return (
+    <FocusScopeProvider focusManager={focusManager}>
+      <span hidden ref={startRef} />
+      {children}
+      <span hidden ref={endRef} />
+    </FocusScopeProvider>
+  )
+}
+```
+
+</Sandpack>
+
+## FocusScope - API 實作
+
+完成了 FocusScope 的基本核心之後，就可以實作一開始提到的 API 了！
+
+### useAutoFocus
+
+`useAutoFocus` hook 會在 Scope 渲染時，將 focus 移至第一個 `focusable` 元素，並且透過 `sharedState` 來記錄當前的 Scope。
+
+```jsx
+export const useAutoFocus = (scopeRef, autoFocus) => {
+  useEffect(() => {
+    if (!autoFocus) {
+      return
+    }
+
+    sharedState.activeScope = scopeRef.current
+
+    if (!isElementInScope(document.activeElement, sharedState.activeScope)) {
+      focusFirstInScope(scopeRef.current)
+    }
+  }, [scopeRef, autoFocus])
+}
+```
+
+### useRestoreFocus
+
+`useRestoreFocus` hook 會在 Scope 卸載時，將 focus 移至上一個 Scope 的 `focusable` 元素。
+
+```jsx
+export const useRestoreFocus = (restoreFocus) => {
+  useLayoutEffect(() => {
+    const nodeToRestore = document.activeElement
+
+    return () => {
+      if (restoreFocus && nodeToRestore) {
+        requestAnimationFrame(() => {
+          if (document.body.contains(nodeToRestore)) {
+            focusElement(nodeToRestore)
+          }
+        })
+      }
+    }
+  }, [restoreFocus])
+}
+```
+
+### useFocusContainment
+
+`useFocusContainment` 則是會監聽 `keydown` 事件，並且將 focus 維持在 Scope 中。
+
+可以在 `onKeyDown` 的邏輯看見透過鍵盤的 `Tab` 事件，在 focus 移動時會持續判斷當前的 focus 是否在 Scope 中，如果不在就會將 focus 移至 Scope 中的第一個元素，反之當鍵盤事件是 `Shift + Tab` 時，就會將 focus 移至 Scope 中的最後一個元素。
+
+```jsx
+export const useFocusContainment = (scopeRef, contain) => {
+  const focusNode = useRef()
+
+  useEffect(() => {
+    if (!contain) {
+      return
+    }
+
+    const onKeyDown = (e) => {
+      if (e.key !== 'Tab' || e.altKey || e.ctrlKey || e.metaKey) {
+        return
+      }
+
+      const focusedElement = document.activeElement
+      const scope = scopeRef.current
+
+      if (!scope || !isElementInScope(focusedElement, scope)) {
+        return
+      }
+
+      const root = getScopeRoot(scope)
+
+      const walker = getFocusableTreeWalker(root, { tabbable: true }, scope)
+      walker.currentNode = focusedElement
+
+      const lastPosition = scope.length - 1
+      let nextElement = e.shiftKey ? walker.previousNode() : walker.nextNode()
+
+      if (!nextElement) {
+        walker.currentNode = e.shiftKey
+          ? scope[lastPosition].nextElementSibling
+          : scope[0].previousElementSibling
+        nextElement = e.shiftKey ? walker.previousNode() : walker.nextNode()
+      }
+
+      e.preventDefault()
+
+      if (nextElement) {
+        focusElement(nextElement)
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown, false)
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown, false)
+    }
+  }, [scopeRef, contain])
+}
+```
+
+最後將這些 API 加入到 `FocusScope` 本身的邏輯中，就完成了 FocusScope 的實作！
+
+<Sandpack>
+
+```js
+import React from 'react'
+import { FocusScope } from './focusScope.js'
+
+export default () => {
+  const [show, setShow] = React.useState(false)
+  return (
+    <div style={{ height: '80vh' }}>
+      <button onClick={() => setShow(true)}>Show the dialog</button>
+      {show && (
+        <FocusScope autoFocus contain restoreFocus>
+          <dialog id="favDialog" style={{ display: 'flex' }}>
+            <form>
+              <div>
+                <input placeholder="name" />
+              </div>
+              <div>
+                <input placeholder="address" />
+              </div>
+              <div>
+                <input placeholder="phone" />
+              </div>
+              <div>
+                <button value="cancel" onClick={() => setShow(false)}>
+                  Cancel
+                </button>
+                <button id="confirmBtn" value="default" onClick={() => setShow(false)}>
+                  Confirm
+                </button>
+              </div>
+            </form>
+          </dialog>
+        </FocusScope>
+      )}
+    </div>
+  )
+}
+```
+
+```js file=focusScope.js
+import React, { useContext, useRef, useEffect, useLayoutEffect, useState } from 'react'
+
+export const FocusScopeContext = React.createContext(null)
+
+export const useFocusManager = () => {
+  const context = useContext(FocusScopeContext)
+
+  if (!context) {
+    throw new Error('useFocusManager hook must be used within a FocusManagerProvider')
+  }
+
+  return context.focusManager
+}
+
+export const FocusScopeProvider = (props) => {
+  return (
+    <FocusScopeContext.Provider value={{ focusManager: props.focusManager }}>
+      {props.children}
+    </FocusScopeContext.Provider>
+  )
+}
+
+export function focusFirstInScope(scope) {
+  if (!scope) {
+    return
+  }
+
+  const sential = scope[0].previousElementSibling
+
+  const root = getScopeRoot(scope)
+
+  if (!root || !sential) {
+    return
+  }
+
+  const walker = getFocusableTreeWalker(root, { tabbable: true }, scope)
+  walker.currentNode = sential
+  focusElement(walker.nextNode())
+}
+
+const sharedState = {
+  activeScope: null,
+}
+
+const focusableElements = [
+  'input:not([disabled]):not([type=hidden])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  'button:not([disabled])',
+  'a[href]',
+  'area[href]',
+  'summary',
+  'iframe',
+  'object',
+  'embed',
+  'audio[controls]',
+  'video[controls]',
+  '[contenteditable]',
+]
+
+export const FOCUSABLE_ELEMENT_SELECTOR = focusableElements.join(',') + ',[tabindex]'
+
+focusableElements.push('[tabindex]:not([tabindex="-1"])')
+
+export const TABBABLE_ELEMENT_SELECTOR = focusableElements.join(':not([tabindex="-1"]),')
+
+// 確認元素是否在 Scope 中
+export function isElementInScope(el, scope) {
+  if (!scope || !el) {
+    return false
+  }
+  return scope.includes(el) || scope.some((node) => node.contains(el))
+}
+
+export function getScopeRoot(scope) {
+  return scope[0].parentElement
+}
+
+export function focusElement(el) {
+  if (!el) {
+    return
+  }
+
+  try {
+    el.focus()
+  } catch (err) {
+    console.warn(err)
+  }
+}
+
+// 透過 TreeWalker 找出 focusable 的元素
+export function getFocusableTreeWalker(root, opts, scope) {
+  const selector = opts?.tabbable ? TABBABLE_ELEMENT_SELECTOR : FOCUSABLE_ELEMENT_SELECTOR
+
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
+    acceptNode: (node) => {
+      if (opts.from?.contains(node)) {
+        return NodeFilter.FILTER_REJECT
+      }
+
+      if (node.matches(selector) && (!scope || isElementInScope(node, scope))) {
+        return NodeFilter.FILTER_ACCEPT
+      }
+
+      return NodeFilter.FILTER_SKIP
+    },
+  })
+
+  if (opts.from) {
+    walker.currentNode = opts.from
+  }
+
+  return walker
+}
+
+// Hooks
+export const useRestoreFocus = (restoreFocus) => {
+  useLayoutEffect(() => {
+    const nodeToRestore = document.activeElement
+
+    return () => {
+      if (restoreFocus && nodeToRestore) {
+        requestAnimationFrame(() => {
+          if (document.body.contains(nodeToRestore)) {
+            focusElement(nodeToRestore)
+          }
+        })
+      }
+    }
+  }, [restoreFocus])
+}
+
+export const useFocusContainment = (scopeRef, contain) => {
+  const focusNode = useRef()
+
+  useEffect(() => {
+    if (!contain) {
+      return
+    }
+
+    const onKeyDown = (e) => {
+      if (e.key !== 'Tab' || e.altKey || e.ctrlKey || e.metaKey) {
+        return
+      }
+
+      const focusedElement = document.activeElement
+      const scope = scopeRef.current
+
+      if (!scope || !isElementInScope(focusedElement, scope)) {
+        return
+      }
+
+      const root = getScopeRoot(scope)
+
+      const walker = getFocusableTreeWalker(root, { tabbable: true }, scope)
+      walker.currentNode = focusedElement
+
+      const lastPosition = scope.length - 1
+      let nextElement = e.shiftKey ? walker.previousNode() : walker.nextNode()
+
+      if (!nextElement) {
+        walker.currentNode = e.shiftKey
+          ? scope[lastPosition].nextElementSibling
+          : scope[0].previousElementSibling
+        nextElement = e.shiftKey ? walker.previousNode() : walker.nextNode()
+      }
+
+      e.preventDefault()
+
+      if (nextElement) {
+        focusElement(nextElement)
+      }
+    }
+
+    const onFocus = (e) => {
+      const scope = scopeRef.current
+      const isInScope = isElementInScope(e.target, scope)
+
+      if (
+        isInScope &&
+        (!sharedState.activeScope || !isElementInScope(e.target, sharedState.activeScope))
+      ) {
+        sharedState.activeScope = scope
+      }
+
+      if (isInScope) {
+        focusNode.current = e.target
+      }
+
+      if (sharedState.activeScope === scope) {
+        if (focusNode.current) {
+          focusNode.current.focus()
+        } else {
+          focusFirstInScope(scope)
+        }
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown, false)
+    document.addEventListener('focusin', onFocus, false)
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown, false)
+      document.removeEventListener('focusin', onFocus, false)
+    }
+  }, [scopeRef, contain])
+}
+
+export const useAutoFocus = (scopeRef, autoFocus) => {
+  useEffect(() => {
+    if (!autoFocus) {
+      return
+    }
+
+    sharedState.activeScope = scopeRef.current
+
+    if (!isElementInScope(document.activeElement, sharedState.activeScope)) {
+      focusFirstInScope(scopeRef.current)
+    }
+  }, [scopeRef, autoFocus])
+}
+
+// 建立 FocusManager
+export const createFocusManager = (scopeRef) => {
+  const getSentinelStart = (scope) => scope[0].previousElementSibling
+
+  const focusNode = (node) => {
+    if (node) {
+      focusElement(node)
+    }
+    return node
+  }
+
+  return {
+    focusNext: (opts = {}) => {
+      const scope = scopeRef.current
+      const { wrap, from, tabbable } = opts
+      const node = from || document.activeElement
+      const sential = getSentinelStart(scope)
+
+      const walker = getFocusableTreeWalker(getScopeRoot(scope), { tabbable }, scope)
+      walker.currentNode = isElementInScope(node, scope) ? node : sential
+      let nextNode = walker.nextNode()
+
+      if (!nextNode && wrap) {
+        walker.currentNode = sential
+        nextNode = walker.nextNode()
+      }
+
+      return focusNode(nextNode)
+    },
+  }
+}
+
+export const FocusScope = ({
+  children,
+  autoFocus = false,
+  contain = false,
+  restoreFocus = false,
+}) => {
+  const startRef = useRef(null)
+  const endRef = useRef(null)
+  const scopeRef = useRef([])
+
+  useEffect(() => {
+    let node = startRef.current?.nextSibling
+    const nodes = []
+
+    while (node && node !== endRef.current) {
+      nodes.push(node)
+      node = node.nextSibling
+    }
+    scopeRef.current = nodes
+  }, [children])
+
+  useAutoFocus(scopeRef, autoFocus)
+  useFocusContainment(scopeRef, contain)
+  useRestoreFocus(restoreFocus)
+
+  const focusManager = createFocusManager(scopeRef)
+
+  return (
+    <FocusScopeProvider focusManager={focusManager}>
+      <span hidden ref={startRef} />
+      {children}
+      <span hidden ref={endRef} />
+    </FocusScopeProvider>
+  )
+}
+```
+
+</Sandpack>
+
+詳細的程式碼都可以透過[這個 Github 連結](https://github.com/jingsu96/tocino/tree/main/packages/components/focus-scope)來查看。
+
+### 參考資料
+
+- [Focus Management](https://www.w3.org/TR/wai-aria-practices-1.1/#focus_management)
+- [cloudscape.design](https://cloudscape.design/foundation/core-principles/accessibility/focus-management-principles/)
+- [Radix UI - Dialog](https://radix-ui.com/primitives/docs/components/dialog)

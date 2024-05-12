@@ -1,0 +1,600 @@
+---
+title: Design System 101 - Accordion
+date: '2023-10-30'
+lastmod: '2023-11-07'
+tags: ['設計系統']
+draft: false
+authors: ['default']
+topic: 'component'
+order: 1
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 什麼是 Accordion?
+
+手風琴組件 (Accordion) 是一系列垂直堆疊的互動標題所組成，通常會有 **標題 (Header)** 與 **內容 (Content)** 兩個部分，並且可以透過點擊 **標題 (Header)** 展開或收合 **內容 (Content)** 區塊，其主要是用在內容過多時，可以透過該組件來隱藏內容。
+
+Accordion 的特性：
+
+1. 當內容收合時，所有標題會連續地排列，讓使用者能夠快速瀏覽所有大綱，而不需要大量地滾動頁面。
+2. 鍵盤使用者不需要經過頁面上的所有可聚焦 (focusable) 元素來到達想前往的地方，收合的內容是不可聚焦的。
+
+## Accordion 的使用
+
+### 何時使用
+
+- 當要呈現的資訊結構相似，並且內容過多時，可以透過 Accordion 來隱藏內容。例如: 常見問題區塊 <ToolTip className="width-[5px]"><Image
+      src="https://imgur.com/b70jF3q.png"
+      height="440"
+      width="623"
+      showalt
+      sourceTitle="Airbnb FAQ"
+      sourceUrl="https://www.airbnb.com/host/homes"
+    /></ToolTip>。
+
+- 當每次只想要顯示一個區塊的內容時，主要目的是為了避免使用者一次看到太多內容感到不知所措 (Overwhelmed)，可以透過 Accordion 逐步展示內容。
+
+### 何時不使用
+
+- 當要一次性在畫面上顯示所有內容 — 使用卡片 (Card) 組件。
+- 當需要隱藏的資訊是簡單且沒有重複的結構 — 使用摺疊 (Collapsible) 組件。
+
+## Anatomy
+
+### 組件結構
+
+<Image src="https://imgur.com/MBx1Chd.png" height="425" width="623" />
+
+| 組件                | 描述                                  |
+| ------------------- | ------------------------------------- |
+| `Accordion`         | 管理所有 Accordion 展開與收合的狀態。 |
+| `Accordion.Item`    | 管理單一 Accordion 的所有狀態。       |
+| `Accordion.Header`  | Accordion 的標題。                    |
+| `Accordion.Trigger` | 能夠觸發 Accordion 展開與收合。       |
+| `Accordion.Content` | Accordion 的內容。                    |
+
+### 使用方式
+
+```jsx
+;() => {
+  ;<Accordion>
+    <Accordion.Item>
+      <Accordion.Header>
+        <Accordion.Trigger>Header</Accordion.Trigger>
+      </Accordion.Header>
+      <Accordion.Content>Content</Accordion.Content>
+    </Accordion.Item>
+  </Accordion>
+}
+```
+
+## Data Model
+
+| 狀態                    | 描述                                           |
+| ----------------------- | ---------------------------------------------- |
+| `index`, `defaultIndex` | 展開收合可以是 controlled 或 uncontrolled 狀態 |
+| `allowMultiple`         | 可以同時展開多個 Accordion。                   |
+
+\*關於 controlled 與 uncontrolled 狀態，可以參考 [Design System 常用的 Hooks](/series/design-system/hooks#usecontrolledstate)，這邊就不再贅述。
+
+## 組件 API
+
+### General Props
+
+| 屬性名稱    | 型別                | 描述            |
+| ----------- | ------------------- | --------------- |
+| `children`  | `React.ReactNode`   | 組件的子組件    |
+| `className` | `string`            | 自定義 class    |
+| `as`        | `React.ElementType` | 自定義 HTML tag |
+
+### \`Accordion\`
+
+| 屬性名稱        | 型別                      | 描述                                        |
+| --------------- | ------------------------- | ------------------------------------------- |
+| `index`         | `string`                  | 展開的 Accordion ID                         |
+| `defaultIndex`  | `string`                  | 預設展開的 Accordion ID                     |
+| `onIndexChange` | `(value: string) => void` | 當展開的 Accordion ID 改變時觸發的 callback |
+| `allowMultiple` | `boolean`                 | 是否可以同時展開多個 Accordion              |
+| `disabled`      | `boolean`                 | 是否禁用 Accordion                          |
+| `dir`           | `ltr` \| `rtl`            | Accordion 的方向                            |
+
+### \`Item\`
+
+| 屬性名稱 | 型別     | 描述            |
+| -------- | -------- | --------------- |
+| `index`  | `string` | Accordion 的 ID |
+
+### \`Content\`
+
+| 屬性名稱      | 型別      | 描述              |
+| ------------- | --------- | ----------------- |
+| `keepMounted` | `boolean` | 是否保留在 DOM 中 |
+
+### \`Header\` & \`Trigger\`
+
+N/A
+
+## 實作
+
+Accordion 實作的重點整理：
+
+`Accordion`：
+
+1. 透過 [React Context API](https://react.dev/learn/passing-data-deeply-with-context) 建立 `AccordionContext` 來管理當前活動 (active) 的 `index`。
+2. 透過 [Collection API](/series/design-system/compound-component) 管理所有可聚焦 (focusable) 的元素，並且根據對應的鍵盤事件來控制聚焦 (focus) 的狀態。
+
+`AccordionItem`：
+
+1. 透過 `AccordionItemContext`，來管理單一 Accordion 的狀態，例如: 是否展開 (`open`) 等資訊。
+
+<Sandpack>
+
+```jsx file=App.js
+import { Accordion, AccordionItem } from './Accordion.jsx'
+import './styles.css'
+
+export default () => {
+  return (
+    <section>
+      <Accordion defaultIndex={0}>
+        <Accordion.Item>
+          <Accordion.Trigger>
+            <Accordion.Header>
+              <span>Is it accessible?</span>
+              <ChevronDownIcon />
+            </Accordion.Header>
+          </Accordion.Trigger>
+          <Accordion.Content>Yes. It adheres to the WAI-ARIA design pattern. </Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item>
+          <Accordion.Trigger>
+            <Accordion.Header>
+              <span>Is it unstyled?</span>
+              <ChevronDownIcon />
+            </Accordion.Header>
+          </Accordion.Trigger>
+          <Accordion.Content>
+            Yes. It's unstyled by default, giving you freedom over the look and feel.
+          </Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    </section>
+  )
+}
+
+const ChevronDownIcon = () => (
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 15 15"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="AccordionChevron"
+  >
+    <path
+      d="M3.13523 6.15803C3.3241 5.95657 3.64052 5.94637 3.84197 6.13523L7.5 9.56464L11.158 6.13523C11.3595 5.94637 11.6759 5.95657 11.8648 6.15803C12.0536 6.35949 12.0434 6.67591 11.842 6.86477L7.84197 10.6148C7.64964 10.7951 7.35036 10.7951 7.15803 10.6148L3.15803 6.86477C2.95657 6.67591 2.94637 6.35949 3.13523 6.15803Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    ></path>
+  </svg>
+)
+```
+
+```css file=styles.css
+section {
+  height: 80vh;
+}
+
+.AccordionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.AccordionTrigger {
+  font-family: inherit;
+  background-color: transparent;
+  padding: 0 5px;
+  height: 20px;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  line-height: 1;
+  background-color: white;
+  border: none;
+  width: 100%;
+}
+
+.AccordionTrigger[data-state='open'] .AccordionChevron {
+  transform: rotate(180deg);
+}
+
+.AccordionChevron {
+  transition: transform 300ms cubic-bezier(0.87, 0, 0.13, 1);
+}
+
+.AccordionContent {
+  padding: 5px;
+  margin: 0px;
+}
+```
+
+```jsx file=Accordion.jsx
+import { useId, useState } from 'react'
+import createContext from './createContext'
+import { useControlledState } from './useControlledState'
+import { createCollection } from './collection-api'
+import { initFocusManager } from './focus-manager'
+
+const { useCollectionItem, useCollectionItems, createCollectionComponent } =
+  createCollection('Accordion')
+const [AccordionProvider, useAccordionContext] = createContext('Accordion', {})
+
+const Accordion = createCollectionComponent(
+  ({ className, children, as: ElementType = 'div', index, defaultIndex, onIndexChange }) => {
+    const [activeIndex, setActiveIndex] = useState(defaultIndex)
+    const id = useId()
+    const items = useCollectionItems()
+    const focusManager = initFocusManager(items)
+
+    return (
+      <AccordionProvider value={{ accordionId: id, activeIndex, setActiveIndex }}>
+        <ElementType onKeyDown={focusManager}>{children}</ElementType>
+      </AccordionProvider>
+    )
+  }
+)
+
+const [AccordionItemProvider, useAccordionItemContext] = createContext('AccordionItem', {})
+
+const AccordionItem = ({ children, as: ElementType = 'div', className, disabled }) => {
+  const { accordionId, activeIndex } = useAccordionContext('Item')
+
+  const { ref, index } = useCollectionItem()
+
+  const itemId = useId()
+  const panelId = useId()
+
+  const open = activeIndex === index
+
+  return (
+    <AccordionItemProvider value={{ open, index }}>
+      <div ref={ref}>{children}</div>
+    </AccordionItemProvider>
+  )
+}
+
+const AccordionContent = ({ ...props }) => {
+  const { accordionId, activeIndex } = useAccordionContext('Content')
+  const { open } = useAccordionItemContext('Content')
+  return (
+    <p
+      role="region"
+      data-state={open ? 'open' : 'closed'}
+      className={`AccordionContent ${props.className}`}
+      style={{ display: open ? 'block' : 'none' }}
+      {...props}
+    />
+  )
+}
+
+const AccordionHeader = ({ ...props }) => {
+  return <h4 className={`AccordionHeader ${props.className}`} {...props} />
+}
+
+const AccordionTrigger = ({ ...props }) => {
+  const { accordionId, setActiveIndex } = useAccordionContext('Content')
+  const { open, index } = useAccordionItemContext('Content')
+
+  const handleClick = () => {
+    setActiveIndex(open ? null : index)
+    props.onClick?.(!open)
+  }
+
+  return (
+    <button
+      {...props}
+      className={`AccordionTrigger ${props.className}`}
+      onClick={handleClick}
+      data-state={open ? 'open' : 'close'}
+    >
+      {props.renderer ? props.renderer(open) : props.children}
+    </button>
+  )
+}
+
+Accordion.Item = AccordionItem
+Accordion.Content = AccordionContent
+Accordion.Header = AccordionHeader
+Accordion.Trigger = AccordionTrigger
+
+export { Accordion }
+```
+
+```jsx file=collection-api.jsx
+import React from 'react'
+import createContext from './createContext'
+
+export const createCollection = (name) => {
+  const [CollectionContextProvider, useCollectionContext] = createContext(
+    `${name}CollectionContext`,
+    {}
+  )
+
+  const CollectionProvider = ({ children }) => {
+    const [items, setItems] = React.useState([])
+
+    const addItem = React.useCallback(
+      (item) => {
+        setItems((prevItems) => {
+          const exists = prevItems.find(({ ref }) => item.ref.current === ref.current)
+          return exists ? prevItems : [...prevItems, item]
+        })
+      },
+      [setItems]
+    )
+
+    const removeItem = React.useCallback(
+      (ref) => {
+        setItems((prevItems) => {
+          return prevItems.filter((item) => item.ref.current !== ref.current)
+        })
+      },
+      [setItems]
+    )
+
+    React.useLayoutEffect(() => {
+      setItems([])
+    }, [children])
+
+    return (
+      <CollectionContextProvider
+        value={React.useMemo(() => ({ items, addItem, removeItem }), [items, addItem, removeItem])}
+      >
+        {children}
+      </CollectionContextProvider>
+    )
+  }
+
+  const createCollectionComponent = (Comp) => {
+    const CollectionComponent = (props) => (
+      <CollectionProvider>
+        <Comp {...props} />
+      </CollectionProvider>
+    )
+
+    CollectionComponent.displayName = Comp.displayName || `${name}CollectionComponent`
+
+    return CollectionComponent
+  }
+
+  const useCollectionItem = (state) => {
+    const ref = React.useRef(null)
+    const { addItem, removeItem, items } = useCollectionContext('useCollectionItem')
+
+    const existingIndex = items.findIndex((item) => ref.current === item.ref.current)
+    const index = existingIndex !== -1 ? existingIndex : 0
+    React.useLayoutEffect(() => {
+      addItem({ ...state, ref })
+    })
+
+    React.useLayoutEffect(() => {
+      return () => {
+        removeItem(ref)
+      }
+    }, [removeItem])
+
+    return {
+      ref,
+      index,
+    }
+  }
+
+  const useCollectionItems = () => {
+    return useCollectionContext('useCollectionItems')?.items
+  }
+
+  return { useCollectionItem, useCollectionItems, createCollectionComponent }
+}
+```
+
+```jsx file=createContext.js
+import React from 'react'
+
+const createContext = (rootComponentName, defaultContext) => {
+  const Context = React.createContext(defaultContext)
+
+  // Provider
+  const Provider = (props) => {
+    const { children, value = {} } = props
+    const ctx = React.useMemo(() => value, [Object.values(value)])
+
+    return <Context.Provider value={ctx}>{children}</Context.Provider>
+  }
+
+  // Consumer
+  const useContext = (caller) => {
+    const context = React.useContext(Context)
+
+    if (context) {
+      return context
+    }
+
+    if (defaultContext) {
+      return defaultContext
+    }
+
+    throw new Error(`${caller} must be used within a ${rootComponentName}.`)
+  }
+
+  return [Provider, useContext]
+}
+
+export default createContext
+```
+
+```jsx file=useControlledState.js hidden=true
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+
+export function useCallbackRef(callback) {
+  const callbackRef = useRef(callback)
+
+  useEffect(() => {
+    callbackRef.current = callback
+  })
+
+  return useMemo(
+    () =>
+      (...args) => {
+        if (callbackRef.current) {
+          return callbackRef.current(...args)
+        }
+      },
+    []
+  )
+}
+
+export function useUncontrolledState({ defaultValue, onChange }) {
+  const [value, setValue] = useState(defaultValue)
+  const previousValueRef = useRef(value)
+  const callback = useCallbackRef(onChange)
+
+  useEffect(() => {
+    if (value !== previousValueRef?.current) {
+      callback(value)
+      previousValueRef.current = value
+    }
+  }, [value, previousValueRef, onChange])
+
+  return [value, setValue]
+}
+
+export const useControlledState = ({ defaultValue, value, onChange }) => {
+  const [uncontrolledState, setUncontrolledState] = useUncontrolledState({
+    defaultValue,
+    onChange,
+  })
+
+  const isControlled = value != null
+  const state = isControlled ? value : uncontrolledState
+  const callback = useCallbackRef(onChange)
+
+  const setState = useCallback(
+    (nextValue) => {
+      if (isControlled) {
+        const setter = nextValue
+        const v = typeof nextValue === 'function' ? setter(value) : nextValue
+        if (v !== value) callback?.(v)
+      } else {
+        setUncontrolledState(nextValue)
+      }
+    },
+    [value, isControlled, callback]
+  )
+
+  return [state, setState]
+}
+```
+
+```js file=focus-manager.js
+const ACCORDION_KEYS = { ARROW_UP: 'ArrowUp', ARROW_DOWN: 'ArrowDown', HOME: 'Home', END: 'End' }
+
+export const initFocusManager = (items) => (evt) => {
+  if (!items || !evt || Object.values(ACCORDION_KEYS).indexOf(evt.key) === -1) {
+    return
+  }
+
+  const { key, target } = evt
+  const triggerCollection = items.filter((item) => !item.ref.current?.disabled)
+  const triggerIndex = triggerCollection.findIndex(
+    (item) => item.ref.current?.childNodes?.[0] === target
+  )
+  const triggerCount = triggerCollection.length
+
+  if (triggerIndex === -1) {
+    return
+  }
+
+  let nextIndex = triggerIndex
+  const homeIndex = 0
+  const endIndex = triggerCount - 1
+
+  const focusNext = () => {
+    nextIndex = triggerIndex + 1
+    if (nextIndex > endIndex) {
+      nextIndex = homeIndex
+    }
+  }
+
+  const focusPrev = () => {
+    nextIndex = triggerIndex - 1
+    if (nextIndex < homeIndex) {
+      nextIndex = endIndex
+    }
+  }
+
+  switch (key) {
+    case ACCORDION_KEYS.ARROW_UP:
+      focusPrev()
+      break
+    case ACCORDION_KEYS.ARROW_DOWN:
+      focusNext()
+      break
+    case ACCORDION_KEYS.HOME:
+      nextIndex = homeIndex
+      break
+    case ACCORDION_KEYS.END:
+      nextIndex = endIndex
+      break
+    default:
+      break
+  }
+
+  const clampedIndex = nextIndex % triggerCount
+  triggerCollection[clampedIndex].ref.current?.childNodes?.[0].focus()
+}
+```
+
+</Sandpack>
+
+### Accessibility
+
+以下皆是參考 [WAI-ARIA 的 Accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/) 規範所整理的。
+
+1. 鍵盤事件 (這部分都已在上面 `focus-manager.js` 中實作)
+
+| 鍵盤事件          | 描述 (當 focus 在 `Trigger` 上時)         |
+| ----------------- | ----------------------------------------- |
+| `Enter` & `Spaec` | 按下 `Enter` 可以展開或收合 `Content`。   |
+| `ArrowUp`         | 按下 `ArrowUp` 可以聚焦上一個 `Trigger`   |
+| `ArrowDown`       | 按下 `ArrowDown` 可以聚焦下一個 `Trigger` |
+| `Home`            | 按下 `Home` 可以聚焦第一個 `Trigger`      |
+| `End`             | 按下 `End` 可以聚焦最後一個 `Trigger`     |
+
+2. ARIA 屬性
+
+`Accrodion.Trigger`：
+
+| 屬性名稱        | 型別      | 描述                                                                  |
+| --------------- | --------- | --------------------------------------------------------------------- |
+| `role`          | `button`  | `Trigger` 的 `role` 為 `button`，因為 `Trigger` 可以透過鍵盤事件觸發  |
+| `aria-controls` | `string`  | 指向 `Content` 的 ID，當 `Trigger` 被聚焦時，可以透過 `aria-controls` |
+| `aria-expanded` | `boolean` | `Trigger` 是否展開                                                    |
+| `aria-disabled` | `boolean` | `Trigger` 是否被禁用                                                  |
+
+`Accrodion.Content`：
+
+| 屬性名稱          | 型別     | 描述                                                                   |
+| ----------------- | -------- | ---------------------------------------------------------------------- |
+| `region`          | `string` | `Content` 的 `role` 為 `region`，因為 `Content` 是一個獨立的區塊       |
+| `aria-labelledby` | `string` | 指向 `Header` 的 ID，當 `Content` 被聚焦時，可以透過 `aria-labelledby` |
+
+## 參考資料
+
+1. [Collapsible Section](https://inclusive-components.design/collapsible-sections/)
+2. [Radix UI - Accordion](https://www.radix-ui.com/primitives/docs/components/accordion)
