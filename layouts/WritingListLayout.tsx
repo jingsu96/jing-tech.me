@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { WritingLink } from '@/components/lab/writing-link';
 import * as Separator from '@radix-ui/react-separator';
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ArrowLeft, ArrowRight, ChevronRight, ChevronDown } from 'lucide-react';
+import { cn, upperFirst } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import {
   Breadcrumb,
@@ -17,11 +17,49 @@ import {
   BreadcrumbSeparator,
 } from '@/components/lab/ui/breadcrumb';
 
+type breadcrumbType = {
+  name: string;
+  url: string;
+};
+
+const CollapsibleList = ({
+  activeTopic,
+  topic,
+  posts,
+  slug,
+}: {
+  activeTopic: boolean;
+  topic: string;
+  posts: any[];
+  slug: string;
+}) => {
+  const [open, setOpen] = useState(activeTopic);
+  return (
+    <Collapsible.Root key={topic} className="w-full" open={open} onOpenChange={setOpen}>
+      <Collapsible.Trigger className="flex w-full items-center justify-between px-2 py-2 text-lg font-bold text-gray-800 dark:text-gray-200">
+        <h2>{topic}</h2>
+        {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+      </Collapsible.Trigger>
+      <Collapsible.Content className="flex flex-col gap-1">
+        {posts?.map?.((post) => <WritingLink key={post.slug} post={post} isActive={post.slug === slug} />)}
+      </Collapsible.Content>
+    </Collapsible.Root>
+  );
+};
+
 const WritingListLayout = ({ filteredPosts, slug, classname }) => {
   const [isSidebarVisible, setSidebarVisible] = useState(true);
   const pathname = usePathname();
 
-  const parsedUrl = pathname.split('/');
+  const parsedUrl = pathname.split('/').reduce((acc: breadcrumbType[], name, idx) => {
+    if (idx === 0) {
+      acc.push({ name: name, url: name });
+      return acc;
+    }
+    acc.push({ name, url: acc[idx - 1]?.url.concat(`/${name}`) });
+    return acc;
+  }, []);
+
   const hasTopic = filteredPosts.some((post) => post.topic);
 
   const groupedPost = hasTopic
@@ -45,25 +83,26 @@ const WritingListLayout = ({ filteredPosts, slug, classname }) => {
             exit={{ display: 'none', minWidth: 0, width: 0 }}
             transition={{ duration: 0.35, ease: 'easeInOut' }}
           >
-            {parsedUrl.length > 2 && (
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink href="/writing">Writing</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink href={`/writing/${parsedUrl[2]}`}>{parsedUrl[2]}</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{parsedUrl[3]}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-            )}
-
-            <ul className="mx-auto mt-10 flex h-full min-w-[24rem] flex-1 flex-col gap-1 px-[15px] text-sm">
+            <Breadcrumb>
+              <BreadcrumbList className="mx-6 w-[20rem]">
+                {parsedUrl.map(({ name, url }, idx) => {
+                  if (!name || !url) return null;
+                  return idx === parsedUrl.length - 1 ? (
+                    <BreadcrumbItem key={url}>
+                      <BreadcrumbPage className="font-semibold">{upperFirst(name)}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  ) : (
+                    <>
+                      <BreadcrumbItem key={url}>
+                        <BreadcrumbLink href={url}>{upperFirst(name)}</BreadcrumbLink>
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator key={idx} />
+                    </>
+                  );
+                })}
+              </BreadcrumbList>
+            </Breadcrumb>
+            <ul className="mx-auto mt-6 flex h-full min-w-[24rem] flex-1 flex-col gap-1 px-[15px] text-sm">
               {Object.entries(groupedPost)
                 .map(([topic, posts]: [string, any[]]) => {
                   if (topic === '') {
@@ -71,18 +110,10 @@ const WritingListLayout = ({ filteredPosts, slug, classname }) => {
                       <WritingLink key={post.slug} post={post} isActive={post.slug === slug} />
                     ));
                   }
+                  const activeTopic = posts.some((post) => post.slug === slug);
+
                   return (
-                    <Collapsible.Root key={topic} className="w-full">
-                      <Collapsible.Trigger className="flex items-center justify-between px-2 py-1 text-sm font-bold text-gray-800 dark:text-gray-200">
-                        <h2>{topic}</h2>
-                        <Separator.Root orientation="vertical" />
-                      </Collapsible.Trigger>
-                      <Collapsible.Content className="flex flex-col gap-1">
-                        {posts?.map?.((post) => (
-                          <WritingLink key={post.slug} post={post} isActive={post.slug === slug} />
-                        ))}
-                      </Collapsible.Content>
-                    </Collapsible.Root>
+                    <CollapsibleList key={topic} activeTopic={activeTopic} topic={topic} posts={posts} slug={slug} />
                   );
                 })
                 .flat()}

@@ -10,7 +10,7 @@ const ContentSecurityPolicy = `
   script-src 'self' 'unsafe-eval' 'unsafe-inline' giscus.app analytics.umami.is *.vercel-scripts.com;
   style-src 'self' 'unsafe-inline';
   img-src * blob: data:;
-  media-src *.s3.amazonaws.com;
+  media-src *.s3.amazonaws.com *.imgur.com;
   connect-src *;
   font-src 'self';
   frame-src giscus.app *.codesandbox.io
@@ -66,6 +66,17 @@ module.exports = () => {
       dirs: ['app', 'components', 'layouts', 'scripts'],
     },
     images: {
+      domains: [
+        'visualgo.net',
+        'upload.wikimedia.org',
+        'imgur.com',
+        'd1dwq032kyr03c.cloudfront.net',
+        'i.imgur.com',
+        'amzn.github.io',
+        'lh3.googleusercontent.com',
+        'miro.medium.com',
+        'wicg.github.io',
+      ],
       remotePatterns: [
         {
           protocol: 'https',

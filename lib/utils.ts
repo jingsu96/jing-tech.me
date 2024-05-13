@@ -153,3 +153,12 @@ export const getItemsByYear = (items) => {
     return acc;
   }, []);
 };
+
+/**
+ *
+ * @param str
+ * @returns
+ */
+export const upperFirst = (str: string): string => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};

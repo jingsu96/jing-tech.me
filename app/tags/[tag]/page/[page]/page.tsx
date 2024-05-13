@@ -7,8 +7,6 @@ import tagData from 'app/tag-data.json';
 import { genPageMetadata } from 'app/seo';
 import { Metadata } from 'next';
 
-const POSTS_PER_PAGE = 5;
-
 export async function generateMetadata({ params }: { params: { tag: string } }): Promise<Metadata> {
   const tag = decodeURI(params.tag);
   return genPageMetadata({
@@ -30,8 +28,23 @@ export const generateStaticParams = async () => {
     tag: encodeURI(tag),
   }));
 
-  return paths;
+  const nPaths = paths
+    .map((path) => {
+      const tag = decodeURI(path.tag);
+      const filteredPosts = allBlogs.filter((post) => post.tags && post.tags.map((t) => slug(t)).includes(tag));
+      const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+
+      return Array.from({ length: totalPages }, (_, i) => ({
+        tag: encodeURI(tag),
+        page: (i + 1).toString(),
+      }));
+    })
+    .flat();
+
+  return nPaths;
 };
+
+const POSTS_PER_PAGE = 5;
 
 export default function TagPage({ params }: { params: { tag: string; page: string } }) {
   const tag = decodeURI(params.tag);
@@ -40,10 +53,8 @@ export default function TagPage({ params }: { params: { tag: string; page: strin
   const filteredPosts = allCoreContent(
     sortPosts(allBlogs.filter((post) => post.tags && post.tags.map((t) => slug(t)).includes(tag)))
   );
-
-  const pageNumber = 1;
+  const pageNumber = parseInt(params.page);
   const initialDisplayPosts = filteredPosts.slice(POSTS_PER_PAGE * (pageNumber - 1), POSTS_PER_PAGE * pageNumber);
-
   const pagination = {
     currentPage: pageNumber,
     totalPages: Math.ceil(filteredPosts.length / POSTS_PER_PAGE),

@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 interface PaginationProps {
   totalPages: number;
   currentPage: number;
+  v2: boolean;
 }
 interface ListLayoutProps {
   posts: CoreContent<Blog>[];
@@ -23,9 +24,14 @@ interface ListLayoutProps {
   pagination?: PaginationProps;
 }
 
-function Pagination({ totalPages, currentPage }: PaginationProps) {
+function Pagination({ totalPages, currentPage, v2 }: PaginationProps) {
   const pathname = usePathname();
-  const basePath = pathname.split('/')[1];
+  let basePath = pathname.split('/')[1];
+
+  if (v2) {
+    basePath = pathname.split('/')[1] + '/' + pathname.split('/')[2];
+  }
+
   const prevPage = currentPage - 1 > 0;
   const nextPage = currentPage + 1 <= totalPages;
 
@@ -81,7 +87,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
 
   return (
     <>
-      <div className="flex h-[100vh] w-full">
+      <div className="flex h-[100vh] w-full lg:overflow-y-scroll">
         <FloatingHeader scrollTitle="Writing" />
         <div className="flex flex-col p-4 sm:space-x-12 md:flex-row lg:p-0">
           <div className="hidden h-[100vh] w-full min-w-[24rem] max-w-[24rem] flex-wrap overflow-auto rounded bg-gray-50 pt-5 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 sm:flex lg:flex">
@@ -139,7 +145,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
             })}
           </div>
         </div>
-        <div className="!mx-auto mt-4 flex h-full justify-center lg:overflow-y-scroll">
+        <div className="!mx-auto mt-4 flex justify-center">
           <ul>
             {displayPosts.map((post) => {
               const { path, date, title, summary, tags } = post;
@@ -168,7 +174,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
               );
             })}
             {pagination && pagination.totalPages > 1 && (
-              <Pagination currentPage={pagination.currentPage} totalPages={pagination.totalPages} />
+              <Pagination currentPage={pagination.currentPage} totalPages={pagination.totalPages} v2={pagination.v2} />
             )}
           </ul>
         </div>

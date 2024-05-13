@@ -15,6 +15,7 @@ const ThemeSwitch = ({ className, offSet = 4 }: { className?: string; offSet?: n
   useLayoutEffect(() => {
     // set meta name theme-color based on theme
     const metaThemeColor = document.querySelector('meta[name=theme-color]');
+
     if (metaThemeColor) {
       metaThemeColor.setAttribute('content', resolvedTheme === 'dark' ? '#1b1b1f' : '#FFF');
     }

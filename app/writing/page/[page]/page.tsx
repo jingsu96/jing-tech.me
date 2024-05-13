@@ -18,6 +18,7 @@ export default function Page({ params }: { params: { page: string } }) {
   const pagination = {
     currentPage: pageNumber,
     totalPages: Math.ceil(posts.length / POSTS_PER_PAGE),
+    v2: true,
   };
 
   return (
