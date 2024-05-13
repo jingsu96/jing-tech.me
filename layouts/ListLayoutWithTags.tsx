@@ -87,7 +87,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
 
   return (
     <>
-      <div className="flex h-[100vh] w-full lg:overflow-y-scroll">
+      <div className="flex h-[100vh] w-full flex-col md:flex-row md:overflow-y-scroll">
         <FloatingHeader scrollTitle="Writing" />
         <div className="flex flex-col p-4 sm:space-x-12 md:flex-row lg:p-0">
           <div className="hidden h-[100vh] w-full min-w-[24rem] max-w-[24rem] flex-wrap overflow-auto rounded bg-gray-50 pt-5 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 sm:flex lg:flex">
@@ -145,7 +145,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
             })}
           </div>
         </div>
-        <div className="!mx-auto mt-4 flex justify-center">
+        <div className="!mx-auto flex justify-center px-4">
           <ul>
             {displayPosts.map((post) => {
               const { path, date, title, summary, tags } = post;

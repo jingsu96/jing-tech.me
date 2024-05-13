@@ -9,6 +9,7 @@ import siteMetadata from '@/data/siteMetadata';
 import ScrollTopAndComment from '@/components/ScrollTopAndComment';
 import { FloatingHeader } from '@/components/lab/floating-header';
 import WritingListLayout from './WritingListLayout';
+import { WritingBreadcrumb } from '@/components/lab/writing-breadcrumb';
 
 const editUrl = (path) => `${siteMetadata.siteRepo}/blob/main/data/${path}`;
 const discussUrl = (path) =>
@@ -38,7 +39,8 @@ export default function PostLayout({ content, next, prev, children, filteredPost
     <SectionContainer className="relative">
       <ScrollTopAndComment />
       <FloatingHeader scrollTitle="Writing" />
-      <WritingListLayout filteredPosts={filteredPosts} slug={slug} classname="hidden lg:flex" />
+      <WritingListLayout path={path} filteredPosts={filteredPosts} slug={slug} classname="hidden lg:flex" />
+      <WritingBreadcrumb path={path} className="flex pt-4 lg:hidden" />
       <article id="jt-article" className=" zblock h-auto flex-1 overflow-y-scroll pt-4 lg:flex lg:h-[100vh]">
         <div className="mx-auto max-w-[1000px] flex-1  px-6 lg:px-12 xl:divide-y xl:divide-gray-200 xl:dark:divide-gray-700">
           <header className="pt-6 xl:pb-6">

@@ -50,19 +50,21 @@ export const FloatingHeader = memo(
     const isBookmarkPath = pathname.startsWith('/bookmarks');
 
     return (
-      <header className="sticky inset-x-0 top-0 z-10 mx-auto flex h-12 w-full shrink-0 items-center overflow-hidden bg-bg-primary text-sm font-medium shadow-jt1 lg:hidden">
+      <header className="sticky inset-x-0 top-0 z-10 mx-auto flex h-12 w-full shrink-0 items-center overflow-hidden bg-bg-primary text-sm font-medium shadow-jt2 lg:hidden">
         <div className="flex size-full items-center px-3">
           <div className="flex w-full items-center justify-between gap-2">
-            <div className="flex flex-1 items-center gap-1">
-              {goBackLink ? (
-                <Button variant="ghost" size="icon" className="shrink-0 bg-bg-primary" asChild>
-                  <Link href={goBackLink} title="Go back">
-                    <ArrowLeftIcon size={16} />
-                  </Link>
-                </Button>
-              ) : (
-                <MobileDrawer />
-              )}
+            <div className="flex flex-1 items-center gap-1 ">
+              <div className="flex h-16 items-center">
+                {goBackLink ? (
+                  <Button variant="ghost" size="icon" className="shrink-0 bg-bg-primary" asChild>
+                    <Link href={goBackLink} title="Go back">
+                      <ArrowLeftIcon size={16} />
+                    </Link>
+                  </Button>
+                ) : (
+                  <MobileDrawer />
+                )}
+              </div>
               <div className="flex flex-1 items-center justify-between">
                 {scrollTitle && <span className="line-clamp-2 font-semibold tracking-tight">{scrollTitle}</span>}
                 {title && (

@@ -3,24 +3,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WritingLink } from '@/components/lab/writing-link';
-import * as Separator from '@radix-ui/react-separator';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ArrowLeft, ArrowRight, ChevronRight, ChevronDown } from 'lucide-react';
-import { cn, upperFirst } from '@/lib/utils';
-import { usePathname } from 'next/navigation';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/lab/ui/breadcrumb';
-
-type breadcrumbType = {
-  name: string;
-  url: string;
-};
+import { cn } from '@/lib/utils';
+import { WritingBreadcrumb } from '@/components/lab/writing-breadcrumb';
 
 const CollapsibleList = ({
   activeTopic,
@@ -47,19 +33,8 @@ const CollapsibleList = ({
   );
 };
 
-const WritingListLayout = ({ filteredPosts, slug, classname }) => {
+const WritingListLayout = ({ filteredPosts, slug, classname, path }) => {
   const [isSidebarVisible, setSidebarVisible] = useState(true);
-  const pathname = usePathname();
-
-  const parsedUrl = pathname.split('/').reduce((acc: breadcrumbType[], name, idx) => {
-    if (idx === 0) {
-      acc.push({ name: name, url: name });
-      return acc;
-    }
-    acc.push({ name, url: acc[idx - 1]?.url.concat(`/${name}`) });
-    return acc;
-  }, []);
-
   const hasTopic = filteredPosts.some((post) => post.topic);
 
   const groupedPost = hasTopic
@@ -83,25 +58,7 @@ const WritingListLayout = ({ filteredPosts, slug, classname }) => {
             exit={{ display: 'none', minWidth: 0, width: 0 }}
             transition={{ duration: 0.35, ease: 'easeInOut' }}
           >
-            <Breadcrumb>
-              <BreadcrumbList className="mx-6 w-[20rem]">
-                {parsedUrl.map(({ name, url }, idx) => {
-                  if (!name || !url) return null;
-                  return idx === parsedUrl.length - 1 ? (
-                    <BreadcrumbItem key={url}>
-                      <BreadcrumbPage className="font-semibold">{upperFirst(name)}</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  ) : (
-                    <>
-                      <BreadcrumbItem key={url}>
-                        <BreadcrumbLink href={url}>{upperFirst(name)}</BreadcrumbLink>
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator key={idx} />
-                    </>
-                  );
-                })}
-              </BreadcrumbList>
-            </Breadcrumb>
+            <WritingBreadcrumb path={path} />
             <ul className="mx-auto mt-6 flex h-full min-w-[24rem] flex-1 flex-col gap-1 px-[15px] text-sm">
               {Object.entries(groupedPost)
                 .map(([topic, posts]: [string, any[]]) => {

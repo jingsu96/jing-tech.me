@@ -78,10 +78,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
       <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1b1b1f" />
       <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
-      <body className="bg-bg-primary">
+      <body>
         {/* eslint-disable-next-line react/no-unknown-property */}
         <ThemeProviders>
-          <main vaul-drawer-wrapper="" className="h-auto">
+          <main vaul-drawer-wrapper="" className="h-auto bg-bg-primary">
             {isEnabled && (
               <div className="absolute inset-x-0 bottom-0 z-50 flex h-12 w-full items-center justify-center bg-green-500 text-center text-sm font-medium text-white">
                 <div className="flex items-center gap-2">
