@@ -8,7 +8,7 @@ import { components } from '@/components/MDXComponents';
 import Image from '@/components/Image';
 import { WORK_EXPERIENCE } from '@/lib/constants';
 
-const MAX_DISPLAY = 5;
+const MAX_DISPLAY = 7;
 
 export default function Home({ posts: items, authors }) {
   return (

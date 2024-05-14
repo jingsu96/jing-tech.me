@@ -2,7 +2,7 @@ import ListLayout from '@/layouts/ListLayoutWithTags';
 import { allCoreContent, sortPosts } from 'pliny/utils/contentlayer';
 import { allBlogs } from 'contentlayer/generated';
 
-const POSTS_PER_PAGE = 5;
+const POSTS_PER_PAGE = 7;
 
 export const generateStaticParams = async () => {
   const totalPages = Math.ceil(allBlogs.length / POSTS_PER_PAGE);
@@ -18,7 +18,7 @@ export default function Page({ params }: { params: { page: string } }) {
   const pagination = {
     currentPage: pageNumber,
     totalPages: Math.ceil(posts.length / POSTS_PER_PAGE),
-    v2: true,
+    v2: false,
   };
 
   return (

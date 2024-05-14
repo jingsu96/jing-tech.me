@@ -16,6 +16,7 @@ interface PaginationProps {
   totalPages: number;
   currentPage: number;
   v2: boolean;
+  className?: string;
 }
 interface ListLayoutProps {
   posts: CoreContent<Blog>[];
@@ -24,7 +25,7 @@ interface ListLayoutProps {
   pagination?: PaginationProps;
 }
 
-function Pagination({ totalPages, currentPage, v2 }: PaginationProps) {
+function Pagination({ totalPages, currentPage, v2, className }: PaginationProps) {
   const pathname = usePathname();
   let basePath = pathname.split('/')[1];
 
@@ -36,31 +37,35 @@ function Pagination({ totalPages, currentPage, v2 }: PaginationProps) {
   const nextPage = currentPage + 1 <= totalPages;
 
   return (
-    <div className="px-4 pb-8 pt-6 md:space-y-5">
-      <nav className="flex justify-between lg:justify-around">
-        {!prevPage && (
-          <button className="cursor-auto disabled:opacity-50" disabled={!prevPage}>
-            Previous
-          </button>
-        )}
-        {prevPage && (
-          <Link href={currentPage - 1 === 1 ? `/${basePath}/` : `/${basePath}/page/${currentPage - 1}`} rel="prev">
-            Previous
-          </Link>
-        )}
-        <span>
+    <div className={cn('mt-auto px-6 py-4 lg:pb-10 lg:pt-0', className)}>
+      <nav className="flex w-full justify-between lg:justify-around">
+        <div className="flex-1">
+          {!prevPage && (
+            <button className="cursor-auto disabled:opacity-50" disabled={!prevPage}>
+              Previous
+            </button>
+          )}
+          {prevPage && (
+            <Link href={`/${basePath}/page/${currentPage - 1}`} rel="prev">
+              Previous
+            </Link>
+          )}
+        </div>
+        <span className="flex flex-1 justify-center">
           {currentPage} of {totalPages}
         </span>
-        {!nextPage && (
-          <button className="cursor-auto disabled:opacity-50" disabled={!nextPage}>
-            Next
-          </button>
-        )}
-        {nextPage && (
-          <Link href={`/${basePath}/page/${currentPage + 1}`} rel="next">
-            Next
-          </Link>
-        )}
+        <div className="flex flex-1 justify-end">
+          {!nextPage && (
+            <button className="cursor-auto disabled:opacity-50" disabled={!nextPage}>
+              Next
+            </button>
+          )}
+          {nextPage && (
+            <Link href={`/${basePath}/page/${currentPage + 1}`} rel="next">
+              Next
+            </Link>
+          )}
+        </div>
       </nav>
     </div>
   );
@@ -87,10 +92,10 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
 
   return (
     <>
-      <div className="flex h-[100vh] w-full flex-col md:flex-row md:overflow-y-scroll">
+      <div className="flex h-[100vh] w-full flex-col overflow-y-scroll lg:flex-row">
         <FloatingHeader scrollTitle="Writing" />
-        <div className="flex flex-col p-4 sm:space-x-12 md:flex-row lg:p-0">
-          <div className="hidden h-[100vh] w-full min-w-[24rem] max-w-[24rem] flex-wrap overflow-auto rounded bg-gray-50 pt-5 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 sm:flex lg:flex">
+        <div className="flex flex-col p-4 lg:flex-row lg:space-x-12 lg:p-0">
+          <div className="hidden h-[100vh] w-full min-w-[24rem] max-w-[24rem] flex-wrap overflow-auto rounded bg-gray-50 pt-5 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 lg:flex">
             <div className="px-6 py-4">
               {pathname.startsWith('/writing') ? (
                 <h3 className="font-bold uppercase text-primary-500">All Posts</h3>
@@ -126,18 +131,20 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
             </div>
           </div>
           {/** Mobile Pill*/}
-          <div className="inline-flex overflow-x-scroll md:hidden">
+          <div className="mb-2 inline-flex overflow-x-scroll lg:hidden">
             {sortedTags.map((t) => {
               return (
-                <li key={t} className="my-3 mr-2 list-none">
-                  {pathname.split('/tags/')[1] === slug(t) ? (
-                    <Pill text={`${t} (${tagCounts[t]})`} />
-                  ) : (
-                    <Link href={`/tags/${slug(t)}`} aria-label={`View posts tagged ${t}`}>
+                <li key={t} className="mr-2 list-none">
+                  {decodeURI(pathname.split('/tags/')[1]) === slug(t) ? (
+                    <Link href="/writing" aria-label={`View posts tagged ${t}`}>
                       <Pill
                         text={`${t} (${tagCounts[t]})`}
                         className="bg-gray-900/10 text-gray-900 dark:bg-gray-100/10 dark:text-gray-200"
                       />
+                    </Link>
+                  ) : (
+                    <Link href={`/tags/${slug(t)}`} aria-label={`View posts tagged ${t}`}>
+                      <Pill text={`${t} (${tagCounts[t]})`} />
                     </Link>
                   )}
                 </li>
@@ -145,12 +152,12 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
             })}
           </div>
         </div>
-        <div className="!mx-auto flex justify-center px-4">
+        <div className="flex flex-row justify-start px-5 lg:mt-12 lg:flex-1 lg:flex-col lg:items-center">
           <ul>
             {displayPosts.map((post) => {
               const { path, date, title, summary, tags } = post;
               return (
-                <li key={path} className="py-5">
+                <li key={path} className="[&:not(:first-child)]:pt-5">
                   <article className="flex flex-col space-y-2 xl:space-y-0">
                     <dl>
                       <dt className="sr-only">Published on</dt>
@@ -160,7 +167,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
                     </dl>
                     <div className="space-y-3">
                       <div>
-                        <h2 className="text-2xl font-bold leading-8 tracking-tight">
+                        <h2 className="text-xl font-bold leading-8 tracking-tight md:text-2xl">
                           <Link href={`/${path}`} className="text-gray-900 dark:text-gray-100">
                             {title}
                           </Link>
@@ -173,11 +180,24 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
                 </li>
               );
             })}
-            {pagination && pagination.totalPages > 1 && (
-              <Pagination currentPage={pagination.currentPage} totalPages={pagination.totalPages} v2={pagination.v2} />
-            )}
           </ul>
+          {pagination && pagination.totalPages > 1 && (
+            <Pagination
+              className="hidden lg:flex lg:w-[60%]"
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              v2={pagination.v2}
+            />
+          )}
         </div>
+        {pagination && pagination.totalPages > 1 && (
+          <Pagination
+            className="flex lg:hidden"
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            v2={pagination.v2}
+          />
+        )}
       </div>
     </>
   );

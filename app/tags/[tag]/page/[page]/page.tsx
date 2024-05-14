@@ -7,6 +7,8 @@ import tagData from 'app/tag-data.json';
 import { genPageMetadata } from 'app/seo';
 import { Metadata } from 'next';
 
+const POSTS_PER_PAGE = 7;
+
 export async function generateMetadata({ params }: { params: { tag: string } }): Promise<Metadata> {
   const tag = decodeURI(params.tag);
   return genPageMetadata({
@@ -43,8 +45,6 @@ export const generateStaticParams = async () => {
 
   return nPaths;
 };
-
-const POSTS_PER_PAGE = 5;
 
 export default function TagPage({ params }: { params: { tag: string; page: string } }) {
   const tag = decodeURI(params.tag);
