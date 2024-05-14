@@ -11,7 +11,7 @@ export const Link = ({ href = '#', ...rest }) => {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="link break-words after:content-['_↗']"
+        className="link main-link break-words after:content-['_↗']"
         {...rest}
       />
     );

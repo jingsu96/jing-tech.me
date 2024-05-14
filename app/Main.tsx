@@ -8,7 +8,7 @@ import { components } from '@/components/MDXComponents';
 import Image from '@/components/Image';
 import { WORK_EXPERIENCE } from '@/lib/constants';
 
-const MAX_DISPLAY = 7;
+const MAX_DISPLAY = 5;
 
 export default function Home({ posts: items, authors }) {
   return (
@@ -35,7 +35,7 @@ export default function Home({ posts: items, authors }) {
               <ol className="relative border-l border-gray-200 dark:border-gray-700">
                 {WORK_EXPERIENCE.map((company) => (
                   <li key={company.name} className="mb-6 ml-6">
-                    <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 ring-8 ring-[#fff] dark:bg-blue-900 dark:ring-gray-900">
+                    <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full shadow-jt3">
                       <Image
                         src={company.image}
                         height={24}
