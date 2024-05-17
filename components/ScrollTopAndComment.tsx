@@ -53,7 +53,7 @@ const ScrollTopAndComment = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.5, ease: 'easeIn' }}
-          className={'fixed bottom-8 right-8 hidden flex-col gap-3 md:flex'}
+          className={'fixed bottom-8 right-8 z-50 hidden flex-col gap-3 md:flex'}
         >
           {siteMetadata.comments?.provider && (
             <FloatButton label="Scroll To Comment" onClick={handleScrollToComment}>

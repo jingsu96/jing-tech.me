@@ -39,25 +39,26 @@ export default function PostLayout({ content, next, prev, children, filteredPost
     <SectionContainer className="relative">
       <ScrollTopAndComment />
       <FloatingHeader scrollTitle="Writing" />
-      <WritingListLayout path={path} filteredPosts={filteredPosts} slug={slug} classname="hidden lg:flex" />
+      <WritingListLayout filteredPosts={filteredPosts} slug={slug} classname="hidden lg:flex" />
       <WritingBreadcrumb path={path} className="flex pt-4 lg:hidden" />
-      <article id="jt-article" className=" zblock h-auto flex-1 overflow-y-scroll pt-4 lg:flex lg:h-[100vh]">
-        <div className="mx-auto max-w-[1000px] flex-1  px-6 lg:px-12 xl:divide-y xl:divide-gray-200 xl:dark:divide-gray-700">
+      <article id="jt-article" className="block h-auto flex-1 overflow-y-scroll pt-4 lg:flex lg:h-[100vh]">
+        <div className="mx-auto max-w-[1000px] flex-1 px-6 lg:px-12 xl:divide-y xl:divide-gray-200 xl:dark:divide-gray-700">
           <header className="pt-6 xl:pb-6">
-            <div className="sp text-center">
-              <dl className="space-y-10">
+            <WritingBreadcrumb path={path} className="hidden w-full py-4 lg:flex" />
+            <div className="sp">
+              <div>
+                <PageTitle className="!text-3xl font-bold">{title}</PageTitle>
+              </div>
+              <dl className="space-y-10 pt-4">
                 <div>
                   <dt className="sr-only">Published on</dt>
-                  <dd className="text-base font-medium leading-6 text-gray-500 dark:text-gray-400">
+                  <dd className="text-sm font-medium leading-6 text-gray-500 dark:text-gray-400">
                     <time dateTime={date}>
                       {new Date(date).toLocaleDateString(siteMetadata.locale, postDateTemplate)}
                     </time>
                   </dd>
                 </div>
               </dl>
-              <div>
-                <PageTitle>{title}</PageTitle>
-              </div>
             </div>
           </header>
           <div className="grid-rows-[auto_1fr] divide-y divide-gray-200 pb-8 dark:divide-gray-700 xl:grid xl:grid-cols-4 xl:gap-x-6 xl:divide-y-0">

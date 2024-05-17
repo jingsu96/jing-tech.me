@@ -43,15 +43,15 @@ export function NavigationBar() {
   };
 
   return (
-    <div className="bg-wash dark:bg-card-dark relative z-10 flex items-center justify-between rounded-b-none rounded-t-lg border border-border dark:border-[#222]">
+    <div className="relative z-10 flex items-center justify-between rounded-b-none rounded-t-lg bg-bg-alt text-indigo-2">
       <div className="px-4 lg:px-6">{dropdownActive ? <FilesDropdown /> : <FileTabs />}</div>
-      <div className="flex grow items-center justify-end px-3 text-right " translate="yes">
+      <div className="flex grow items-center justify-end px-3 text-right" translate="yes">
         <RotateCcw
           size={16}
-          className="text-primary dark:text-primary-dark hover:text-link mx-1 mr-4 inline-flex cursor-pointer items-center text-sm transition duration-100 ease-in dark:text-[#149eca]"
+          className="mx-1 mr-4 inline-flex cursor-pointer items-center text-indigo-1 transition duration-100 ease-in hover:text-indigo-2"
           onClick={handleReset}
         />
-        <UnstyledOpenInCodeSandboxButton className="text-primary dark:text-primary-dark hover:text-link mx-1 ml-3 inline-flex items-center text-sm transition duration-100 ease-in dark:text-[#149eca] md:ml-1">
+        <UnstyledOpenInCodeSandboxButton className="mx-1 ml-3 inline-flex items-center text-indigo-1 transition duration-100 ease-in hover:text-indigo-2 md:ml-1">
           <ExternalLink size={16} />
         </UnstyledOpenInCodeSandboxButton>
       </div>

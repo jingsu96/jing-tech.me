@@ -7,6 +7,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/lab/ui/breadcrumb';
 import { upperFirst } from '@/lib/utils';
+import { Home } from 'lucide-react';
 
 type breadcrumbType = {
   name: string;
@@ -25,7 +26,7 @@ export const WritingBreadcrumb = ({ path, className }: { path: string; className
 
   return (
     <Breadcrumb className={className}>
-      <BreadcrumbList className="mx-6 w-[20rem]">
+      <BreadcrumbList className="mx-6 lg:mx-0">
         {parsedUrl.map(({ name, url }, idx) => {
           if (!name || !url) return null;
           return idx === parsedUrl.length - 1 ? (
@@ -35,7 +36,7 @@ export const WritingBreadcrumb = ({ path, className }: { path: string; className
           ) : (
             <>
               <BreadcrumbItem key={url}>
-                <BreadcrumbLink href={url}>{upperFirst(name)}</BreadcrumbLink>
+                <BreadcrumbLink href={url}>{name === 'writing' ? <Home size={16} /> : upperFirst(name)}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator key={idx} />
             </>

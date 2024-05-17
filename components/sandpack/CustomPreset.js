@@ -1,19 +1,10 @@
 import { memo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import {
-  useSandpack,
-  useActiveCode,
-  SandpackCodeEditor,
-  // SandpackReactDevTools,
-  SandpackLayout,
-} from '@codesandbox/sandpack-react';
+import { useSandpack, useActiveCode, SandpackCodeEditor, SandpackLayout } from '@codesandbox/sandpack-react';
 import { cn } from '@/lib/utils';
 
-// import { IconChevron } from 'components/Icon/IconChevron';
 import { NavigationBar } from './NavigationBar';
 import { Preview } from './Preview';
-
-// import { useSandpackLint } from './useSandpackLint';
 
 export const CustomPreset = memo(function CustomPreset({
   showDevTools,
@@ -21,7 +12,6 @@ export const CustomPreset = memo(function CustomPreset({
   devToolsLoaded,
   providedFiles,
 }) {
-  // const { lintErrors, lintExtensions } = useSandpackLint();
   const { sandpack } = useSandpack();
   const { code } = useActiveCode();
   const { activeFile } = sandpack;
@@ -37,22 +27,12 @@ export const CustomPreset = memo(function CustomPreset({
       onDevToolsLoad={onDevToolsLoad}
       devToolsLoaded={devToolsLoaded}
       providedFiles={providedFiles}
-      // lintErrors={lintErrors}
-      // lintExtensions={lintExtensions}
       isExpandable={isExpandable}
     />
   );
 });
 
-const SandboxShell = memo(function SandboxShell({
-  showDevTools,
-  onDevToolsLoad,
-  devToolsLoaded,
-  providedFiles,
-  lintErrors,
-  lintExtensions,
-  isExpandable,
-}) {
+const SandboxShell = memo(function SandboxShell({ providedFiles, lintErrors, isExpandable }) {
   const containerRef = useRef();
   const [isExpanded, setIsExpanded] = useState(false);
   return (
@@ -83,7 +63,7 @@ const SandboxShell = memo(function SandboxShell({
           {(isExpandable || isExpanded) && (
             <button
               translate="yes"
-              className="sandpack-expand bg-wash border-b-1 dark:border-card-dark dark:bg-card-dark relative  top-0 z-10 flex w-full items-center justify-between p-1 text-base lg:order-last"
+              className="sandpack-expand bg-wash border-b-1 dark:border-card-dark dark:bg-card-dark relative top-0 z-10 flex w-full items-center justify-between p-1 text-base lg:order-last"
               onClick={() => {
                 const nextIsExpanded = !isExpanded;
                 flushSync(() => {
@@ -101,18 +81,12 @@ const SandboxShell = memo(function SandboxShell({
                 }
               }}
             >
-              <span className="text-primary dark:text-primary-dark flex p-2 leading-[20px] focus:outline-none dark:text-[#149eca]">
-                {/* <IconChevron className="mr-1.5 inline text-xl" displayDirection={isExpanded ? 'up' : 'down'} /> */}
+              <span className="flex p-2 text-sm leading-[20px] text-indigo-1 focus:outline-none">
                 {isExpanded ? 'Show less' : 'Show more'}
               </span>
             </button>
           )}
         </SandpackLayout>
-
-        {/* {showDevTools && (
-          // @ts-ignore TODO(@danilowoz): support devtools
-          <SandpackReactDevTools onLoadModule={onDevToolsLoad} />
-        )} */}
       </div>
     </>
   );

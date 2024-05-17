@@ -1,0 +1,163 @@
+---
+title: TIL 002 - pointer-friendly submenu experience
+date: '2024-05-08'
+tags: ['user-experiences']
+draft: false
+summary: 今天學 pointer-friendly submenu experience
+---
+
+Bad case: https://www.books.com.tw/
+Good case: https://www.walmart.com/
+
+## 問題
+
+選單 (Menu) 組件提供使用者可以訪問功能的列表，當我們想要讓使用者可以進一步的閱覽該功能內中的更多選項，通常會透過子選單 (Submenu) 進行展示。
+
+然而子選單在設計中有一個問題是當使用者在滑鼠移動到子選單的過程中，游標可能會因為在其過程中完全離開了項目，導致其對應的子選單關閉，進而造成使用者體驗不佳。
+
+<Image
+  src="/static/images/blog/ux/menu/menu_bad.gif"
+  alt="pointer-friendly-submenu-experience"
+  width="441"
+  height="247"
+/>
+
+## 解決方案
+
+### Adobe - React Specturm
+
+其部落格文章 [Creating a pointer-friendly submenu experience](https://react-spectrum.adobe.com/blog/creating-a-pointer-friendly-submenu-experience.html) 內提到他們是透過預測游標的**移動方向**以及**移動速度**來判斷是否要關閉子選單。
+
+而在探討這移動這個概念之前，要先知道如何定義有效移動，我們可以透過當前游標在頁面中的絕對座標向子選單中最高點與最低點各畫一條線，而得到的範圍就是有效移動的範圍。
+
+<Image src="/static/images/blog/ux/menu/valid_area.png" alt="valid area" width="451" height="324" />
+
+#### 移動方向
+
+知道了有效的移動範圍後，我們可以透過計算出移動角度，來判斷當前的游標是否在有效的移動範圍內。
+
+這時我們需要先知道當前游標的座標以及上一個座標，透過這兩個座標的差值來計算出移動的角度。
+
+```javascript
+const deltaX = currentX - previousX
+const deltaY = currentY - previousY
+const angle = Math.atan2(deltaY, deltaX)
+```
+
+<Sandpack lang="static">
+
+```html file=index.html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pointer Angle Calculation</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      #canvas {
+        border: 1px solid black;
+        display: block;
+        margin: 40px auto;
+        border-radius: 12px;
+      }
+      #info {
+        text-align: center;
+      }
+      #angleList {
+        overflow-y: auto;
+        border: 1px solid black;
+        font-size: 10px;
+        height: 100px;
+        width: 200px;
+        margin: 0 auto;
+        border-radius: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas" width="150" height="150"></canvas>
+    <div id="info">
+      <div id="angleList"></div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById('canvas')
+      const context = canvas.getContext('2d')
+      const angleList = document.getElementById('angleList')
+      let previousX = 0
+      let previousY = 0
+      let isDragging = false
+      let angles = []
+
+      canvas.addEventListener('mousedown', (e) => {
+        isDragging = true
+        previousX = e.offsetX
+        previousY = e.offsetY
+      })
+
+      canvas.addEventListener('mouseup', () => {
+        isDragging = false
+      })
+
+      canvas.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+          const currentX = e.offsetX
+          const currentY = e.offsetY
+
+          const deltaX = currentX - previousX
+          const deltaY = currentY - previousY
+          const angle = Math.atan2(deltaY, deltaX)
+
+          angles.push(angle)
+          updateAngleList()
+
+          context.beginPath()
+          context.moveTo(previousX, previousY)
+          context.lineTo(currentX, currentY)
+          context.stroke()
+
+          previousX = currentX
+          previousY = currentY
+        }
+      })
+
+      function updateAngleList() {
+        angleList.innerHTML = ''
+        angles.forEach((angle, index) => {
+          const angleItem = document.createElement('p')
+          angleItem.textContent = `Angle ${index + 1}: ${angle.toFixed(2)} radians`
+          angleList.appendChild(angleItem)
+          // scroll to bottom
+        })
+
+        angleList.scrollTo({
+          top: angleList.scrollHeight,
+          behavior: 'smooth',
+        })
+      }
+    </script>
+  </body>
+</html>
+```
+
+</Sandpack>
+
+<Image src="/static/images/blog/ux/menu/angle.png" alt="valid angle" width="451" height="324" />
+
+在計算出游標正在移動的角度後，我們可以算當前的角度是否在有效的範圍內，也就是透過以下三個角度來判斷是否在有效範圍內：
+
+`Θ top` ：由先前指針位置到子菜單內部頂部角形成的角度
+
+`Θ bottom` ：由前一指針位置到子選單底部內角形成的角度
+
+`Θ pointer` ：由前一指針位置到當前指針位置形成的角度（增量）
+
+如果 `Θ pointer` 在 `Θ top` 與 `Θ bottom` 之間，則表示游標在有效範圍內，反之則表示游標不在有效範圍內，即可關閉子選單。
+
+## 參考資料
+
+1. [Adobe | Creating a pointer-friendly submenu experience](https://react-spectrum.adobe.com/blog/creating-a-pointer-friendly-submenu-experience.html)
+2. [Amazon | Breaking down Amazon’s mega dropdown](https://bjk5.com/post/44698559168/breaking-down-amazons-mega-dropdown)

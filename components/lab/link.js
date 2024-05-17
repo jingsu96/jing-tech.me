@@ -17,5 +17,5 @@ export const Link = ({ href = '#', ...rest }) => {
     );
   }
 
-  return <NextLink href={href} className="link" {...rest} />;
+  return <NextLink href={href} className="link main-link" {...rest} />;
 };

@@ -7,6 +7,7 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 import { ArrowLeft, ArrowRight, ChevronRight, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { WritingBreadcrumb } from '@/components/lab/writing-breadcrumb';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/lab/ui/accordion';
 
 const CollapsibleList = ({
   activeTopic,
@@ -19,23 +20,26 @@ const CollapsibleList = ({
   posts: any[];
   slug: string;
 }) => {
-  const [open, setOpen] = useState(activeTopic);
   return (
-    <Collapsible.Root key={topic} className="w-full" open={open} onOpenChange={setOpen}>
-      <Collapsible.Trigger className="flex w-full items-center justify-between px-2 py-2 text-lg font-bold text-gray-800 dark:text-gray-200">
+    <AccordionItem value={topic}>
+      <AccordionTrigger
+        className={cn(
+          'mb-2 flex w-full items-center justify-between rounded-lg px-2 py-2 text-lg font-bold text-gray-800 hover:bg-gray-100 dark:text-gray-200  dark:hover:bg-gray-800'
+        )}
+      >
         <h2>{topic}</h2>
-        {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-      </Collapsible.Trigger>
-      <Collapsible.Content className="flex flex-col gap-1">
+      </AccordionTrigger>
+      <AccordionContent className="flex flex-col gap-1">
         {posts?.map?.((post) => <WritingLink key={post.slug} post={post} isActive={post.slug === slug} />)}
-      </Collapsible.Content>
-    </Collapsible.Root>
+      </AccordionContent>
+    </AccordionItem>
   );
 };
 
-const WritingListLayout = ({ filteredPosts, slug, classname, path }) => {
+const WritingListLayout = ({ filteredPosts, slug, classname }) => {
   const [isSidebarVisible, setSidebarVisible] = useState(true);
   const hasTopic = filteredPosts.some((post) => post.topic);
+  const currentTopic = filteredPosts.find((post) => post.slug === slug)?.topic;
 
   const groupedPost = hasTopic
     ? filteredPosts.reduce((acc, post) => {
@@ -58,22 +62,24 @@ const WritingListLayout = ({ filteredPosts, slug, classname, path }) => {
             exit={{ display: 'none', minWidth: 0, width: 0 }}
             transition={{ duration: 0.35, ease: 'easeInOut' }}
           >
-            <WritingBreadcrumb path={path} />
-            <ul className="mx-auto mt-6 flex h-full min-w-[24rem] flex-1 flex-col gap-1 px-[15px] text-sm">
-              {Object.entries(groupedPost)
-                .map(([topic, posts]: [string, any[]]) => {
-                  if (topic === '') {
-                    return posts?.map?.((post) => (
-                      <WritingLink key={post.slug} post={post} isActive={post.slug === slug} />
-                    ));
-                  }
-                  const activeTopic = posts.some((post) => post.slug === slug);
+            <ul className="mx-auto mt-6 flex h-[calc(100vh-70px)] min-w-[24rem] flex-1 flex-col gap-1 px-[15px] text-sm">
+              <Accordion className="w-full" type="single" collapsible defaultValue={currentTopic}>
+                {Object.entries(groupedPost)
+                  .map(([topic, posts]: [string, any[]]) => {
+                    if (topic === '') {
+                      return posts?.map?.((post) => (
+                        <WritingLink key={post.slug} post={post} isActive={post.slug === slug} />
+                      ));
+                    }
 
-                  return (
-                    <CollapsibleList key={topic} activeTopic={activeTopic} topic={topic} posts={posts} slug={slug} />
-                  );
-                })
-                .flat()}
+                    const activeTopic = posts.some((post) => post.slug === slug);
+
+                    return (
+                      <CollapsibleList key={topic} activeTopic={activeTopic} topic={topic} posts={posts} slug={slug} />
+                    );
+                  })
+                  .flat()}
+              </Accordion>
             </ul>
           </motion.div>
         )}

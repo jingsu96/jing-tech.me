@@ -30,7 +30,7 @@ export const WritingLink = ({
           isMobile ? 'border-b px-4 py-3 text-sm hover:bg-gray-100' : 'rounded-lg p-2'
         )}
       >
-        <span className="font-medium">{post.title}</span>
+        <span className="font-regular">{post.title}</span>
         <span className={cn('transition-colors duration-300', isActive ? 'text-slate-400' : 'text-slate-500')}>
           <time dateTime={date}>{formattedDate}</time>{' '}
           <span>

@@ -109,11 +109,11 @@ module.exports = {
         },
       },
       boxShadow: {
-        jt1: 'var(--vp-shadow-1)',
-        jt2: 'var(--vp-shadow-2)',
-        jt3: 'var(--vp-shadow-3)',
-        jt4: 'var(--vp-shadow-4)',
-        jt5: 'var(--vp-shadow-5)',
+        jt1: 'var(--jt-shadow-1)',
+        jt2: 'var(--jt-shadow-2)',
+        jt3: 'var(--jt-shadow-3)',
+        jt4: 'var(--jt-shadow-4)',
+        jt5: 'var(--jt-shadow-5)',
       },
       typography: ({ theme }) => ({
         DEFAULT: {
@@ -152,6 +152,20 @@ module.exports = {
           },
         },
       }),
+      keyframes: {
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
+        },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
+        },
+      },
+      animation: {
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
+      },
     },
   },
   plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')],
