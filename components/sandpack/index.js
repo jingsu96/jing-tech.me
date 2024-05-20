@@ -6,7 +6,7 @@ import SandpackRoot from './SandpackRoot';
 const SandpackGlimmer = ({ code }) => (
   <div className="sandpack sandpack--playground my-8">
     <div className="sp-wrapper">
-      <div className="dark:shadow-lg-dark rounded-lg shadow-lg">
+      <div className="rounded-lg shadow-jt2">
         <div className="bg-wash dark:border-border-dark dark:bg-card-dark relative z-10 flex h-10 items-center justify-between rounded-b-none rounded-t-lg border-b border-border">
           <div className="px-4 lg:px-6">
             <div className="sp-tabs"></div>

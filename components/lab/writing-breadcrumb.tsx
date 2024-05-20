@@ -26,19 +26,15 @@ export const WritingBreadcrumb = ({ path, className }: { path: string; className
 
   return (
     <Breadcrumb className={className}>
-      <BreadcrumbList className="mx-6 lg:mx-0">
+      <BreadcrumbList className="flex items-center font-semibold lg:mx-0">
         {parsedUrl.map(({ name, url }, idx) => {
-          if (!name || !url) return null;
-          return idx === parsedUrl.length - 1 ? (
-            <BreadcrumbItem key={url}>
-              <BreadcrumbPage className="font-semibold">{upperFirst(name)}</BreadcrumbPage>
-            </BreadcrumbItem>
-          ) : (
+          if (!name || !url || idx === parsedUrl.length - 1) return null;
+          return (
             <>
               <BreadcrumbItem key={url}>
                 <BreadcrumbLink href={url}>{name === 'writing' ? <Home size={16} /> : upperFirst(name)}</BreadcrumbLink>
               </BreadcrumbItem>
-              <BreadcrumbSeparator key={idx} />
+              {idx !== parsedUrl.length - 2 && <BreadcrumbSeparator key={idx} />}
             </>
           );
         })}

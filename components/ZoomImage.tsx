@@ -11,7 +11,7 @@ const ZoomImage = ({ ...rest }: ImageProps) => {
   return (
     <Dialog.Root onOpenChange={(o) => setOpen(o)}>
       <Dialog.Trigger className="">
-        <NextImage className="rounded-[12px] shadow-jt4" {...rest} />
+        <NextImage className="rounded-[12px] shadow-jt2" {...rest} />
       </Dialog.Trigger>
       <AnimatePresence initial={false}>
         {open ? (

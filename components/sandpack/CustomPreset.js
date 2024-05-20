@@ -38,7 +38,7 @@ const SandboxShell = memo(function SandboxShell({ providedFiles, lintErrors, isE
   return (
     <>
       <div
-        className="dark:shadow-lg-dark rounded-lg shadow-lg"
+        className="rounded-lg shadow-jt2"
         ref={containerRef}
         style={{
           contain: 'content',
