@@ -2,15 +2,13 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import { usePathname } from 'next/navigation';
 import { slug } from 'github-slugger';
-import { formatDate } from 'pliny/utils/formatDate';
 import { CoreContent } from 'pliny/utils/contentlayer';
 import type { Blog } from 'contentlayer/generated';
 import Link from '@/components/CustomLink';
-import Tag from '@/components/Tag';
-import siteMetadata from '@/data/siteMetadata';
 import tagData from 'app/tag-data.json';
 import { FloatingHeader } from '@/components/lab/floating-header';
 import { cn } from '@/lib/utils';
+import ListItem from '@/components/ListItem';
 
 interface PaginationProps {
   totalPages: number;
@@ -95,14 +93,14 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
       <div className="flex h-[100vh] w-full flex-col overflow-y-scroll lg:flex-row">
         <FloatingHeader scrollTitle="Writing" />
         <div className="flex flex-col p-4 lg:flex-row lg:space-x-12 lg:p-0">
-          <div className="hidden h-[100vh] w-full min-w-[24rem] max-w-[24rem] flex-wrap overflow-auto rounded bg-gray-50 pt-5 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 lg:flex">
+          <div className="hidden h-[100vh] w-full min-w-[22rem] max-w-[22rem] flex-wrap overflow-auto rounded bg-gray-50 pt-5 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 lg:flex">
             <div className="px-6 py-4">
               {pathname.startsWith('/writing') ? (
-                <h3 className="font-bold uppercase text-primary-500">所有文章</h3>
+                <h3 className="font-bold uppercase text-indigo-1">所有文章</h3>
               ) : (
                 <Link
                   href={`/writing`}
-                  className="font-bold uppercase text-gray-700 hover:text-primary-500 dark:text-gray-300 dark:hover:text-primary-500"
+                  className="font-bold uppercase text-gray-700 hover:text-indigo-1 dark:text-gray-300 dark:hover:text-indigo-1"
                 >
                   所有文章
                 </Link>
@@ -112,13 +110,13 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
                   return (
                     <li key={t} className="my-3">
                       {pathname.split('/tags/')[1] === slug(t) ? (
-                        <h3 className="inline px-3 py-2 text-sm font-bold uppercase text-primary-500">
+                        <h3 className="inline px-3 py-2 text-sm font-bold uppercase text-indigo-1">
                           {`${t} (${tagCounts[t]})`}
                         </h3>
                       ) : (
                         <Link
                           href={`/tags/${slug(t)}`}
-                          className="px-3 py-2 text-sm font-medium uppercase text-gray-500 hover:text-primary-500 dark:text-gray-300 dark:hover:text-primary-500"
+                          className="px-3 py-2 text-sm font-medium uppercase text-gray-500 hover:text-indigo-1 dark:text-gray-300 dark:hover:text-indigo-1"
                           aria-label={`View posts tagged ${t}`}
                         >
                           {`${t} (${tagCounts[t]})`}
@@ -153,32 +151,10 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
           </div>
         </div>
         <div className="flex flex-row justify-start px-5 lg:mt-12 lg:flex-1 lg:flex-col lg:items-center">
-          <ul>
+          <ul className="dark:divide-neutral-700 mx-auto w-full max-w-[calc(750px+8vw)] divide-y divide-slate-200 md:px-[4vw]">
             {displayPosts.map((post) => {
-              const { path, date, title, summary, tags } = post;
-              return (
-                <li key={path} className="[&:not(:first-child)]:pt-5">
-                  <article className="flex flex-col space-y-2 xl:space-y-0">
-                    <dl>
-                      <dt className="sr-only">Published on</dt>
-                      <dd className="text-base font-medium leading-6 text-gray-500 dark:text-gray-400">
-                        <time dateTime={date}>{formatDate(date, siteMetadata.locale)}</time>
-                      </dd>
-                    </dl>
-                    <div className="space-y-3">
-                      <div>
-                        <h2 className="text-xl font-bold leading-8 tracking-tight md:text-2xl">
-                          <Link href={`/${path}`} className="text-gray-900 dark:text-gray-100">
-                            {title}
-                          </Link>
-                        </h2>
-                        <div className="flex flex-wrap">{tags?.map((tag) => <Tag key={tag} text={tag} />)}</div>
-                      </div>
-                      <div className="prose max-w-none text-gray-500 dark:text-gray-400">{summary}</div>
-                    </div>
-                  </article>
-                </li>
-              );
+              const { path, date, title, tags } = post;
+              return <ListItem key={path} date={date} title={title} path={path} />;
             })}
           </ul>
           {pagination && pagination.totalPages > 1 && (

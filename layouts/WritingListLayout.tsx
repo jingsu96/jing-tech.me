@@ -24,7 +24,7 @@ const CollapsibleList = ({
     <AccordionItem value={topic}>
       <AccordionTrigger
         className={cn(
-          'mb-2 flex w-full items-center justify-between rounded-lg px-2 py-2 text-lg font-bold text-gray-800 hover:bg-gray-100 dark:text-gray-200  dark:hover:bg-gray-800'
+          'my-2 flex w-full items-center justify-between rounded-lg px-2 py-2 text-lg font-bold text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800'
         )}
       >
         <h2>{topic}</h2>

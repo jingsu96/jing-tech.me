@@ -52,13 +52,13 @@ export const NavigationLink = memo(
         key={href}
         href={href}
         className={cn(
-          'group flex items-center justify-between rounded-lg p-2',
-          isActive ? 'bg-black text-white' : 'hover:bg-gray-200'
+          'group flex items-center justify-between rounded-lg p-2 transition-colors duration-200 hover:bg-gray-200 hover:dark:text-black',
+          isActive ? 'bg-bg-alt text-white hover:dark:text-black' : 'hover:bg-gray-200'
         )}
       >
         <span className="flex items-center gap-2">
           {iconCmp}
-          <span className={cn('font-medium', isActive && 'text-white')}>{label}</span>
+          <span className={cn('font-medium')}>{label}</span>
         </span>
         {shortcutNumber && (
           <span
