@@ -90,7 +90,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
 
   return (
     <>
-      <div className="flex h-[100vh] w-full flex-col overflow-y-scroll lg:flex-row">
+      <div className="flex w-full flex-col md:h-[100vh] md:overflow-y-scroll lg:flex-row">
         <FloatingHeader scrollTitle="Writing" />
         <div className="flex flex-col p-4 lg:flex-row lg:space-x-12 lg:p-0">
           <div className="hidden h-[100vh] w-full min-w-[22rem] max-w-[22rem] flex-wrap overflow-auto rounded bg-gray-50 pt-5 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 lg:flex">
@@ -116,7 +116,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
                       ) : (
                         <Link
                           href={`/tags/${slug(t)}`}
-                          className="px-3 py-2 text-sm font-medium uppercase text-gray-500 hover:text-indigo-1 dark:text-gray-300 dark:hover:text-indigo-1"
+                          className="px-3 py-2 text-sm font-medium uppercase text-text-1 hover:text-indigo-1 dark:hover:text-indigo-1"
                           aria-label={`View posts tagged ${t}`}
                         >
                           {`${t} (${tagCounts[t]})`}
@@ -151,7 +151,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
           </div>
         </div>
         <div className="flex flex-row justify-start px-5 lg:mt-12 lg:flex-1 lg:flex-col lg:items-center">
-          <ul className="dark:divide-neutral-700 mx-auto w-full max-w-[calc(750px+8vw)] divide-y divide-slate-200 md:px-[4vw]">
+          <ul className="mx-auto w-full max-w-[calc(750px+8vw)] divide-y divide-slate-200 dark:text-divider md:px-[4vw]">
             {displayPosts.map((post) => {
               const { path, date, title, tags } = post;
               return <ListItem key={path} date={date} title={title} path={path} />;

@@ -68,7 +68,7 @@ const CodeBlock = function CodeBlock({ children, className = 'language-js' }) {
               return (
                 <div key={i} {...getLineProps({ line, key: i })}>
                   {line.map((token, key) => (
-                    <span key={key} className={cn(className, 'text-sm')} {...getTokenProps({ token, key })} />
+                    <span key={token} className={cn(className, 'text-sm')} {...getTokenProps({ token, key })} />
                   ))}
                 </div>
               );

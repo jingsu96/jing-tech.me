@@ -1,4 +1,4 @@
-import { useRef, ReactNode } from 'react';
+import { ReactNode } from 'react';
 import { CoreContent } from 'pliny/utils/contentlayer';
 import type { Blog, Authors } from 'contentlayer/generated';
 import Comments from '@/components/Comments';
@@ -76,7 +76,7 @@ export default function PostLayout({ content, next, prev, children, filteredPost
                 </div>
               )}
               <footer>
-                <div className="my-5 flex text-sm font-medium leading-5">
+                <div className="my-5 flex gap-3 text-sm font-medium leading-5 md:justify-between md:gap-0">
                   {(next || prev) && (
                     <>
                       {prev && prev.path && (

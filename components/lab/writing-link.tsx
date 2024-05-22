@@ -9,11 +9,13 @@ export const WritingLink = ({
   viewCount,
   isMobile,
   isActive,
+  className,
 }: {
   post: any;
   viewCount?: number;
   isMobile?: boolean;
   isActive?: boolean;
+  className?: string;
 }) => {
   const date = post.date || post.sys.firstPublishedAt;
   const formattedDate = getDateTimeFormat(date);
@@ -27,7 +29,8 @@ export const WritingLink = ({
         className={cn(
           'flex flex-col gap-1 text-black transition-colors duration-300 dark:text-white',
           !isMobile && isActive ? 'bg-gray-jt-3' : 'hover:bg-gray-100  dark:hover:bg-gray-800',
-          isMobile ? 'border-b px-4 py-3 text-sm hover:bg-gray-100' : 'rounded-lg p-2'
+          isMobile ? 'border-b px-4 py-3 text-sm hover:bg-gray-100' : 'rounded-lg p-2',
+          className
         )}
       >
         <span className="font-regular">{post.title}</span>

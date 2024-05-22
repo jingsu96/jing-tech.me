@@ -1,0 +1,44 @@
+---
+title: Rust - 100 Rust Exercises
+date: '2024-05-20'
+tags: ['rust']
+draft: true
+authors: ['default']
+root: true
+---
+
+## [100 Rust Exercises](https://rust-exercises.com/01_intro/00_welcome)
+
+## Learning
+
+### Day 1
+
+- [Playground](https://play.rust-lang.org/?version=stable&mode=debug&edition=2021&gist=8a34855c07813667f7c95c5e9ac848c1)
+
+#### 程式碼
+
+```rust
+#[warn(dead_code)]
+// `fn` <function_name> ( <input parameters> ) -> <return_type> { <body> }
+fn greeting() -> &'static str {
+    "Hello, World"
+    // same as: return "Hello, World";
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::greeting;
+
+    #[test]
+    fn test_greeting() {
+        assert_eq!(greeting(), "Hello, World")
+    }
+}
+```
+
+#### Takeaway
+
+1. `&'static` 代表說這個字串是存在於程式的整個生命週期中，而不會被釋放。
+2. `#[warn(dead_code)]` 這個屬性監測程式是否有未使用的程式碼，如果有的話會發出警告。
+3. 如果沒有任何值被回傳，則回傳型別可是 `()`，也就是 `unit` 型別。
+4. `#[cfg(test)]` 這個屬性代表說這個模組只有在執行測試時才會被編譯。
