@@ -45,6 +45,10 @@ export const NavigationLink = memo(
       const splittedPathname = pathname.split('/');
       const currentPathname = splittedPathname[1] ?? '';
       isActive = currentPathname === href.split('/')[1];
+
+      if (currentPathname === 'tags' && href.startsWith('/writing')) {
+        isActive = true;
+      }
     }
 
     return (

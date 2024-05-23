@@ -1,21 +1,25 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import { cn, upperFirst } from '@/lib/utils';
 import { formatDate } from 'pliny/utils/formatDate';
 import siteMetadata from '@/data/siteMetadata';
+import { Badge } from './lab/ui/badge';
 
-const ListItem = ({ date, title, path }: { date: string; title: string; path: string }) => {
+const ListItem = ({ date, title, path, tags }: { date: string; title: string; path: string; tags: string[] }) => {
   return (
     <Link href={`/${path}`} className={cn('group relative flex items-center justify-between overflow-hidden py-3')}>
       <div className="flex flex-col items-start md:flex-row md:items-center">
-        <time
-          dateTime={date}
-          className="flex min-w-[5rem] whitespace-nowrap text-xs font-extrabold uppercase text-orange-400"
-        >
-          {formatDate(date, siteMetadata.locale)}
-        </time>
-        <div className="order-0flex w-full overflow-hidden text-ellipsis whitespace-nowrap leading-6 md:order-1 md:pl-4">
+        <div className="mb-2 flex flex-row items-center md:mb-0 md:flex-col md:items-start">
+          <time
+            dateTime={date}
+            className="mr-2 flex whitespace-nowrap text-xs font-extrabold uppercase text-orange-400 md:mb-2 md:mr-0 md:min-w-[7rem]"
+          >
+            {formatDate(date, siteMetadata.locale)}
+          </time>
+          <Badge className="overflow-hidden text-ellipsis whitespace-nowrap">{upperFirst(tags[0])}</Badge>
+        </div>
+        <div className="order-0 flex w-full overflow-hidden text-ellipsis whitespace-nowrap leading-6 md:order-1 md:pl-4">
           <h2 className="dark:group-hover:text-neutral-300 truncate font-normal group-hover:text-indigo-1 dark:text-white">
             {title}
           </h2>

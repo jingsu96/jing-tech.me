@@ -154,7 +154,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
           <ul className="mx-auto w-full max-w-[calc(750px+8vw)] divide-y divide-slate-200 dark:text-divider md:px-[4vw]">
             {displayPosts.map((post) => {
               const { path, date, title, tags } = post;
-              return <ListItem key={path} date={date} title={title} path={path} />;
+              return <ListItem key={path} date={date} title={title} path={path} tags={tags} />;
             })}
           </ul>
           {pagination && pagination.totalPages > 1 && (
