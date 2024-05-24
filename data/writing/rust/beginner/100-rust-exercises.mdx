@@ -1,6 +1,7 @@
 ---
 title: Rust - 100 Rust Exercises
 date: '2024-05-20'
+lastmod: '2024-05-24'
 tags: ['rust']
 draft: true
 authors: ['default']
@@ -104,4 +105,38 @@ Rust 不會自動轉型，所以如果你想要將一個整數轉換成浮點數
 ```rust
 let a = 5;
 let a_divided_by_2 = a as f64 / 2.0;
+```
+
+## Day 3
+
+[A Basic Calculator - Variables](https://rust-exercises.com/02_basic_calculator/02_variables)
+
+### 變數
+
+在 Rust 可以使用 `let` 來宣告變數，而變數的型別可以是透過型別推論 (type inference) 或是開發者明確指定。
+
+```rust
+let x = 5; // 型別推論
+
+// let <variable_name>: <type> = <expression>;
+let y: i32 = 10; // 明確指定型別
+```
+
+什麼是型別推論呢？當你宣告變數時，Rust 會根據你的賦值來推斷變數的型別。
+
+```rust
+let x = 5;
+let y: u32 = x;
+```
+
+由於 Rust 不執行自動類型轉換，當編譯器推斷 x 的類型為 u32 ，與 y 相同，這是唯一一種允許程序在編譯時不出錯的類型。
+
+### 函式的型別不會自動推斷
+
+在 Rust 中，函式的型別不會自動推斷，所以我們必須明確指定函式的型別。
+
+```rust
+fn add(x: i32, y: i32) -> i32 {
+    x + y
+}
 ```
