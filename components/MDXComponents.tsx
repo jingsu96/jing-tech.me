@@ -1,4 +1,3 @@
-// import TOCInline from 'pliny/ui/TOCInline';
 import BlogNewsletterForm from 'pliny/ui/BlogNewsletterForm';
 import type { MDXComponents } from 'mdx/types';
 import ZoomImage from './ZoomImage';
