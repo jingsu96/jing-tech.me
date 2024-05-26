@@ -1,6 +1,6 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'JingHuang Su',
+  title: 'Jing Tech',
   author: 'JingHuang Su',
   position: 'Software Engineer',
   headerTitle: 'v2.jing-tech.me',
@@ -10,8 +10,8 @@ const siteMetadata = {
   theme: 'light', // system, dark or light
   siteUrl: 'https://v2.jing-tech.me',
   siteRepo: 'https://github.com/jingsu96/todayIlearned',
-  siteLogo: '/static/images/logo.png',
-  socialBanner: '/static/images/twitter-card.png',
+  siteLogo: '/static/images/logo.jpeg',
+  socialBanner: '/static/images/logo.jpeg',
   email: 'jing.tech.tw@gmail.com',
   github: 'https://github.com/jingsu96/',
   twitter: 'https://twitter.com/Jing19794341',

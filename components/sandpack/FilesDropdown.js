@@ -18,10 +18,12 @@ export function FilesDropdown() {
         className={cn(
           'text-link dark:text-link-dark border-link dark:border-link-dark text-md -mb-px mt-px flex h-full items-center truncate border-b-2 px-1 py-2 leading-tight !shadow-none dark:text-[#149eca]'
         )}
-      ></Select.Trigger>
-      <Select.Content position="popper">
+      >
+        {getFileName(activeFile)}
+      </Select.Trigger>
+      <Select.Content position="popper" className="border-border-1 overflow-hidden rounded-sm border">
         {visibleFiles.map((filePath) => (
-          <Select.Item key={filePath} value={filePath}>
+          <Select.Item key={filePath} value={filePath} className="bg-bg-elv p-2">
             {getFileName(filePath)}
           </Select.Item>
         ))}

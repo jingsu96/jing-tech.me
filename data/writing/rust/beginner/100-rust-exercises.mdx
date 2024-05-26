@@ -9,11 +9,11 @@ topic: '書籍'
 root: true
 ---
 
+<TOCInline toc={props.toc} asDisclosure />
+
 ## [100 Rust Exercises](https://rust-exercises.com/01_intro/00_welcome)
 
-## Learning
-
-### Day 1
+## Day 1
 
 ### 閱讀主題
 
@@ -21,7 +21,7 @@ root: true
 
 - [Playground](https://play.rust-lang.org/?version=stable&mode=debug&edition=2021&gist=8a34855c07813667f7c95c5e9ac848c1)
 
-#### 程式碼
+### 程式碼
 
 ```rust
 #[warn(dead_code)]
@@ -42,7 +42,7 @@ mod tests {
 }
 ```
 
-#### Takeaway
+### Takeaway
 
 1. `&'static` 代表說這個字串是存在於程式的整個生命週期中，而不會被釋放。
 2. `#[warn(dead_code)]` 這個屬性監測程式是否有未使用的程式碼，如果有的話會發出警告。
@@ -79,7 +79,7 @@ Integer 可以分成兩種類型，有無符號 (unsigned) 與有符號 (signed)
 
 - u 為 unsigned 的縮寫，i 為 integer 的縮寫。
 
-### 表示方式
+#### 表示方式
 
 除了常見的數字表示方式，我們也可以透過底線 `_` 來增加數字的可讀性。
 
@@ -88,7 +88,7 @@ let a: u32 = 42;
 let one_million: u32 = 1_000_000;
 ```
 
-### 運算子
+#### 運算子
 
 與大部分的程式語言一樣，Rust 也有基本的運算子，像是 `+`、`-`、`*`、`/`、`%`。
 
@@ -99,7 +99,7 @@ let a = 5 / 2;
 println!("{}", a); // 2
 ```
 
-### 沒有自動轉型
+#### 沒有自動轉型
 
 Rust 不會自動轉型，所以如果你想要將一個整數轉換成浮點數，你必須明確地轉換。
 
@@ -110,9 +110,11 @@ let a_divided_by_2 = a as f64 / 2.0;
 
 ## Day 3
 
+### 閱讀主題
+
 [A Basic Calculator - Variables](https://rust-exercises.com/02_basic_calculator/02_variables)
 
-### 變數
+#### 變數
 
 在 Rust 可以使用 `let` 來宣告變數，而變數的型別可以是透過型別推論 (type inference) 或是開發者明確指定。
 
@@ -130,14 +132,140 @@ let x = 5;
 let y: u32 = x;
 ```
 
-由於 Rust 不執行自動類型轉換，當編譯器推斷 x 的類型為 u32 ，與 y 相同，這是唯一一種允許程序在編譯時不出錯的類型。
+Rust 不執行自動類型轉換，當編譯器推斷 x 的類型為 u32 ，與 y 相同，這是唯一一種允許程序在編譯時不出錯的類型。
 
-### 函式的型別不會自動推斷
+#### 函式的型別不會自動推斷
 
 在 Rust 中，函式的型別不會自動推斷，所以我們必須明確指定函式的型別。
 
 ```rust
 fn add(x: i32, y: i32) -> i32 {
     x + y
+}
+```
+
+## Day 4
+
+### 閱讀主題
+
+[A Basic Calculator - Control Flow](https://rust-exercises.com/02_basic_calculator/03_if_else)
+
+### If/Else
+
+```rust
+fn is_even(x: i32) -> bool {
+    if x % 2 == 0 {
+        true
+    } else {
+        false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::is_even;
+
+    #[test]
+    fn one() {
+        assert!(!is_even(1));
+    }
+
+    #[test]
+    fn two() {
+        assert!(is_even(2));
+    }
+
+    #[test]
+    fn high() {
+        assert!(!is_even(231));
+    }
+}
+```
+
+在 `if` 的條件式中，條件式所回傳值必須是一個布林值，否則會出現編譯錯誤。
+
+```bash
+error[E0308]: mismatched types
+```
+
+如同 Day 3 所提到的概念，Rust 奉行嚴格的類型強制轉換哲學：與 JavaScript 或 Python 這類動態類型語言不同，在 Rust 中，非布林類型不會自動轉換為布林值，也沒有真值或假值的概念。
+
+#### If/Else 也是一個表達式
+
+在 Rust 中，`if`/`else` 也是一個表達式，這意味著我們可以將 `if`/`else` 的結果賦值給一個變數。
+
+```rust
+let x = 5;
+
+let is_x_even = if x % 2 == 0 {
+    true
+} else {
+    false
+};
+
+println!("{}", is_x_even); // false
+```
+
+## Day 5
+
+### 閱讀主題
+
+[Panics](https://rust-exercises.com/02_basic_calculator/04_panics)
+
+### Panics
+
+在 Day 2 的作業中，我們寫了一個 `speed` 的函式
+
+```rust
+fn speed(start: u32, end: u32, time_elapsed: u32) -> u32 {
+    let distance = end - start;
+    distance / time_elapsed
+}
+```
+
+但這裡函式的問題是當 `time_elapsed` 為 0 時，rust 會因為 `time_elapsed` 為 0，導致 `panic` 而中斷程式。
+
+```bash
+thread 'main' panicked at src/main.rs:3:5:
+attempt to divide by Zero
+```
+
+**panic** 是 Rust 的一個錯誤處理機制，當程式遇到不可恢復的錯誤時，會中斷程式並顯示錯誤訊息。
+
+### The panic! Macro
+
+Rust 提供了一個 `panic!` 宏，可以讓我們在程式中顯示錯誤訊息並中斷程式。
+
+```rust
+fn speed(start: u32, end: u32, time_elapsed: u32) -> u32 {
+    if time_elapsed == 0 {
+        panic!("time_elapsed cannot be zero");
+    }
+
+    let distance = end - start;
+    distance / time_elapsed
+}
+```
+
+我們也可以透過 `Result` 讓錯誤是可以復原的，而 Result 的用法主要是在函式內透過 Ok 或 Err 來回傳結果，並用 pattern match 的方式來處理 `Result` 類型的回傳值。
+
+```rust
+fn speed(start: u32, end: u32, time_elapsed: u32) -> Result<u32, &'static str> {
+    if time_elapsed == 0 {
+        Err("time_elapsed cannot be zero")
+    } else {
+        let distance = end - start;
+        Ok(distance / time_elapsed)
+    }
+}
+
+fn main() {
+    let result = match speed(0, 10, 0) {
+        Ok(speed) => speed,
+        Err(err) => {
+            println!("{}", err);
+            0
+        }
+    };
 }
 ```
