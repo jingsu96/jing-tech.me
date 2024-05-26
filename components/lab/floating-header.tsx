@@ -82,7 +82,7 @@ export const FloatingHeader = memo(
                     {(isWritingIndexPage || isBookmarksIndexPage) && (
                       <Button variant="outline" size="xs" asChild>
                         <a href="/feed.xml" title="RSS feed" target="_blank" rel="noopener noreferrer" className="ml-4">
-                          <RadioIcon size={16} />
+                          <RadioIcon size={16} className="mr-2" />
                           RSS feed
                         </a>
                       </Button>
