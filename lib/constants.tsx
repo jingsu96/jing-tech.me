@@ -155,3 +155,19 @@ export const WORK_EXPERIENCE = [
     ],
   },
 ];
+
+export const ORDER = {
+  'writing/rust/beginner': {
+    基本介紹: 1,
+    書籍: 2,
+    實作: 3,
+  },
+  'writing/design-system': {
+    基本介紹: 1,
+    無障礙設計: 2,
+    基本設置: 3,
+    核心概念: 4,
+    組件設計: 5,
+    開發流程: 6,
+  },
+};

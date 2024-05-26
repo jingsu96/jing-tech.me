@@ -5,12 +5,13 @@ import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Balancer from 'react-wrap-balancer';
-import { ArrowLeftIcon, RadioIcon, Search } from 'lucide-react';
+import { ArrowLeftIcon, RadioIcon, Search, List } from 'lucide-react';
 
 import { Button } from '@/components/lab/ui/button';
 import { LoadingSpinner } from '@/components/lab/loading-spinner';
 import ThemeSwitch from '@/components/ThemeSwitch';
 import SearchButton from '../SearchButton';
+import { useGlobalStore } from '@/lib/utils';
 const MobileDrawer = dynamic(() => import('@/components/lab/mobile-drawer').then((mod) => mod.MobileDrawer));
 const SubmitBookmarkDrawer = dynamic(
   () => import('@/components/lab/submit-bookmark/drawer').then((mod) => mod.SubmitBookmarkDrawer),
@@ -43,6 +44,8 @@ export const FloatingHeader = memo(
       translateY: 0,
       opacity: scrollTitle ? 0 : 1,
     });
+    const hasReadingList = useGlobalStore((state) => state.hasReadingList);
+    const onReadingListOpen = useGlobalStore((state) => state.onReadingListOpen);
     const pathname = usePathname();
     const isWritingIndexPage = pathname === '/writing';
     const isWritingPath = pathname.startsWith('/writing');
@@ -72,24 +75,26 @@ export const FloatingHeader = memo(
                     <span className="line-clamp-2 font-semibold tracking-tight">{title}</span>
                   </Balancer>
                 )}
-                <div className="inline-flex">
+                <div className="inline-flex items-center">
                   <SearchButton />
-                  <ThemeSwitch className="mx-4 inline-flex items-center" />
+                  <ThemeSwitch className="ml-4 inline-flex h-4 w-4 items-center" />
                   <div className="flex items-center gap-2">
                     {(isWritingIndexPage || isBookmarksIndexPage) && (
                       <Button variant="outline" size="xs" asChild>
-                        <a href="/feed.xml" title="RSS feed" target="_blank" rel="noopener noreferrer">
-                          <RadioIcon size={16} className="mr-2" />
+                        <a href="/feed.xml" title="RSS feed" target="_blank" rel="noopener noreferrer" className="ml-4">
+                          <RadioIcon size={16} />
                           RSS feed
                         </a>
                       </Button>
                     )}
                     {isBookmarkPath && <SubmitBookmarkDrawer bookmarks={bookmarks} currentBookmark={currentBookmark} />}
                   </div>
+                  {hasReadingList && (
+                    <List size={20} onClick={() => onReadingListOpen(true)} className="ml-4 inline-flex items-center" />
+                  )}
                 </div>
               </div>
             </div>
-
             {/* {scrollTitle && isWritingPath && <div className="flex min-w-[50px] justify-end">{children}</div>} */}
           </div>
         </div>

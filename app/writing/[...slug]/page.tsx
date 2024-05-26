@@ -14,6 +14,7 @@ import PostBanner from '@/layouts/PostBanner';
 import { Metadata } from 'next';
 import siteMetadata from '@/data/siteMetadata';
 import { notFound } from 'next/navigation';
+import { groupPostsByTopic } from '@/lib/utils';
 
 const defaultLayout = 'PostLayout';
 const layouts = {
@@ -77,17 +78,46 @@ export const generateStaticParams = async () => {
   return paths;
 };
 
+const ORDER = {
+  'writing/rust/beginner': {
+    基本介紹: 1,
+    書籍: 2,
+    實作: 3,
+  },
+  'writing/design-system': {
+    基本介紹: 1,
+    無障礙設計: 2,
+    基本設置: 3,
+    核心概念: 4,
+    組件設計: 5,
+    開發流程: 6,
+  },
+};
+
 export default async function Page({ params }: { params: { slug: string[] } }) {
   const slug = decodeURI(params.slug.join('/'));
   // Filter out drafts in production
   const sortedCoreContents = allCoreContent(sortPosts(allBlogs));
+
   const postIndex = sortedCoreContents.findIndex((p) => p.slug === slug);
+  const p = sortedCoreContents[postIndex];
+
+  // TODO: Optimize this
+  const paths = sortedCoreContents[postIndex]?.filePath.split('/');
+  const generalPath = paths?.slice(0, paths.length - 1).join('/');
+  const groupedPost = groupPostsByTopic(sortedCoreContents, postIndex);
+  const currentTopic = (p?.topic && Object.keys(ORDER[generalPath]).findIndex((topic) => topic === p.topic)) || 0;
+  const samePathContent = p?.topic ? groupedPost[currentTopic]?.posts : groupedPost[0].posts;
+  const samePathPostIndex = samePathContent?.findIndex?.((p) => p.slug === slug);
+
   if (postIndex === -1) {
     return notFound();
   }
 
-  const prev = sortedCoreContents[postIndex + 1];
-  const next = sortedCoreContents[postIndex - 1];
+  const prev =
+    samePathContent[samePathPostIndex - 1] ||
+    groupedPost[currentTopic - 1]?.posts?.[groupedPost[currentTopic - 1]?.posts.length - 1];
+  const next = samePathContent[samePathPostIndex + 1] || groupedPost[currentTopic + 1]?.posts?.[0];
   const post = allBlogs.find((p) => p.slug === slug) as Blog;
   const authorList = post?.authors || ['default'];
   const authorDetails = authorList.map((author) => {

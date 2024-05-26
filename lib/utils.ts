@@ -1,6 +1,8 @@
 import { cache } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { cx } from 'classix';
+import { ORDER } from './constants';
+import { create } from 'zustand';
 
 /**
  * Combines and merges multiple CSS class names or values using the classix and tailwind-merge libraries.
@@ -162,3 +164,43 @@ export const getItemsByYear = (items) => {
 export const upperFirst = (str: string): string => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
+
+// Grouped Topic Logic
+export const groupPostsByTopic = (posts, postIdx) => {
+  const paths = posts[postIdx]?.filePath.split('/');
+  const generalPath = paths?.slice(0, paths.length - 1).join('/');
+  const samePathPosts = posts.filter((p) => p.path.includes(generalPath));
+
+  const groupedPosts = posts[postIdx]?.topic
+    ? samePathPosts
+        .reduce((acc, post) => {
+          const findIdx = ORDER[generalPath]?.[post.topic];
+          const targetGroup = acc[findIdx];
+
+          if (targetGroup) {
+            targetGroup.posts.push(post);
+          } else {
+            acc[findIdx] = { topic: post.topic, posts: [post] };
+          }
+
+          return acc;
+        }, [] as any)
+        .filter((p) => p)
+    : [{ posts: samePathPosts }];
+
+  return groupedPosts;
+};
+
+interface GlobalStore {
+  hasReadingList: boolean;
+  setHasReadingList: (enable: boolean) => void;
+  isReadingListOpen: boolean;
+  onReadingListOpen: (isOpen: boolean) => void;
+}
+
+export const useGlobalStore = create<GlobalStore>((set) => ({
+  hasReadingList: false,
+  setHasReadingList: (enable) => set({ hasReadingList: enable }),
+  isReadingListOpen: false,
+  onReadingListOpen: (isOpen) => set({ isReadingListOpen: isOpen }),
+}));

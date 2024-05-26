@@ -52,7 +52,7 @@ const ThemeSwitch = ({ className, offSet = 4 }: { className?: string; offSet?: n
       </Select.Root>
     </div>
   ) : (
-    <div className={cn(className, 'h-[16px] w-[16px]')} />
+    <div className={cn(className, 'h-4 w-4')} />
   );
 };
 

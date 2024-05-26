@@ -8,7 +8,7 @@ import SectionContainer from '@/components/SectionContainer';
 import siteMetadata from '@/data/siteMetadata';
 import ScrollTopAndComment from '@/components/ScrollTopAndComment';
 import { FloatingHeader } from '@/components/lab/floating-header';
-import WritingListLayout from './WritingListLayout';
+import WritingListLayout, { TopicAccordion } from './WritingListLayout';
 import { WritingBreadcrumb } from '@/components/lab/writing-breadcrumb';
 
 const editUrl = (path) => `${siteMetadata.siteRepo}/blob/main/data/${path}`;
@@ -39,7 +39,7 @@ export default function PostLayout({ content, next, prev, children, filteredPost
     <SectionContainer className="relative">
       <ScrollTopAndComment />
       <FloatingHeader scrollTitle="Writing" />
-      <WritingListLayout filteredPosts={filteredPosts} slug={slug} classname="hidden lg:flex" />
+      <WritingListLayout filteredPosts={filteredPosts} slug={slug} classname="hidden lg:flex" path={path} />
       <article id="jt-article" className="block h-auto flex-1 overflow-y-scroll pt-4 lg:flex lg:h-[100vh]">
         <div className="max-w-[750px] flex-1 px-6 lg:px-[5rem] xl:divide-y xl:divide-gray-200 xl:px-12 xl:dark:divide-gray-700 2xl:max-w-[1000px] 3xl:mx-auto 3xl:max-w-[1000px]">
           <header className="lg:pt-6 xl:pb-6">
