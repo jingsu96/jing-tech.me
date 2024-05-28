@@ -269,3 +269,81 @@ fn main() {
     };
 }
 ```
+
+## Day 6
+
+### 閱讀主題
+
+[factorial](https://rust-exercises.com/02_basic_calculator/05_factorial)
+
+### 問題
+
+```rust
+/**
+ * Calculate the factorial of a number
+ *
+ * @param n The number to calculate the factorial of
+ * @return The factorial of n
+ * @example factorial(5) => 120 (5 * 4 * 3 * 2 * 1)
+ */
+
+// your code here
+```
+
+在 Day 1 - Day 5 的練習中，我們學習了：
+
+1. 如何定義一個函式？
+2. 如何呼叫一個函式？
+3. Rust 有哪整數類型？
+4. Rust 整數可用哪些算術運算符？
+5. 如何使用 `if`/`else`？
+
+### 解法
+
+```rust
+fn factorial(n: u32) -> u32 {
+    if n == 0 {
+        1
+    } else {
+        n * factorial(n - 1)
+    }
+}
+```
+
+## Day 7
+
+### 閱讀主題
+
+[Basic Calculator - Loops:while](https://rust-exercises.com/02_basic_calculator/06_while)
+
+### While Loop
+
+在實作 `factorial` 函式時，我們使用了遞迴的方式，但如果是用迴圈的方式呢？
+
+今天將會介紹 `while` 迴圈。
+
+`while` 會執行一個條件式，當條件式為 `true` 時，會執行迴圈內的程式碼。
+
+```rust
+while <condition> {
+    // code
+}
+```
+
+像是 Day 6 的 `factorial` 函式，我們可以用 `while` 來實作。
+
+```rust
+fn factorial(n: u32): u32 {
+    let mut result = 1;
+    let mut cnt = n;
+
+    while cnt > 1 {
+        result *= cnt;
+        cnt -= 1;
+    }
+
+    return result;
+}
+```
+
+這邊很重要的一點是，Rust 變數是預設不可變的，所以我們必須使用 `mut` 來宣告變數是可變的。

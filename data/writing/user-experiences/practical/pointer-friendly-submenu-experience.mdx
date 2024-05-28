@@ -11,27 +11,51 @@ Good case: https://www.walmart.com/
 
 ## 問題
 
-選單 (Menu) 組件主要是讓使用者能夠選擇功能或是進行導覽的使用者介面，當需要呈現更詳細的子功能時，通常會使用子選單 (Submenu) 的方式來展開顯示。
+選單 (Menu) 組件主要是讓使用者能夠導覽功能的使用者介面，當需要呈現更詳細的子功能時，我們通常會在選單項目偵測到滑鼠移入時 (Hover) ，顯示對應的子選單。
 
-然而，在使用子選單時常會遇到這樣的問題：當使用者將游標從父選單移向子選單時，如果中途游標離開了選單區域，其對應的子選單就會關閉。進而造成使用者體驗不佳。
+然而，在使用子選單時常會遇到這樣的問題：當使用者將游標從父層移向子選單時，如果途中觸發到了其他選單項目，就會造成其原本對應的子選單關閉，造成使用者體驗不佳。
 
-| Bad Case                                                                         | Good Case                                                                        |
-| -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| ![pointer-friendly-submenu-experience](/static/images/blog/ux/menu/menu_bad.gif) | ![pointer-friendly-submenu-experience](/static/images/blog/ux/menu/menu_bad.gif) |
+| 好的使用者體驗                                                                                                           | 不好的使用者體驗                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| <Image width="354" height="268" className="mx-auto rounded-[12px]" src="/static/images/blog/ux/menu/good_example.gif" /> | <Image width="354" height="268" className="mx-auto rounded-[12px]" src="/static/images/blog/ux/menu/bad_example.gif" /> |
 
 本篇文章將會探討如何解決這個問題，讓使用者在使用子選單時能夠有更好的體驗。
 
 ## 解決方案
 
-### Adobe - React Specturm
+### 改用點擊來觸發子選單開啟
 
-Adobe 的設計系統 React Specturm 有針對如何優化子選單使用者體驗的部落格文章 [Creating a pointer-friendly submenu experience](https://react-spectrum.adobe.com/blog/creating-a-pointer-friendly-submenu-experience.html) 。
+使用點擊 (Click) 還是滑鼠移入 (Hover) 時來觸發選單已經是多年來討論的議題。
+
+支持點擊派會覺得滑鼠移入會讓使用者時常不小心觸發了選單開啟，這會讓使用者覺得困惑。而支持滑鼠移入派則認為除了這是網頁常見的設計外，滑鼠移入可以讓使用者更快速的導覽，並且不需要多餘的點擊動作，這也是大多數使用者習慣的操作方式。
+
+這時候可以和專案經理及設計師協商，看看是否能改用點擊來觸發子選單開啟。如果成功說服他們，就可以關掉這篇文章，早點下班！
+
+### 預測游標的移動方向與速度
+
+如果無法改用點擊來觸發子選單開啟，那麼接下來就來探討如何改善使用滑鼠移入的使用者體驗。
+
+Adobe 的設計系統 React Specturm 有針對如何優化子選單使用者體驗，發表一篇部落格文章 [Creating a pointer-friendly submenu experience](https://react-spectrum.adobe.com/blog/creating-a-pointer-friendly-submenu-experience.html) 。
 
 文內提到他們是透過預測游標的 **移動方向** 以及 **移動速度** 來判斷是否要關閉子選單。
 
 在探討主要概念之前，要先知道如何定義有效移動，我們可以透過當前游標在頁面中的絕對座標向子選單中最高點與最低點各畫一條線，而得到的範圍就是有效移動的範圍。
 
-<Image src="/static/images/blog/ux/menu/valid_area.png" alt="valid area" width="451" height="324" />
+<Image
+  src="/static/images/blog/ux/menu/valid_area_dark.png"
+  className="hidden rounded-[12px] dark:block"
+  alt="valid area"
+  width="451"
+  height="324"
+/>
+
+<Image
+  src="/static/images/blog/ux/menu/valid_area_light.png"
+  className="rounded-[12px] dark:hidden"
+  alt="valid area"
+  width="451"
+  height="324"
+/>
 
 #### 移動方向
 
@@ -102,28 +126,45 @@ const angle = Math.atan2(deltaY, deltaX)
 
     <script>
       const output = document.querySelector('.output')
+      let lastX = null
+      let lastY = null
+      let isThrottled = false
+      const throttleDuration = 100 // 節流間隔，單位是毫秒
 
-      window.addEventListener('mousemove', (evt) => {
-        // Get half of the width and height
-        const w = window.innerWidth / 2
-        const h = window.innerHeight / 2
-
-        // Get the mouse coordinates
+      const handleMouseMove = (evt) => {
         const x = evt.clientX
         const y = evt.clientY
 
-        // Get delta values
-        const deltaX = x - w
-        const deltaY = y - h
+        if (lastX !== null && lastY !== null) {
+          // Get delta values
+          const deltaX = x - lastX
+          const deltaY = lastY - y
 
-        // Calculate the angle between the mouse and the center of the screen
-        const theta = Math.atan2(deltaY, deltaX)
+          // Calculate the angle between the previous and current mouse positions
+          const theta = Math.atan2(deltaY, deltaX)
 
-        // Convert to degrees
-        let angle = theta * (180 / Math.PI)
+          // Convert to degrees
+          let angle = (theta * 180) / Math.PI
 
-        output.innerHTML = `Angle: ${angle.toFixed(2)}°`
-      })
+          output.innerHTML = `Angle: ${angle.toFixed(2)}°`
+        }
+
+        // Update last mouse position
+        lastX = x
+        lastY = y
+      }
+
+      const throttledMouseMove = (evt) => {
+        if (!isThrottled) {
+          handleMouseMove(evt)
+          isThrottled = true
+          setTimeout(() => {
+            isThrottled = false
+          }, throttleDuration)
+        }
+      }
+
+      window.addEventListener('mousemove', throttledMouseMove)
     </script>
   </body>
 </html>
@@ -132,6 +173,13 @@ const angle = Math.atan2(deltaY, deltaX)
 </Sandpack>
 
 <Image src="/static/images/blog/ux/menu/angle.png" alt="valid angle" width="451" height="324" />
+
+| 滑鼠移動方向 | 角度          |
+| ------------ | ------------- |
+| 右           | 0°            |
+| 上           | 90°           |
+| 左           | -180° 或 180° |
+| 下           | -90°          |
 
 在計算出游標正在移動的角度後，我們可以算當前的角度是否在有效的範圍內，也就是透過以下三個角度來判斷是否在有效範圍內：
 
@@ -142,6 +190,84 @@ const angle = Math.atan2(deltaY, deltaX)
 `Θ pointer` ：由前一指針位置到當前指針位置形成的角度（增量）
 
 如果 `Θ pointer` 在 `Θ top` 與 `Θ bottom` 之間，則表示游標在有效範圍內，反之則表示游標不在有效範圍內，即可關閉子選單。
+
+<Sandpack lang="static">
+
+```html file=index.html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Submenu Example</title>
+    <style>
+      .menu {
+        position: relative;
+        width: 5rem;
+        display: inline-block;
+        background-color: #fecaca; /* bg-red-100 */
+      }
+      .menu-item {
+        display: inline-block;
+        position: relative;
+      }
+      .submenu {
+        position: absolute;
+        width: 5rem;
+        visibility: hidden;
+        background-color: #c6f6d5; /* bg-green-100 */
+      }
+      .menu:hover .submenu,
+      .menu-item:hover .submenu {
+        visibility: visible;
+      }
+      .submenu-item {
+        position: relative;
+      }
+      .submenu-item-content {
+        position: absolute;
+        top: 0;
+        left: 5rem;
+        visibility: hidden;
+      }
+      .submenu-item:hover .submenu-item-content {
+        visibility: visible;
+      }
+    </style>
+  </head>
+  <body>
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Submenu Example</title>
+        <link rel="stylesheet" href="Submenu.module.css" />
+      </head>
+      <body>
+        <div class="menu">
+          <div class="menu-item">Menu</div>
+          <div class="submenu">
+            <div class="menu-item">Item1</div>
+            <div class="submenu-item">
+              <div class="menu-item">Menu</div>
+              <div class="submenu-item-content submenu">
+                <div class="menu-item">Item1</div>
+                <div class="menu-item">Item2</div>
+                <div class="menu-item">Item3</div>
+              </div>
+            </div>
+            <div class="menu-item">Item2</div>
+            <div class="menu-item">Item3</div>
+          </div>
+        </div>
+      </body>
+    </html>
+  </body>
+</html>
+```
+
+</Sandpack>
 
 ## 參考資料
 

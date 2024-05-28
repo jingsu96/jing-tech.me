@@ -33,7 +33,7 @@ const ZoomImage = ({ ...rest }: ImageProps) => {
                 transition={{ duration: 0.25, ease: 'easeInOut' }}
                 className="bg-grey-11 fixed left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 !transform-gpu lg:w-auto"
               >
-                <NextImage className="rounded-[12px] shadow-jt4" {...rest} />
+                <NextImage className="mx-auto rounded-[12px] shadow-jt4" {...rest} />
               </motion.div>
             </Dialog.Content>
           </Dialog.Portal>
