@@ -83,10 +83,10 @@ const siteMetadata = {
     provider: 'algolia',
     algoliaConfig: {
       // The application ID provided by Algolia
-      appId: 'M1D7C3VH4L',
+      appId: '0LLTNLCZEX',
       // Public API key: it is safe to commit it
-      apiKey: 'b766706362e67acdf357bf08bf3c79d0',
-      indexName: 'docsearch',
+      apiKey: '1a50969226d205e23f742d9e6f7effe9',
+      indexName: 'v2-jing-tech',
     },
   },
 };
