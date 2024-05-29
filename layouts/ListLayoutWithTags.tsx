@@ -97,7 +97,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
           <div className="hidden h-[100vh] w-full min-w-[22rem] max-w-[22rem] flex-wrap overflow-auto rounded bg-gray-50 pt-5 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 lg:flex">
             <div className="px-6 py-4">
               {pathname.startsWith('/writing') ? (
-                <h3 className="font-bold uppercase text-indigo-1">所有文章</h3>
+                <h3 className="font-bold uppercase text-indigo-1">所有主題</h3>
               ) : (
                 <Link
                   href={`/writing`}
