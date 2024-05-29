@@ -50,7 +50,7 @@ export default function PostLayout({ content, next, prev, children, filteredPost
               </div>
               <dl className="space-y-10 pt-2">
                 <div>
-                  <dt className="sr-only">Published on</dt>
+                  <dt className="sr-only">文章發表於</dt>
                   <dd className="text-xs font-medium leading-6 text-gray-500 dark:text-gray-400">
                     <time dateTime={date}>
                       {new Date(date).toLocaleDateString(siteMetadata.locale, postDateTemplate)}
@@ -81,9 +81,7 @@ export default function PostLayout({ content, next, prev, children, filteredPost
                     <>
                       {prev && prev.path && (
                         <div>
-                          <h2 className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                            Previous Article
-                          </h2>
+                          <h2 className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">上篇</h2>
                           <div className="text-indigo-1  hover:text-indigo-2">
                             <Link href={`/${prev.path}`}>{prev.title}</Link>
                           </div>
@@ -91,9 +89,7 @@ export default function PostLayout({ content, next, prev, children, filteredPost
                       )}
                       {next && next.path && (
                         <div>
-                          <h2 className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                            Next Article
-                          </h2>
+                          <h2 className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">下篇</h2>
                           <div className="text-indigo-1  hover:text-indigo-2">
                             <Link href={`/${next.path}`}>{next.title}</Link>
                           </div>
@@ -103,12 +99,8 @@ export default function PostLayout({ content, next, prev, children, filteredPost
                   )}
                 </div>
                 <div className="pt-4 xl:pt-8">
-                  <Link
-                    href={`/${basePath}`}
-                    className="text-indigo-1  hover:text-indigo-2"
-                    aria-label="Back to the blog"
-                  >
-                    &larr; Back to the blog
+                  <Link href={`/${basePath}`} className="text-indigo-1  hover:text-indigo-2" aria-label="回到文章列表">
+                    &larr; 回到文章列表
                   </Link>
                 </div>
               </footer>

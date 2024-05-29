@@ -25,12 +25,12 @@ export const WritingList = ({ items, maxDisplay }) => {
     <LazyMotion features={domAnimation}>
       <div className="text-sm">
         <div className="grid grid-cols-6 py-4 font-bold text-text-1">
-          <span className="col-span-1 hidden text-left md:grid">Year</span>
+          <span className="col-span-1 hidden text-left md:grid">年份</span>
           <span className="col-span-6 md:col-span-5">
             <span className="grid grid-cols-4 items-center md:grid-cols-8">
-              <span className="col-span-1 text-left">Date</span>
-              <span className="col-span-2 md:col-span-6">Title</span>
-              {/* <span className="col-span-1 text-right">Views</span> */}
+              <span className="col-span-1 text-left">日期</span>
+              <span className="col-span-2 md:col-span-6">文章</span>
+              <span className="col-span-1 text-right">閱讀時間</span>
             </span>
           </span>
         </div>
@@ -41,7 +41,7 @@ export const WritingList = ({ items, maxDisplay }) => {
               return (
                 <ul className="group/list list-none" key={year}>
                   {items?.map?.((item, itemIndex) => {
-                    const { title, slug, date } = item;
+                    const { title, slug, date, readingTime } = item;
                     const dateObj = new Date(date);
                     const dateWithDayAndMonth = dateWithDayAndMonthFormatter.format(dateObj);
                     const dateWithMonthAndYear = dateWithMonthAndYearFormatter.format(dateObj);
@@ -73,6 +73,9 @@ export const WritingList = ({ items, maxDisplay }) => {
                               </time>
                             </span>
                             <span className="col-span-2 line-clamp-4 md:col-span-6">{title}</span>
+                            <span className="col-span-1 text-right md:block">
+                              {readingTime.text.replace('read', '')}
+                            </span>
                           </span>
                         </Link>
                       </li>

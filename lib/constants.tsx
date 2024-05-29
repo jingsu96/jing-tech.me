@@ -170,4 +170,17 @@ export const ORDER = {
     組件設計: 5,
     開發流程: 6,
   },
+  'writing/experiences': {
+    學習: 1,
+    面試: 2,
+    職涯: 3,
+  },
+};
+
+export const TOPIC_EN_TO_ZH = {
+  'design-system': '設計系統',
+  career: '職涯',
+  rust: 'Rust',
+  javascript: 'JavaScript',
+  'user-experience': '使用者體驗',
 };

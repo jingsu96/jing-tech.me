@@ -9,6 +9,7 @@ import tagData from 'app/tag-data.json';
 import { FloatingHeader } from '@/components/lab/floating-header';
 import { cn } from '@/lib/utils';
 import ListItem from '@/components/ListItem';
+import { TOPIC_EN_TO_ZH } from '@/lib/constants';
 
 interface PaginationProps {
   totalPages: number;
@@ -102,7 +103,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
                   href={`/writing`}
                   className="font-bold uppercase text-gray-700 hover:text-indigo-1 dark:text-gray-300 dark:hover:text-indigo-1"
                 >
-                  所有文章
+                  所有主題
                 </Link>
               )}
               <ul>
@@ -111,7 +112,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
                     <li key={t} className="my-3">
                       {pathname.split('/tags/')[1] === slug(t) ? (
                         <h3 className="inline px-3 py-2 text-sm font-bold uppercase text-indigo-1">
-                          {`${t} (${tagCounts[t]})`}
+                          {`${TOPIC_EN_TO_ZH[t]} (${tagCounts[t]})`}
                         </h3>
                       ) : (
                         <Link
@@ -119,7 +120,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
                           className="px-3 py-2 text-sm font-medium uppercase text-text-1 hover:text-indigo-1 dark:hover:text-indigo-1"
                           aria-label={`View posts tagged ${t}`}
                         >
-                          {`${t} (${tagCounts[t]})`}
+                          {`${TOPIC_EN_TO_ZH[t]} (${tagCounts[t]})`}
                         </Link>
                       )}
                     </li>

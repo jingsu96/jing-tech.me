@@ -35,7 +35,7 @@ export default function Home({ posts: items, authors }) {
               <ol className="relative border-l border-gray-200 dark:border-gray-700">
                 {WORK_EXPERIENCE.map((company) => (
                   <li key={company.name} className="mb-6 ml-6">
-                    <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full shadow-jt3">
+                    <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full shadow-jt1">
                       <Image
                         src={company.image}
                         height={24}
