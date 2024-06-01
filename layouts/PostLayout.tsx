@@ -8,8 +8,9 @@ import SectionContainer from '@/components/SectionContainer';
 import siteMetadata from '@/data/siteMetadata';
 import ScrollTopAndComment from '@/components/ScrollTopAndComment';
 import { FloatingHeader } from '@/components/lab/floating-header';
-import WritingListLayout, { TopicAccordion } from './WritingListLayout';
+import WritingListLayout from './WritingListLayout';
 import { WritingBreadcrumb } from '@/components/lab/writing-breadcrumb';
+import CustomLink from '@/components/CustomLink';
 
 const editUrl = (path) => `${siteMetadata.siteRepo}/blob/main/data/${path}`;
 const discussUrl = (path) =>
@@ -99,9 +100,13 @@ export default function PostLayout({ content, next, prev, children, filteredPost
                   )}
                 </div>
                 <div className="pt-4 xl:pt-8">
-                  <Link href={`/${basePath}`} className="text-indigo-1  hover:text-indigo-2" aria-label="回到文章列表">
-                    &larr; 回到文章列表
-                  </Link>
+                  <CustomLink
+                    href={`/${basePath}`}
+                    className="link main-link break-words before:content-['↖_']" // reverse arraw
+                    aria-label="回到文章列表"
+                  >
+                    回到文章列表
+                  </CustomLink>
                 </div>
               </footer>
             </div>

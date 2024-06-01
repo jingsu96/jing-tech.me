@@ -1,21 +1,29 @@
 import Link from '@/components/CustomLink';
+import Image from '@/components/Image';
+
+const RANDOM_IMAGES = ['/static/images/404_1.png', '/static/images/404_2.png'];
+
+const generateRandomImage = () => {
+  return RANDOM_IMAGES[Math.floor(Math.random() * RANDOM_IMAGES.length)];
+};
 
 export default function NotFound() {
+  const randomImage = generateRandomImage();
+
   return (
-    <div className="flex flex-col items-start justify-start md:mt-24 md:flex-row md:items-center md:justify-center md:space-x-6">
-      <div className="space-x-2 pb-8 pt-6 md:space-y-5">
-        <h1 className="text-6xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 md:border-r-2 md:px-6 md:text-8xl md:leading-14">
-          404
-        </h1>
-      </div>
-      <div className="max-w-md">
-        <p className="mb-4 text-xl font-bold leading-normal md:text-2xl">Sorry we couldn't find this page.</p>
-        <p className="mb-8">But dont worry, you can find plenty of other things on our homepage.</p>
+    <div className="flex min-h-[100dvh] w-full flex-col items-center justify-center gap-8 bg-bg-primary px-4">
+      <div className="flex max-w-md flex-col items-center justify-center gap-4 text-center">
+        <Image src={randomImage} width={300} height={300} alt="404 Illustration" className="mx-auto block" />
+        <h1 className="mt-[-3.5rem] text-4xl font-bold tracking-tighter sm:text-5xl">Page Not Found</h1>
+        <p className="text-gray-500 dark:text-gray-400">
+          The page you are looking for does not exist or has been moved.
+        </p>
         <Link
           href="/"
-          className="focus:shadow-outline-blue inline rounded-lg border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium leading-5 text-white shadow transition-colors duration-150 hover:bg-blue-700 focus:outline-none dark:hover:bg-blue-500"
+          className="inline-flex h-10 items-center justify-center rounded-md bg-gray-900 px-8 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
+          prefetch={false}
         >
-          Back to homepage
+          Go to Home
         </Link>
       </div>
     </div>
