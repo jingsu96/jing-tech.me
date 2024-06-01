@@ -11,6 +11,7 @@ import { FloatingHeader } from '@/components/lab/floating-header';
 import WritingListLayout from './WritingListLayout';
 import { WritingBreadcrumb } from '@/components/lab/writing-breadcrumb';
 import CustomLink from '@/components/CustomLink';
+import Share from '@/components/Share';
 
 const editUrl = (path) => `${siteMetadata.siteRepo}/blob/main/data/${path}`;
 const discussUrl = (path) =>
@@ -50,13 +51,17 @@ export default function PostLayout({ content, next, prev, children, filteredPost
                 <PageTitle className="!text-2xl font-bold">{title}</PageTitle>
               </div>
               <dl className="space-y-10 pt-2">
-                <div>
+                <div className="flex items-center">
                   <dt className="sr-only">文章發表於</dt>
                   <dd className="text-xs font-medium leading-6 text-gray-500 dark:text-gray-400">
                     <time dateTime={date}>
                       {new Date(date).toLocaleDateString(siteMetadata.locale, postDateTemplate)}
                     </time>
                   </dd>
+                  <span className="mx-2 text-xs font-medium text-gray-500 dark:text-gray-400">{'  •  '}</span>
+                  <div>
+                    <Share />
+                  </div>
                 </div>
               </dl>
             </div>

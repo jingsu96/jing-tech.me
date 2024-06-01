@@ -4,6 +4,7 @@ import siteMetadata from '@/data/siteMetadata';
 import { PropsWithChildren, useEffect, useState } from 'react';
 import { ArrowUp, MessageCircleMore } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import useMobileDetect from '@/hooks/useMobileDetect';
 
 const FloatButton = ({
   onClick,
@@ -24,21 +25,29 @@ const FloatButton = ({
 
 const ScrollTopAndComment = () => {
   const [show, setShow] = useState(false);
+  const { isMobile: getIsMobile } = useMobileDetect();
+  const isMobile = getIsMobile();
 
   useEffect(() => {
-    const jtArticle = document.getElementById('jt-article') as HTMLElement;
+    const element = isMobile ? window : document.getElementById('jt-article');
     const handleWindowScroll = () => {
-      if (jtArticle.scrollTop > 50) setShow(true);
+      const position = isMobile ? window.scrollY : (element as HTMLElement).scrollTop;
+      if (position > 50) setShow(true);
       else setShow(false);
     };
 
-    jtArticle.addEventListener('scroll', handleWindowScroll);
-    return () => jtArticle.removeEventListener('scroll', handleWindowScroll);
-  }, []);
+    if (!element) return;
+
+    element.addEventListener('scroll', handleWindowScroll);
+
+    return () => {
+      element.removeEventListener('scroll', handleWindowScroll);
+    };
+  }, [isMobile]);
 
   const handleScrollTop = () => {
-    const jtArticle = document.getElementById('jt-article') as HTMLElement;
-    jtArticle.scrollTo({ top: 0, behavior: 'smooth' });
+    const element = isMobile ? window : (document.getElementById('jt-article') as HTMLElement);
+    element.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleScrollToComment = () => {
@@ -53,7 +62,7 @@ const ScrollTopAndComment = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.5, ease: 'easeIn' }}
-          className={'fixed bottom-8 right-8 z-50 hidden flex-col gap-3 md:flex'}
+          className={'fixed bottom-2 right-2 z-50 flex flex-col gap-3 lg:bottom-8 lg:right-8'}
         >
           {siteMetadata.comments?.provider && (
             <FloatButton label="Scroll To Comment" onClick={handleScrollToComment}>

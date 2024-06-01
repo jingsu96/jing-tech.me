@@ -225,3 +225,9 @@ html body[data-scroll-locked] {
 .main-link:hover {
   box-shadow: inset 0 -8px 0 0 var(--jt-c-indigo-soft);
 }
+
+.dark {
+  .share-icon {
+    fill: white;
+  }
+}
