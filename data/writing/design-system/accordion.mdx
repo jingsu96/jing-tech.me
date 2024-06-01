@@ -67,7 +67,7 @@ Accordion 的特性：
 | `index`, `defaultIndex` | 展開收合可以是 controlled 或 uncontrolled 狀態 |
 | `allowMultiple`         | 可以同時展開多個 Accordion。                   |
 
-\*關於 controlled 與 uncontrolled 狀態，可以參考 [Design System 常用的 Hooks](/series/design-system/hooks#usecontrolledstate)，這邊就不再贅述。
+\*關於 controlled 與 uncontrolled 狀態，可以參考 [Design System 常用的 Hooks](/writing/design-system/hooks#usecontrolledstate)，這邊就不再贅述。
 
 ## 組件 API
 
@@ -113,7 +113,7 @@ Accordion 實作的重點整理：
 `Accordion`：
 
 1. 透過 [React Context API](https://react.dev/learn/passing-data-deeply-with-context) 建立 `AccordionContext` 來管理當前活動 (active) 的 `index`。
-2. 透過 [Collection API](/series/design-system/compound-component) 管理所有可聚焦 (focusable) 的元素，並且根據對應的鍵盤事件來控制聚焦 (focus) 的狀態。
+2. 透過 [Collection API](/writing/design-system/compound-component) 管理所有可聚焦 (focusable) 的元素，並且根據對應的鍵盤事件來控制聚焦 (focus) 的狀態。
 
 `AccordionItem`：
 

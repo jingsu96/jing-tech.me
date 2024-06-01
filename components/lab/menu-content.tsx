@@ -17,11 +17,12 @@ const LANDGUAGE = { 'zh-tw': '繁體中文', en: 'English' };
 
 const LanguageSelect = ({ className, iconSize = 20 }: { className?: string; iconSize?: number }) => {
   const changeLanguage = (newlocale) => {
+    console.log('===>', newlocale);
     window.location.href = `https://${locales[newlocale]}`;
   };
 
   return (
-    <Select defaultValue="en" onValueChange={changeLanguage}>
+    <Select defaultValue="zh-tw" onValueChange={changeLanguage}>
       <SelectTrigger
         className={cn(
           'mb-4 ml-auto mt-auto w-fit border-border focus:outline-none [&:has(:focus-visible)]:ring-1',

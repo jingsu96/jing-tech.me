@@ -15,7 +15,7 @@ order: 3
 
 深淺主題已經在前端社群風靡多年，小至個人部落格大至世界級客戶端應用 (例如: [Github](https://github.com/settings/appearance))，都有深淺色的切換功能，提供使用者可以自由地切換主題。
 
-而要讓一個網站可以無痛的切換深淺色，筆者認為最主要的原則就是在開發時遵循 [設計標籤 Design Token](/series/design-system/design-tokens)，也在先前 [設計標籤到 CSS](/series/design-system/style-dictionary) 的章節提到過其好處，如果色票沒有列在 Token 內則需要在應用層的 CSS 中去處理。本篇會介紹如何透過 `useTheme` 去控制應用的深淺主題。
+而要讓一個網站可以無痛的切換深淺色，筆者認為最主要的原則就是在開發時遵循 [設計標籤 Design Token](/writing/design-system/design-tokens)，也在先前 [設計標籤到 CSS](/writing/design-system/style-dictionary) 的章節提到過其好處，如果色票沒有列在 Token 內則需要在應用層的 CSS 中去處理。本篇會介紹如何透過 `useTheme` 去控制應用的深淺主題。
 
 ## 回顧
 
@@ -212,4 +212,4 @@ body {
 
 </Sandpack>
 
-可以看到上面引入了我們先前做的 [Button](/series/design-system/button) 組件，並且透過 `useTheme` 去控制 `data-theme` 的值，這樣就可以讓設計系統能夠支援切換深淺色主題。
+可以看到上面引入了我們先前做的 [Button](/writing/design-system/button) 組件，並且透過 `useTheme` 去控制 `data-theme` 的值，這樣就可以讓設計系統能夠支援切換深淺色主題。
