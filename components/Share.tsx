@@ -1,36 +1,59 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/lab/ui/button';
 import { Threads, X } from './social-icons/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Copy, CopyCheck } from 'lucide-react';
 
 export default function Share() {
   const pathname = usePathname();
   const shareUrl = `https://v2.jing-tech.me/${pathname}`;
+  const [copied, setCopied] = useState(false);
+
+  const onCopy = () => {
+    setCopied(true);
+    navigator.clipboard.writeText(shareUrl);
+
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+  };
+
   return (
-    <div className="flex items-center">
-      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">分享到：</span>
-      <Button asChild variant="ghost" size="sm" className="hover:bg-[#1DA1F2]/10">
-        <Link
-          target="_blank"
-          rel="noopener noreferrer"
-          href={`https://twitter.com/share?url=${encodeURI(shareUrl)}&text=${encodeURI(`@jing_tech_tw`)}`}
-        >
-          <X className="share-icon h-3 w-3" />
-          <span className="sr-only">Share on Twitter</span>
-        </Link>
-      </Button>
-      <Button variant="ghost" size="sm" className="hover:bg-[#1DA1F2]/10">
-        <Link
-          target="_blank"
-          rel="noopener noreferrer"
-          href={`https://threads.net/intent/post?text=${encodeURI(`${shareUrl} @jing.tech`)}`}
-        >
-          <Threads className="share-icon h-3 w-3" />
-          <span className="sr-only">Share on Facebook</span>
-        </Link>
-      </Button>
+    <div className="flex flex-col items-center gap-y-3">
+      <span className="text-text-3">點選下方按鈕，將本文分享更多人知道</span>
+      <div className="flex items-center justify-center gap-x-3">
+        <Button asChild variant="ghost" size="icon" className="bg-[#1DA1F2]/5 hover:bg-[#1DA1F2]/10">
+          <Link
+            target="_blank"
+            rel="noopener noreferrer"
+            href={`https://twitter.com/share?url=${encodeURI(shareUrl)}&text=${encodeURI(`@jing_tech_tw`)}`}
+          >
+            <X className="share-icon h-5 w-5" />
+            <span className="sr-only">Share on Twitter</span>
+          </Link>
+        </Button>
+        <Button variant="ghost" size="icon" className="bg-[#1DA1F2]/5 hover:bg-[#1DA1F2]/10">
+          <Link
+            target="_blank"
+            rel="noopener noreferrer"
+            href={`https://threads.net/intent/post?text=${encodeURI(`${shareUrl} @jing.tech`)}`}
+          >
+            <Threads className="share-icon h-5 w-5" />
+            <span className="sr-only">Share on Thread</span>
+          </Link>
+        </Button>
+        <Button variant="ghost" size="icon" className="bg-[#1DA1F2]/5 hover:bg-[#1DA1F2]/10">
+          {copied ? (
+            <CopyCheck className="h-5 w-5 text-black dark:text-white hover:dark:text-white" />
+          ) : (
+            <Copy className="h-5 w-5 text-black dark:text-white hover:dark:text-white" onClick={onCopy} />
+          )}
+          <span className="sr-only">Copy</span>
+        </Button>
+      </div>
     </div>
   );
 }

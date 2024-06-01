@@ -58,10 +58,6 @@ export default function PostLayout({ content, next, prev, children, filteredPost
                       {new Date(date).toLocaleDateString(siteMetadata.locale, postDateTemplate)}
                     </time>
                   </dd>
-                  <span className="mx-2 text-xs font-medium text-gray-500 dark:text-gray-400">{'  •  '}</span>
-                  <div>
-                    <Share />
-                  </div>
                 </div>
               </dl>
             </div>
@@ -70,11 +66,7 @@ export default function PostLayout({ content, next, prev, children, filteredPost
             <div className="divide-y divide-gray-200 dark:divide-gray-700 xl:col-span-4 xl:row-span-2 xl:pb-0">
               <div className="prose max-w-none pb-8 pt-10 dark:prose-invert">{children}</div>
               <div className="pb-6 pt-6 text-sm text-gray-700 dark:text-gray-300">
-                <Link href={discussUrl(path)} rel="nofollow">
-                  Discuss on Twitter
-                </Link>
-                {` • `}
-                <Link href={editUrl(filePath)}>View on GitHub</Link>
+                <Share />
               </div>
               {siteMetadata.comments && (
                 <div className="pb-6 pt-6 text-center text-gray-700 dark:text-gray-300" id="comment">
