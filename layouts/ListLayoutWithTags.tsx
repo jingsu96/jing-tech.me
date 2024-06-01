@@ -152,7 +152,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
           </div>
         </div>
         <div className="flex flex-row justify-start px-5 lg:mt-12 lg:flex-1 lg:flex-col lg:items-center">
-          <ul className="mx-auto w-full max-w-[calc(750px+8vw)] divide-y divide-slate-200 dark:text-divider md:px-[4vw]">
+          <ul className="mx-auto w-full max-w-[calc(750px+8vw)] divide-y divide-divider dark:text-divider md:px-[4vw]">
             {displayPosts.map((post) => {
               const { path, date, title, tags } = post;
               return <ListItem key={path} date={date} title={title} path={path} tags={tags} />;

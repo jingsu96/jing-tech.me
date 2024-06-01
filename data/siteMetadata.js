@@ -14,7 +14,7 @@ const siteMetadata = {
   socialBanner: '/static/images/logo.jpeg',
   email: 'jing.tech.tw@gmail.com',
   github: 'https://github.com/jingsu96/',
-  twitter: 'https://twitter.com/Jing19794341',
+  twitter: 'https://twitter.com/jing_tech_tw',
   linkedin: 'https://www.linkedin.com/in/jinghuang-su/',
   buymeacoffee: 'https://www.buymeacoffee.com/jingtech',
   instagram: 'https://www.instagram.com/jing.tech/',
