@@ -333,7 +333,7 @@ while <condition> {
 像是 Day 6 的 `factorial` 函式，我們可以用 `while` 來實作。
 
 ```rust
-fn factorial(n: u32): u32 {
+fn factorial(n: u32) -> u32 {
     let mut result = 1;
     let mut cnt = n;
 
@@ -347,3 +347,249 @@ fn factorial(n: u32): u32 {
 ```
 
 這邊很重要的一點是，Rust 變數是預設不可變的，所以我們必須使用 `mut` 來宣告變數是可變的。
+
+## Day 8
+
+### 閱讀主題
+
+[Basic Calculator - Loops:for](https://rust-exercises.com/02_basic_calculator/07_for)
+
+### For Loop
+
+在 Day 7 天時，我們學習了 `while` 迴圈，但手動的去做迴圈的計數是很麻煩的，為了讓這個過程更簡單，今天要來介紹 `for` 迴圈。
+
+```rust
+for <variable> in <iterator> {
+    // code
+}
+```
+
+#### Ranges
+
+Rust 提供 range 來讓我們更方便地使用 `for` 迴圈。
+
+```rust
+for count in 1..=5 {
+    println!("{}", count);
+}
+```
+
+這個 range 會印出 1 到 5。
+
+每次迭代時，`count` 會被設定為 range 中的值。舉例來說，第一次迭代時，`count` 會是 1，第二次迭代時，`count` 會是 2，以此類推。
+
+而 range 也有不同的寫法：
+
+<div class="md:w-fit">
+
+| Range | 描述              |
+| :---: | :---------------- |
+| 1..5  | 1 到 4, \[1, 5\)  |
+| 1..=5 | 1 到 5, [1, 5]    |
+|  ..5  | 0 到 4, \[0, 5\)  |
+| ..=5  | 0 到 5, [0, 5]    |
+|  0..  | 0 到無窮, \[0, ∞) |
+
+</div>
+
+極值也可以是變數：
+
+```rust
+let start = 1;
+let end = 5;
+
+for count in start..=end {
+    println!("{}", count); // 1, 2, 3, 4, 5
+}
+```
+
+像是 Day 6 的 `factorial` 函式，我們可以用 `for` 來實作。
+
+```rust
+fn factorial(n: u32) -> u32 {
+    let mut result = 1;
+
+    for count in 1..=n {
+        result *= count;
+    }
+
+    return result;
+}
+```
+
+## Day 9 - Day 10
+
+### 閱讀主題
+
+[Basic Calculator - Overflow and underflow](https://rust-exercises.com/02_basic_calculator/08_overflow)
+
+### Overflow and Underflow
+
+在 Day 6 的 `factorial` 函式中，我們使用了 `u32` 來計算階乘，但是 `u32` 的範圍是 0 到 \(2^{32}-1\)，但當 factorial 的結果超過這個範圍時，會發生什麼事呢？
+
+```rust
+fn factorial(n: u32) -> u32 {
+    let mut result = 1;
+
+    for count in 1..=n {
+        result *= count;
+    }
+
+    return result;
+}
+
+fn main() {
+    println!("{}", factorial(20)); // 2432902008176640000
+    println!("{}", factorial(21)); // 51090942171709440000
+}
+```
+
+當我們計算 `factorial(21)` 時，會發生 overflow，Rust 會在編譯時檢查這個問題，並發出警告。
+
+```bash
+thread 'main' panicked at 'attempt to multiply with overflow', src/main.rs:6:9
+```
+
+相反的，如果當結果小於 0 時，會發生 underflow。
+
+### No Automatic Promotion
+
+像先前所提到的 Rust 不會自動提升數字的型別，所以我們必須明確地指定型別。
+
+而這個替代方案有兩個：
+
+1. 停止計算，並回傳一個錯誤。(我們可以使用 `panic!` 宏來中斷程式)
+2. 提出一個明智的解決方案 (環繞)。(Come up with a "sensible" result)
+
+   當算術運算的結果大於給定整數類型的最大值時，您可以選擇 wrap around。舉例來說，當 `u8` 的最大值是 255，當你對 255 加 1 時，結果會是 0。這樣的好處是可以讓程序在發生整數溢出時繼續運行，並且提供一個可預測且符合某些特定需求的結果。
+
+   ```rust
+    // 在圖形處理和遊戲開發中，經常需要處理像素位置。
+    鞥如果一個物體移動到屏幕邊界，可能希望它從另一邊出現，這也是環繞計算的應用。
+    struct Position {
+        x: u8,
+        y: u8,
+    }
+
+    fn move_right(pos: &mut Position, step: u8, width: u8) {
+        pos.x = (pos.x + step) % width;
+    }
+
+    let mut pos = Position { x: 250, y: 100 };
+    let screen_width = 255;
+
+    move_right(&mut pos, 10, screen_width);
+    println!("New Position: ({}, {})", pos.x, pos.y);
+   ```
+
+### overflow checker
+
+Rust 讓開發人員在整數溢位發生時選擇使用哪種方法。行為由 overflow-checks 配置設定控制。
+
+如果 overflow-checks 設置為 true ，當整數操作溢出時，Rust 將在運行時出現 panic。如果 overflow-checks 設置為 false ，當整數操作溢出時，Rust 將會環繞。
+
+那要如何設定，Rust 主要分成兩種模式：
+
+1. Debug Mode
+
+   在 Debug Mode 下，Rust 會開啟 overflow-checks，這樣可以讓開發人員在開發時發現問題。
+
+   ```bash
+   cargo run
+   ```
+
+2. Release Mode
+
+   在 Release Mode 下，Rust 會關閉 overflow-checks，這樣可以讓程式在運行時更快。
+
+   ```bash
+   cargo run --release
+   ```
+
+但建議在兩個配置文件中都啟用 overflow-checks ：最好是崩潰，而不是默默地產生不正確的結果。在大多數情況下，運行時性能損失是可以忽略的；如果您正在開發一個性能關鍵的應用程序，您可以運行基準測試來決定您是否負擔得起這個。
+
+### Behavior of Overflow
+
+overflow-checks 是一個粗糙的工具：它是一個影響整個程式的全域設定。
+
+如果您想要更細粒度地控制整數溢位的行為，您可以使用標準庫中提供的方法。例如，您可以使用 `wrapping_add` 方法來執行加法，這樣就可以避免溢位。
+
+```rust
+let x = 255u8;
+let y = 1u8;
+let sum = x.wrapping_add(y);
+assert_eq!(sum, 0);
+```
+
+可以看到，當 `x` 加 `y` 時，結果會是 0，這是因為 `u8` 的範圍是 0 到 255，當加 1 時，會環繞到 0。
+
+又或是可以使用 `saturating_` 方法，當溢位時，會回傳最大值或最小值。
+
+```rust
+fn main() {
+    let x = 255u8;
+    let y = 1u8;
+
+    let z = x.saturating_add(y);
+    println!("{:?}", z); // 255
+}
+```
+
+由於 `u8` 的範圍是 0 到 255，當加 1 時，會回傳 255。
+
+## Day 11
+
+### 閱讀主題
+
+[Conversion Part 1](https://rust-exercises.com/02_basic_calculator/10_as_casting)
+
+### Conversion
+
+在 Rust 中，我們可以透過 `as` 來進行型別轉換。
+
+```rust
+let a: u32 = 10;
+
+// Cast `a` into the `u64` type
+let b = a as u64;
+
+// You can use `_` as the target type
+// if it can be correctly inferred
+// by the compiler. For example:
+let c: u64 = a as _;
+```
+
+這種轉換的語義是您所期望的：所有 u32 值都是有效的 u64 值。
+
+### Truncation
+
+```rust
+// A number that's too big
+// to fit into a `u8`
+let a: u16 = 255 + 1;
+let b = a as u8;
+```
+
+這個程式將不會出現問題，因為 as 轉換是無誤的。但 b 的值是多少呢？當從較大的整數類型轉換為較小的時，Rust 編譯器將執行截斷。
+
+為了了解發生了什麼，讓我們從看看 256u16 在記憶體中是如何表示的，作為一系列位元的開始：
+
+```bash
+0000  0001   0000 0000
+|_ 8 bits_||_ 8 bits_|
+```
+
+當我們將這個數字轉換為 u8 時，我們只保留最後 8 位：
+
+```bash
+0000 0000
+|_ 8 bits_|
+```
+
+這個數字是 0，這就是為什麼 b 的值是 0。但在大多數情況下，這並不理想。
+
+### Recommendation
+
+作為一個經驗法則，對於 as 的投射要非常小心。
+
+將其專門用於從較小的類型轉換為較大的類型。要將較大的整數類型轉換為較小的整數類型，請依賴我們稍後在課程中將探討的不可靠轉換機制。
