@@ -63,7 +63,7 @@ export default function Home({ posts: items, authors }) {
             </div>
           </div>
         </div>
-        <div className="my-4 lg:my-4">
+        <div className="mt-4 lg:my-4">
           <h1 className="text-m mb-m font-bold leading-tight text-[#ff0a78] dark:text-[#ff0a78] sm:text-lg">
             最新文章
           </h1>

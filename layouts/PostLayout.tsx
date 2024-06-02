@@ -44,9 +44,8 @@ export default function PostLayout({ content, next, prev, children, filteredPost
       <FloatingHeader scrollTitle="Writing" />
       <WritingListLayout filteredPosts={filteredPosts} slug={slug} classname="hidden lg:flex" />
       <ScrollArea className="hidden w-full lg:flex">
-        {' '}
         <article id="jt-article">
-          <div className="max-w-[750px] flex-1 px-6 lg:px-[5rem] xl:divide-y xl:divide-gray-200 xl:px-12 xl:dark:divide-gray-700 2xl:max-w-[1000px] 3xl:mx-auto 3xl:max-w-[1000px]">
+          <div className="max-w-[750px] flex-1 px-6 pt-4 lg:px-[5rem] lg:pt-0 xl:divide-y xl:divide-gray-200 xl:px-12 xl:dark:divide-gray-700 2xl:max-w-[1000px] 3xl:mx-auto 3xl:max-w-[1000px]">
             <header className="lg:pt-6 xl:pb-6">
               <WritingBreadcrumb path={path} className="flex w-full pb-4 lg:py-4" />
               <div className="sp">
