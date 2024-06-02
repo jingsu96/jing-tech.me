@@ -10,6 +10,7 @@ import { FloatingHeader } from '@/components/lab/floating-header';
 import { cn } from '@/lib/utils';
 import ListItem from '@/components/ListItem';
 import { TOPIC_EN_TO_ZH } from '@/lib/constants';
+import { ScrollArea } from '@/components/lab/scroll-area';
 
 interface PaginationProps {
   totalPages: number;
@@ -151,30 +152,32 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
             })}
           </div>
         </div>
-        <div className="flex flex-row justify-start px-5 lg:mt-12 lg:flex-1 lg:flex-col lg:items-center">
-          <ul className="mx-auto w-full max-w-[calc(750px+8vw)] divide-y divide-divider dark:text-divider md:px-[4vw]">
-            {displayPosts.map((post) => {
-              const { path, date, title, tags } = post;
-              return <ListItem key={path} date={date} title={title} path={path} tags={tags} />;
-            })}
-          </ul>
+        <ScrollArea className="hidden w-full lg:flex">
+          <div className="flex flex-row justify-start px-5 lg:mt-12 lg:flex-1 lg:flex-col lg:items-center">
+            <ul className="mx-auto w-full max-w-[calc(750px+8vw)] divide-y divide-divider dark:text-divider md:px-[4vw]">
+              {displayPosts.map((post) => {
+                const { path, date, title, tags } = post;
+                return <ListItem key={path} date={date} title={title} path={path} tags={tags} />;
+              })}
+            </ul>
+            {pagination && pagination.totalPages > 1 && (
+              <Pagination
+                className="hidden lg:flex lg:w-[60%]"
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                v2={pagination.v2}
+              />
+            )}
+          </div>
           {pagination && pagination.totalPages > 1 && (
             <Pagination
-              className="hidden lg:flex lg:w-[60%]"
+              className="flex lg:hidden"
               currentPage={pagination.currentPage}
               totalPages={pagination.totalPages}
               v2={pagination.v2}
             />
           )}
-        </div>
-        {pagination && pagination.totalPages > 1 && (
-          <Pagination
-            className="flex lg:hidden"
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            v2={pagination.v2}
-          />
-        )}
+        </ScrollArea>
       </div>
     </>
   );
