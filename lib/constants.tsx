@@ -162,6 +162,10 @@ export const ORDER = {
     書籍: 2,
     實作: 3,
   },
+  'writing/rust/beginner/100-exercises-to-learn-rust': {
+    基本介紹: 1,
+    筆記: 2,
+  },
   'writing/design-system': {
     基本介紹: 1,
     無障礙設計: 2,
@@ -175,6 +179,9 @@ export const ORDER = {
     面試: 2,
     職涯: 3,
   },
+  'writing/others': {
+    部落格: 1,
+  },
 };
 
 export const TOPIC_EN_TO_ZH = {
@@ -183,4 +190,5 @@ export const TOPIC_EN_TO_ZH = {
   rust: 'Rust',
   javascript: 'JavaScript',
   'user-experience': '使用者體驗',
+  others: '隨記',
 };

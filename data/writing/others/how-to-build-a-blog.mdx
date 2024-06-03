@@ -1,0 +1,72 @@
+---
+title: '如何建立一個部落格？'
+date: '2024-06-03'
+tags: ['others']
+draft: false
+summary: 這篇文章將會介紹如何建立一個部落格，並且使用 Vercel 部署
+topic: '部落格'
+---
+
+Jing Tech 部落格的改版進度終於完成 80%，目前會先在 v2.jing-tech.me 進行測試，由於許多文章內容需要進行遷移與重新校正，還有一些想要新增的功能，預計在這個月底才會正式移到 jing-tech.me，非常歡迎各位讀者給予回饋與建議！
+
+## 動機
+
+這次改版的動機主要是覺得 [jing-tech.me](https://www.jing-tech.me) 目前整體的 UI Layout、SEO 以及互動性都有很多地方可以改進，也剛好發現一個非常喜歡的部落格設計 ([onur.dev](https://onur.dev))，所以決定用每日下班後的一些時間來進行改版。
+
+## 使用者介面
+
+基本上就是模仿 onur.dev 進行使用者介面的改版，同時加入了一些自己的想法。
+
+### 首頁
+
+<Image
+  src="/static/images/blog/others/how-to-build-a-blog/home.png"
+  alt="home"
+  width="1441"
+  height="867"
+/>
+
+### 文章列表
+
+<Image
+  src="/static/images/blog/others/how-to-build-a-blog/article.png"
+  alt="aritcles"
+  width="1441"
+  height="867"
+/>
+
+### 主題頁面
+
+<Image
+  src="/static/images/blog/others/how-to-build-a-blog/writing.png"
+  alt="writing"
+  width="1441"
+  height="867"
+/>
+
+## 如何建立？
+
+隨著越來越多部落格模板的出現，讓建立部落格這件事變得非常簡單，同時也可以透過每次的改版加入一些自己想要學習的技術。這次主要參考了 [onur.dev](https://onur.dev) 的設計以及 [tailwind-nextjs-starter-blog](https://github.com/timlrx/tailwind-nextjs-starter-blog) 所內建的功能 (像是搜尋、留言以及深淺色等這個 starter 都有)。
+
+在 v2 也延續了原版的 jing-tech.me 加入了 [Sandpack](https://github.com/codesandbox/sandpack)，主要是強化閱讀程式碼時的互動性。
+
+整體的使用體驗與一些小設計上可以透過 [shadcn/ui](https://ui.shadcn.com/), [v0.dev](https://v0.dev/) 與 [github coplit](https://github.com/features/copilot) 來完成，透過它們可以快速的完成 UI。
+
+Icon 部分非常推薦 [lucide](https://lucide.dev/icons/) 其涵蓋了大多數在開發時所需要的圖示。
+
+其他一些小修改像是加強前後頁切換的的連貫性、新增頁面路徑、圖片放大、手機上主題頁面切換以及新增分享文章功能。
+
+<Image
+  src="/static/images/blog/others/how-to-build-a-blog/ux.gif"
+  alt="writing"
+  width="190"
+  height="412"
+/>
+
+如果讀者有興趣的話，這次筆者也有建立一個[模版 Repo](https://github.com/jingsu96/starter-blog)，儘管還是有蠻多問題的，但會在持續優化。
+
+## 部署
+
+可以先到任何一個網域託管上買一個網址 (筆者是用 [squarespace](https://domains.squarespace.com/))。
+
+而部署部落格目前覺得的最簡單方法就是使用 [Vercel](https://vercel.com) 部署。可以看 [Next.js 部署文檔](https://nextjs.org/docs/app/building-your-application/deploying) 查看更多。

@@ -1,0 +1,133 @@
+---
+title: 'Chapter 2: Ticket v1'
+date: '2024-06-03'
+tags: ['rust']
+draft: true
+authors: ['default']
+topic: '筆記'
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## [100 Rust Exercises](https://rust-exercises.com/01_intro/00_welcome)
+
+## Day 12
+
+### 閱讀主題
+
+[Struct](https://rust-exercises.com/03_ticket_v1/01_struct)
+
+#### 情境
+
+假設現在我們需要建立一個類似 Jira 的票券系統，我們需要建立一個 `Ticket` 結構，並且這個結構需要有以下欄位：
+
+- `title`：票券標題
+- `description`：票券描述
+- `status`：票券狀態，可以是 `Open` 或 `Closed`
+
+在其他語言中，像是 TypeScript，我們會用 `interface` 來定義這個結構：
+
+```typescript
+interface Ticket {
+  title: string
+  description: string
+  status: 'Open' | 'Closed'
+}
+```
+
+#### 定義
+
+在 Rust 中也有類似的概念，我們可以使用 `struct` 來定義：
+
+```rust
+struct Ticket {
+    title: String,
+    description: String,
+    status: String,
+}
+```
+
+每個欄位都必須有一個名稱和一個類型，但每個欄位的型別可以根據需求不同而不同，例如 `Configuration`
+
+```rust
+struct Configuration {
+    version: u32,
+    active: bool
+}
+```
+
+#### 實例化 (Instantiation)
+
+在 Rust 中，我們可以使用 `let` 關鍵字來建立一個 `Ticket` 的實例：
+
+```rust
+
+
+let ticket = Ticket {
+    title: "Fix the bug".into(),
+    description: "The bug is in the login page".into(),
+    status: "Open".into(),
+};
+```
+
+`into` 是一個 `String` 的方法，可以將 `&str` 轉換成 `String`。而這兩者的差別之後會在 Heap 和 Stack 的章節中提到。
+
+#### 方法 (Methods)
+
+在 Rust 中，我們可以為 `struct` 定義方法，例如：
+
+```rust
+impl Ticket {
+    fn close(&mut self) {
+        self.status = "Closed".into();
+    }
+}
+
+// Syntax:
+// impl <StructName> {
+//    fn <method_name>(<parameters>) -> <return_type> {
+//        // Method body
+//    }
+// }
+```
+
+透過 `impl` 語法，我們可以為 `Ticket` 定義一個 `close` 方法，這個方法會將 `status` 設定為 `Closed`。
+
+方法與函式的差別有二：
+
+1. 方法可能使用 `self` 作為它們的第一個參數。 `self` 是一個關鍵字，代表該方法被調用的結構實例。
+2. 方法必須在 impl 區塊內定義
+
+如果使用 `self` 作為它們的第一個參數，我們則可以在方法中訪問結構的屬性。在上面的例子中，我們可以訪問 `status` 屬性並將其設置為 `Closed`。
+
+```rust
+fn main() {
+    let mut ticket = Ticket {
+        title: "Fix the bug".into(),
+        description: "The bug is in the login page".into(),
+        status: "Open".into(),
+    };
+
+    ticket.close();
+    println!("{:?}", ticket);
+}
+```
+
+如果方法第一個參數不是 `self`，那就會是靜態方法，這個方法可以直接透過 `::` 語法呼叫：
+
+```rust
+impl Ticket {
+    fn new(title: &str, description: &str) -> Ticket {
+        Ticket {
+            title: title.into(),
+            description: description.into(),
+            status: "Open".into(),
+        }
+    }
+}
+
+fn main() {
+    let ticket = Ticket::new("Fix the bug", "The bug is in the login page");
+    println!("{:?}", ticket);
+}
+```

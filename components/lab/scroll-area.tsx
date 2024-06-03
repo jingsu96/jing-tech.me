@@ -13,6 +13,7 @@ export const ScrollArea = ({
 }>) => (
   <>
     <div
+      id="jt-article"
       {...(useScrollAreaId && { id: SCROLL_AREA_ID })}
       className={cn('scrollable-area relative flex w-full flex-col', className)}
       {...rest}
