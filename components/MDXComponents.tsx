@@ -32,6 +32,11 @@ export const components: MDXComponents = {
   tfoot: TableFooter,
   tr: TableRow,
   caption: TableCaption,
+  h4: (props) => (
+    <h4 {...props} className="text-[1.125em]">
+      {props.children}
+    </h4>
+  ),
   // Custom
   BlogNewsletterForm,
   Sandpack,

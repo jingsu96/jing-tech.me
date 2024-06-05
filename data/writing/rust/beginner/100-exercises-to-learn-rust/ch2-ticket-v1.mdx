@@ -131,3 +131,146 @@ fn main() {
     println!("{:?}", ticket);
 }
 ```
+
+## Day 13
+
+### 閱讀主題
+
+[Validation](https://rust-exercises.com/03_ticket_v1/02_validation)
+
+### 回顧 Day 12
+
+在 Day 12 我們將 `Ticket` 結構定義為：
+
+```rust
+struct Ticket {
+    title: String,
+    description: String,
+    status: String,
+}
+```
+
+但仔細看會發現，這意味著用戶可以創建一個標題為空的票，一個超級長的描述或一個不合理的狀態（例如“不想做”)，這不是我們想要的。
+
+而在 Day 13 的[作業](https://github.com/mainmatter/100-exercises-to-learn-rust/tree/main/exercises/03_ticket_v1/02_validation)中，就是要解決如何對 `Ticket` 結構進行驗證。
+
+## Day 14
+
+### 閱讀主題
+
+[Module](https://rust-exercises.com/03_ticket_v1/03_modules)
+
+### 封裝 (Encapsulation)
+
+要實現適當的封裝，你需要熟悉兩個新概念：可見性和模組。讓我們從模組開始。
+
+#### 模組 (Modules)]
+
+在 Rust 中，模組是將相關程式碼組合在一起的一種方式，並置於一個共同的命名空間（即模組名稱）之下。
+
+```rust
+mod ticket {
+    struct Ticket {
+        title: String,
+        description: String,
+        status: String,
+    }
+}
+```
+
+其包含了以下兩個部分：
+
+1. 模組聲明（`mod ticket`）
+2. 模組內容（`struct Ticket`）
+
+模組也可以內嵌在其他模組中：
+
+```rust
+mod ticket {
+    pub struct Ticket {
+        title: String,
+        description: String,
+        status: String,
+    }
+
+    mod validation {
+        pub fn is_valid(ticket: &Ticket) -> bool {
+            ticket.title.len() > 0 && ticket.description.len() > 0
+        }
+    }
+
+    mod status {
+        pub fn close(ticket: &mut Ticket) {
+            ticket.status = "Closed".into();
+        }
+    }
+}
+```
+
+#### 外部模組 (External Modules)
+
+內聯模組對於小段程式碼很有用，但隨著專案的成長，我們可能會希望將程式碼分割成多個檔案。在父模組中，你可以使用 mod 關鍵字宣告子模組的存在。
+
+```rust
+mod ticket;
+```
+
+如果模組宣告在模組根目錄下（如 `src/lib.rs` 或 `src/main.rs` ），則 cargo 希望檔案命名為任一名稱：
+
+- `src/<module_name>.rs`
+- `src/<module_name>/mod.rs`
+
+如果我們的的模組是另一個模組的子模組，檔案應命名為
+
+- `[..]/<parent_module>/<module_name>.rs`
+- `[..]/<parent_module>/<module_name>/mod.rs`
+
+例如，如果 dog 是 animals 的子模組，則 `src/animals/dog.rs` 或 `src/animals/dog/mod.rs` 。
+
+#### 使用模組
+
+如果模組間不在同一個檔案中，我們可以使用 `use` 關鍵字來引入模組：
+
+有三種方式可以引入模組：
+
+- 從目前板條箱的根開始，例如 `crate::module_1::module_2::MyStruct`
+- 從父模組開始，例如 `super::my_function`
+- 從目前模組開始，例如 `sub_module_1::MyStruct`
+
+```rust
+fn main() {
+    let mut ticket = ticket::Ticket {
+        title: "Fix the bug".into(),
+        description: "The bug is in the login page".into(),
+        status: "Open".into(),
+    };
+
+    ticket::status::close(&mut ticket);
+    println!("{:?}", ticket);
+}
+```
+
+然而每次要引用一個型別時，都要寫出完整的路徑可能會很麻煩。為了方便起見，您可以使用 use 語句將實體引入作用域。
+
+```Rust
+use ticket::Ticket;
+
+fn main() {
+    let mut ticket = Ticket {
+        title: "Fix the bug".into(),
+        description: "The bug is in the login page".into(),
+        status: "Open".into(),
+    };
+
+    ticket::status::close(&mut ticket);
+    println!("{:?}", ticket);
+}
+```
+
+引入所有模組：
+
+```rust
+use ticket::*;
+```
+
+一般不鼓勵這樣做，因為這會污染目前的命名空間，使人難以理解每個名稱的來源，並可能帶來名稱衝突。

@@ -182,6 +182,9 @@ export const ORDER = {
   'writing/others': {
     部落格: 1,
   },
+  'writing/user-experiences/practical': {
+    使用者介面: 1,
+  },
 };
 
 export const TOPIC_EN_TO_ZH = {
