@@ -132,6 +132,7 @@ export const Blog = defineDocumentType(() => ({
     canonicalUrl: { type: 'string' },
     topic: { type: 'string' },
     order: { type: 'number' },
+    isSubTopic: { type: 'boolean' },
   },
   computedFields: {
     ...computedFields,

@@ -43,6 +43,7 @@ html.dark .sp-wrapper {
 .sp-tabs,
 .sp-tab-button:hover {
   background: none !important;
+  border: none !important;
 }
 
 .sp-stack .sp-code-editor,

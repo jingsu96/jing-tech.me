@@ -23,7 +23,9 @@ export default function Share() {
 
   return (
     <div className="flex flex-col items-center gap-y-3">
-      <span className="text-text-3">點選下方按鈕，將本文分享更多人知道</span>
+      <span className="text-text-2">
+        如果您喜歡這篇文章，請點擊下方按鈕分享給更多人，這將是對筆者創作的最大支持和鼓勵。
+      </span>
       <div className="flex items-center justify-center gap-x-3">
         <Button asChild variant="ghost" size="icon" className="bg-[#1DA1F2]/5 hover:bg-[#1DA1F2]/10">
           <Link

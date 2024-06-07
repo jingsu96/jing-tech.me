@@ -46,7 +46,7 @@ const CodeBlock = function CodeBlock({ children, className = 'language-js' }) {
     <div key={theme} ref={textInput} onMouseEnter={onEnter} onMouseLeave={onExit} className="relative">
       {hovered && (
         <button aria-label="Copy code" type="button" className={`absolute right-2 top-2 h-8 w-8`} onClick={onCopy}>
-          {copied ? <Check size={16} /> : <Copy size={16} />}
+          {copied ? <Check size={16} className="text-text-2" /> : <Copy size={16} className="text-text-2" />}
         </button>
       )}
       <Highlight

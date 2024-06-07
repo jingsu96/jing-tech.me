@@ -17,7 +17,6 @@ const LANDGUAGE = { 'zh-tw': '繁體中文', en: 'English' };
 
 const LanguageSelect = ({ className, iconSize = 20 }: { className?: string; iconSize?: number }) => {
   const changeLanguage = (newlocale) => {
-    console.log('===>', newlocale);
     window.location.href = `https://${locales[newlocale]}`;
   };
 

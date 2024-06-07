@@ -63,7 +63,7 @@ export function TopicAccordion({
       <Accordion className="w-full" type="single" collapsible defaultValue={currentTopic}>
         {groupedPost
           ?.map?.(({ topic, posts }: { topic: string; posts: any[] }) => {
-            if (!topic) {
+            if (!topic || !groupedPost) {
               return posts?.map?.((post) => (
                 <WritingLink key={post.slug} post={post} isActive={post.slug === slug} className="my-1" />
               ));

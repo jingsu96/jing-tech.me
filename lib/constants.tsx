@@ -185,6 +185,13 @@ export const ORDER = {
   'writing/user-experiences/practical': {
     使用者介面: 1,
   },
+  'writing/javascript/lodash': {
+    基本介紹: 1,
+    '主題 - 陣列': 2,
+  },
+  'writing/javascript/lodash/array': {
+    基本題型: 1,
+  },
 };
 
 export const TOPIC_EN_TO_ZH = {

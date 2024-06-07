@@ -274,3 +274,168 @@ use ticket::*;
 ```
 
 一般不鼓勵這樣做，因為這會污染目前的命名空間，使人難以理解每個名稱的來源，並可能帶來名稱衝突。
+
+## Day 15
+
+### 閱讀主題
+
+[Visibility](https://rust-exercises.com/03_ticket_v1/04_visibility)
+
+Rust 中，模組內部的所有項目（例如函數、結構體、模組等）預設都是私有的，只能在定義它們的模組內部訪問。如果希望某些實體可以被其他模組訪問，需要使用能見度修飾符來修改其能見度。
+
+Rust 模組都是預設私有的，其只能被
+
+1. within the same module where it's defined, or
+2. by one of its submodules
+
+而如果我們想要讓模組中的某些實體可以被其他模組存取，我們根據需求可以使用以下常見的能見度修改器：
+
+1. pub：使實體成為公共實體，可以從定義實體的模組外部訪問，包括其他 `crate`。
+
+✅
+
+```rust
+mod my_module {
+    pub struct PublicStruct {
+        pub field: i32,
+    }
+}
+
+fn main() {
+    // 可以從模組外部訪問 PublicStruct
+    let instance = my_module::PublicStruct { field: 42 };
+    println!("Field: {}", instance.field);
+}
+```
+
+❌
+
+```rust
+mod my_module {
+    struct PrivateStruct {
+        field: i32,
+    }
+}
+
+fn main() {
+    // 嘗試從模組外部訪問 PrivateStruct 會導致編譯錯誤
+    // let instance = my_module::PrivateStruct { field: 42 }; // 編譯錯誤
+}
+```
+
+2. pub(crate) ：使實體在相同 crate 中公開，但不能在 crate 外部訪問。
+
+✅
+
+```rust
+mod my_module {
+    pub(crate) struct CrateStruct {
+        pub(crate) field: i32,
+    }
+}
+
+fn main() {
+    // 可以在相同 crate 中訪問 CrateStruct
+    let instance = my_module::CrateStruct { field: 42 };
+    println!("Field: {}", instance.field);
+}
+```
+
+❌
+
+```rust
+// main.rs
+mod my_module {
+    pub(crate) struct CrateStruct {
+        pub(crate) field: i32,
+    }
+}
+
+// another_module.rs
+fn main() {
+    // 嘗試在另一個 crate 中訪問 CrateStruct 會導致編譯錯誤
+    // let instance = my_module::CrateStruct { field: 42 }; // 編譯錯誤
+}
+```
+
+3. pub(super) ：使實體成為父模組的公共實體，即只能從定義實體的 Module 的父 Module 內部訪問。
+
+✅
+
+```rust
+mod parent {
+    pub mod child {
+        pub(super) struct SuperStruct {
+            pub(super) field: i32,
+        }
+    }
+
+    fn access_super_struct() {
+        // 可以在父模組中訪問 SuperStruct
+        let instance = child::SuperStruct { field: 42 };
+        println!("Field: {}", instance.field);
+    }
+}
+
+fn main() {
+    parent::access_super_struct();
+}
+```
+
+❌
+
+```rust
+mod parent {
+    pub mod child {
+        pub(super) struct SuperStruct {
+            pub(super) field: i32,
+        }
+    }
+}
+
+fn main() {
+    // 嘗試在父模組之外訪問 SuperStruct 會導致編譯錯誤
+    // let instance = parent::child::SuperStruct { field: 42 }; // 編譯錯誤
+}
+```
+
+4. pub(in path) ：使實體在指定的模組中公開，但不能在其他地方訪問。
+
+✅
+
+```rust
+mod parent {
+    pub mod child {
+        pub(in parent) struct InModuleStruct {
+            pub(in parent) field: i32,
+        }
+    }
+
+    fn access_in_module_struct() {
+        // 可以在指定模組中訪問 InModuleStruct
+        let instance = child::InModuleStruct { field: 42 };
+        println!("Field: {}", instance.field);
+    }
+}
+
+fn main() {
+    parent::access_in_module_struct();
+}
+```
+
+❌
+
+```rust
+mod parent {
+    pub mod child {
+        pub(in parent) struct InModuleStruct {
+            pub(in parent) field: i32,
+        }
+    }
+}
+
+fn main() {
+    // 嘗試在指定模組之外訪問 InModuleStruct 會導致編譯錯誤
+    // let instance = parent::child::InModuleStruct { field: 42 }; // 編譯錯誤
+}
+```
