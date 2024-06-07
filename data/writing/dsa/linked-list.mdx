@@ -1,0 +1,708 @@
+---
+title: '資料結構 - Linked List'
+date: '2023-08-20'
+tags: ['dsa']
+draft: false
+topic: '資料結構 101'
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 介紹
+
+LinkedList 是一種常見的資料結構，它可以線性儲存資料，而每個節點的資料都稱為 `Node`，每個 `Node` 都會包含自身的資料以及指向下一個 `Node` 的記憶體位置或是 `null`，
+
+如果每個 `Node` 都只有 `next` 的話，我們該 Linked List 為 `Singly Linked List`，如果每個 `Node` 都有 `next` 以及 `prev` 的話，則稱 `Doubly Linked List`。
+
+## 為什麼需要 Linked List
+
+在過去的計算機系統中，記憶體的空間相對稀缺的，而 Linked List 就是用來解決這個問題而創建的，Linked List 是一種動態的資料結構，它可以在記憶體中動態的配置空間，而不需要像 Array 一樣，需要在一開始就配置好記憶體空間。
+
+作為 JavaScript 開發者，我們日常生活中可能不常碰到 Linked List，但它為電腦科學中最基本的資料結構之一，還是非常值得我們學習。
+
+## API
+
+```js
+class LinkedList {
+  constructor() {}
+
+  // 在 Linked List 的指定位置新增一個 Node
+  insert(index, value) {}
+
+  // 在 Linked List 的指定位置刪除一個 Node
+  remove(index) {}
+
+  // 在 Linked List 的指定位置取得一個 Node
+  get(index) {}
+
+  // 取得 Linked List 的長度
+  size() {}
+}
+```
+
+## 實作 Singly Linked List
+
+### node
+
+Linked List 就是多個 `Node` 所串連的線性資料結構，所以我們要先有 `Node` ，如同上面提到的其包含自身資料 `value` 以及指向 `next`，我們可以透過 `class` 來實作 `Node`。
+
+```js
+class Node {
+  constructor(value) {
+    this.value = value
+    this.next = null
+  }
+}
+```
+
+接下來就可以建立一個簡單的 Linked List 了，我們可以透過 `head` 來記錄 Linked List 的開頭，而 `tail` 則是記錄 Linked List 的結尾，這樣我們就可以很快速的新增一個 Node 了。
+
+```js
+const head = new Node(1)
+
+head.next = new Node(2)
+
+head.next.next = new Node(3)
+```
+
+Linked List 裡的第一個 Node 通常稱為 `head`，而 `head.next` 則是透過指向連結下一個 `Node`，而視覺上看起來就像是一個 `Linked List`。
+
+```bash
+[1] -> [2] -> [3] -> null
+```
+
+Linked List 可以透過迭代的方式來取得每個 `Node` 的值，可以透過 `while` 判斷當 `current` 不為 `null` 時，去取得 `current` 的值，並且將 `current` 指向下一個 Node。
+
+```js
+let current = head
+
+while (current !== null) {
+  console.log(current.value)
+  current = current.next
+}
+```
+
+同樣的概念我們可以實作 `size` 來取得 Linked List 的長度
+
+```js
+function size(linkedList) {
+  if (linkedList === null) return 0
+
+  let count = 0
+  let current = linkedList
+
+  while (current !== null) {
+    count++
+    current = current.next
+  }
+
+  return count
+}
+```
+
+### constructor
+
+```js
+const head = Symbol('head')
+
+class LinkedList {
+  constructor() {
+    this[head] = null
+  }
+}
+```
+
+> `Symbol` 用來建立一個私有的屬性，主要是為了讓外部不要直接存取這個屬性，而是透過 `insert` 來新增 `Node`。
+
+### size
+
+`size` 是取得 Linked List 的長度，就如同剛剛上面的範例，我們可以透過 `while` 迭代的方式，找到最後一個 `Node`，並且計算迭代的次數。
+
+```js
+size() {
+    let count = 0;
+    let current = this[head];
+
+    while (current !== null) {
+        count++;
+        current = current.next;
+    }
+
+    return count;
+}
+```
+
+### insert
+
+`insert` 是在 Linked List 的尾端新增一個 Node，我們可以透過 `while` 迭代的方式，找到最後一個 `Node`，並且將最後一個 `Node` 的 `next` 指向新的 `Node`。
+
+```js
+insert(data) {
+    const newNode = new Node(data);
+
+    if (!this[head]) {
+        this[head] = newNode;
+    } else {
+        let current = this[head];
+
+        while (current.next !== null) {
+            current = current.next;
+        }
+
+        current.next = newNode;
+    }
+}
+```
+
+如果 Linked List 是空的，則將 `head` 指向新的 `Node，如果` Linked List 不是空的，則需要迭代找到最後一個 `Node`。
+
+而 `insert` 的時間複雜度為 `O(n)`，因為我們需要迭代找到最後一個 `Node`。
+
+| 操作   | Singly Linked List |
+| ------ | ------------------ |
+| insert | O(n)               |
+
+### remove
+
+`remove` 是在 Linked List 的指定位置刪除一個 Node，我們可以透過 `while` 迭代的方式，找到指定位置的前一個 `Node`，並且將前一個 `Node` 的 `next` 指向下一個 `Node`。
+
+在 `remove` 的過程我們可能會遇到
+
+1. Linked List 是空的 (throw Error)
+2. `index` 小於 `0` 或是 `index` 大於本身的長度 (throw Error)
+3. `index` 為 `0` (將 `head` 指向下一個 `Node`)
+
+```js
+remove(index) {
+    if ((this[head] === null) || (index < 0) || (index >= this.size()))) {
+        throw new RangeError(`Index ${index} does not exist in the list.`);
+    }
+
+    if (index === 0) {
+        const data = this[head].value;
+        this[head] = this[head].next;
+        return data;
+    } else {
+        let current = this[head];
+        let previous = null;
+        let count = 0;
+
+        while (count < index) {
+            previous = current;
+            current = current.next;
+            count++;
+        }
+
+        previous.next = current.next;
+        return current.value;
+    }
+}
+```
+
+如果 `index` 為 `0`，則將 `head` 指向下一個 `Node`，如果 `index` 不為 `0`，則需要迭代找到指定位置的前一個 `Node`，並透過 `previous` 儲存上一個 `Node`，最後將 `previous.next` 指向下一個 `Node`。
+
+`remove` 的時間複雜度為 `O(n)`，因為我們需要迭代找到指定位置的前一個 `Node`，而有可能需要迭代整個 Linked List。
+
+| 操作   | Singly Linked List |
+| ------ | ------------------ |
+| insert | O(n)               |
+| remove | O(n)               |
+
+### get
+
+`get` 非常直觀就是取得指定位置的 `Node`，我們可以透過 `while` 迭代的方式，找到指定位置的 `Node`。
+
+```js
+get(index) {
+    if ((this[head] === null) || (index < 0) || (index >= this.size())) {
+        throw new RangeError(`Index ${index} does not exist in the list.`);
+    }
+
+    let current = this[head];
+    let count = 0;
+
+    while (count < index) {
+        current = current.next;
+        count++;
+    }
+
+    return current.value;
+}
+```
+
+`get` 的時間複雜度為 `O(n)`，因為需要迭代找到指定位置的 `Node`，可能會需要迭代整個 Linked List。
+
+| 操作   | Singly Linked List |
+| ------ | ------------------ |
+| insert | O(n)               |
+| remove | O(n)               |
+| get    | O(n)               |
+
+### 優化
+
+大家到這裡覺得有哪些地方可以優化的，
+
+1. 似乎我們都需要針對 `index === 0` 的情況做特別處理，有沒有辦法可以優化呢？
+
+> 我們可以透過 sential (dummy) `Node` 來優化這個問題，我們可以在 `head` 前面新增一個 sential `Node`，這樣我們就不需要針對 `index === 0` 的情況做特別處理，接下來我們可以一次更改
+
+2. 有沒有什麼方法可以不用迭代整個 Linked List，就可以取得 Linked List 的長度呢？
+
+> 我們可以建立一個 size 變數，並且在 `insert` 與 `remove` 時更新 size，這樣我們就不需要每次都迭代找到最後一個 `Node` 了。
+
+3. 支援 iterator protocol
+
+> 我們可以透過 `Symbol.iterator` 來實作 iterator protocol
+
+<Image src="/static/images/blog/dsa/linkedlist/linkedlist.png" height="200" width="700" />
+
+```bash
+sential -> [1] -> [2] -> [3] -> null
+```
+
+<Sandpack lang="node">
+
+```js file=index.js
+const LinkedList = require('./linkedlist.js')
+
+const http = require('http')
+
+const hostname = '127.0.0.1'
+const port = 3000
+
+const server = http.createServer((req, res) => {
+  res.statusCode = 200
+  res.setHeader('Content-Type', 'text/html')
+
+  const linkedList = new LinkedList()
+
+  // Insert
+  res.write('Insert 1: ')
+  linkedList.insert(1)
+  res.write(linkedList.print())
+  res.write('<br/>')
+
+  res.write('Insert 2: ')
+  linkedList.insert(2)
+  res.write(linkedList.print())
+  res.write('<br/>')
+
+  res.write('Insert 3: ')
+  linkedList.insert(3)
+  res.write(linkedList.print())
+  res.write('<br/>')
+
+  // Remove
+  res.write('Remove index 2: ')
+  linkedList.remove(1)
+  res.write(linkedList.print())
+  res.write('<br/>')
+
+  res.write('Iterator to Array: ')
+  res.write(JSON.stringify(Array.from(linkedList)))
+  res.write('<br/>')
+
+  res.end()
+})
+
+server.listen(port, hostname, () => {
+  console.log(`Server running at http://${hostname}:${port}/`)
+})
+```
+
+```js file=linkedlist.js
+const sential = Symbol('sential')
+
+class Node {
+  constructor(value) {
+    this.value = value
+    this.next = null
+  }
+}
+
+class LinkedList {
+  constructor() {
+    this[sential] = new Node(99) // 新增 sential Node，可以放任何值
+    this.size = 0
+  }
+
+  insert(value) {
+    const newNode = new Node(value)
+
+    let current = this[sential]
+
+    while (current.next !== null) {
+      current = current.next
+    }
+
+    current.next = newNode
+    this.size++
+  }
+
+  get(index) {
+    if (index < 0 || index >= this.size) {
+      throw new RangeError(`Index ${index} does not exist in the list.`)
+    }
+
+    let current = this[sential].next
+    let count = 0
+
+    while (count < index) {
+      current = current.next
+      count++
+    }
+
+    return current.value
+  }
+
+  remove(index) {
+    if (index < 0 || index >= this.size) {
+      throw new RangeError(`Index ${index} does not exist in the list.`)
+    }
+
+    let current = this[sential]
+    let count = 0
+
+    while (count < index) {
+      current = current.next
+      count++
+    }
+
+    current.next = current.next.next
+    this.size--
+  }
+
+  *values() {
+    let current = this[sential].next
+
+    while (current !== null) {
+      yield current.value
+      current = current.next
+    }
+  }
+
+  [Symbol.iterator]() {
+    return this.values()
+  }
+
+  print() {
+    return JSON.stringify(Array.from(this))
+  }
+}
+
+module.exports = LinkedList
+```
+
+</Sandpack>
+
+## 實作 Doubly Linked List
+
+Singly Linked List 大多數的操作都需要**遍歷**整個 Linked List，這會照成效能上的問題，因為時間複雜度都會 O(n)，而 Doubly Linked List 則可以透過 `prev` 來快速的找到前一個 `Node`，所以可以快速的在指定位置新增或是刪除 `Node`。
+
+### Design
+
+Doubly Linked List 與 Singly Linked List 的差別在於，Doubly Linked List 的每個 `Node` 都有 `next` 以及 `prev`，而 Singly Linked List 則只有 `next`，視覺化就會像是
+
+<Image src="/static/images/blog/dsa/linkedlist/doublelinkedlist.png" height="200" width="700" />
+
+```bash
+sentialHead <-> [1] <-> [2] <-> [3] <-> sentialTail
+```
+
+### node
+
+與 Singly Linked List 相比 `Node` 多了 `prev` 來指向前一個 `Node`。
+
+```js
+class Node {
+  constructor(value) {
+    this.value = value
+    this.next = null
+    this.prev = null
+  }
+}
+```
+
+### constructor
+
+Doubly Linked List 需要在開頭以及結尾新增 sential `Node`，所以需要在 constructor 中新增 `sentialHead` 以及 `sentialTail`，並且將 `sentialHead` 與 `sentialTail` 連結起來。
+
+```js
+const sentialHead = Symbol('sentialHead')
+const sentialTail = Symbol('sentialTail')
+
+class DoubleLinkedList {
+  constructor() {
+    this[sentialHead] = new Node(99)
+    this[sentialTail] = new Node(99)
+
+    // 將 sentialHead 與 sentialTail 連結起來
+    this[sentialHead].next = this[sentialTail]
+    this[sentialTail].prev = this[sentialHead]
+
+    this.size = 0
+  }
+}
+```
+
+### insert
+
+相較於 Singly Linked List 要遍歷整個 list 到最後一個 `Node`，在指向新增的 `Node`， Doubly Linked List 可以透過 `sentialTail` 直接找到最後一個 `Node`，並且將最後一個 `Node` 的 `next` 指向新的 `Node`，以及將新的 `Node` 的 `prev` 指向最後一個 `Node`。
+
+```js
+insert(value) {
+    let newNode = new Node(value);
+    let current = this[sentialTail].prev;
+
+    // 將最後一個 Node 的 next 指向新的 Node
+    current.next = newNode;
+    newNode.prev = current;
+
+    // 將新的 Node 的 next 指向 sentialTail
+    newNode.next = this[sentialTail];
+    this[sentialTail].prev = newNode;
+
+    this.size++;
+}
+```
+
+時間複雜度為 `O(1)`，因為我們不需要遍歷整個 Linked List。
+
+| 操作   | Singly Linked List | Doubly Linked List |
+| ------ | ------------------ | ------------------ |
+| insert | O(n)               | O(1)               |
+
+### remove
+
+remove 則會根據 `index` 的位置，來決定要從 `sentialHead` 還是 `sentialTail` 開始找，如果 `index` 小於 `size / 2`，則從 `sentialHead` 開始找，如果 `index` 大於 `size / 2`，則從 `sentialTail` 開始找。
+
+```js
+remove(index) {
+    if (index < 0 || index >= this.size) {
+        throw new RangeError(`Index ${index} does not exist in the list.`);
+    }
+
+    let current = null;
+    let count = 0;
+
+    if (index < this.size / 2) {
+        current = this[sentialHead].next;
+        while (count < index) {
+            current = current.next;
+            count++;
+        }
+    } else {
+        current = this[sentialTail].prev;
+        count = this.size - 1;
+        while (count > index) {
+            current = current.prev;
+            count--;
+        }
+    }
+
+    // 將前一個 Node 的 next 指向下一個 Node
+    current.prev.next = current.next;
+
+    // 將下一個 Node 的 prev 指向前一個 Node
+    current.next.prev = current.prev;
+
+    this.size--;
+}
+```
+
+通常 `remove` 的時間複雜度為 `O(n)`，但移除第一個與最後一個 `Node` 的時間複雜度為 `O(1)`。
+
+| 操作   | Singly Linked List | Doubly Linked List |
+| ------ | ------------------ | ------------------ |
+| insert | O(n)               | O(1)               |
+| remove | O(n)               | O(n)               |
+
+### get
+
+get 跟 remove 概念相同，都會根據 `index` 的位置，來決定要從 `sentialHead` 還是 `sentialTail` 開始找。
+
+```js
+get(index) {
+    if (index < 0 || index >= this.size) {
+        throw new RangeError(`Index ${index} does not exist in the list.`);
+    }
+
+    let current = null;
+    let count = 0;
+
+    if (index < this.size / 2) {
+        current = this[sentialHead].next;
+        while (count < index) {
+            current = current.next;
+            count++;
+        }
+    } else {
+        current = this[sentialTail].prev;
+        count = this.size - 1;
+        while (count > index) {
+            current = current.prev;
+            count--;
+        }
+    }
+
+    return current.value;
+}
+```
+
+| 操作   | Singly Linked List | Doubly Linked List |
+| ------ | ------------------ | ------------------ |
+| insert | O(n)               | O(1)               |
+| remove | O(n)               | O(n)               |
+| get    | O(n)               | O(n)               |
+
+### 小結
+
+Doubly Linked List 可以在 `O(1)` 的時間複雜度下，新增或是刪除第一個或是最後一個 `Node`，但是需要額外的空間來儲存 `prev`，所以如果我們需要在指定位置新增或是刪除 `Node`，可以考慮使用 Doubly Linked List。
+
+## 用 Double Linked List 的概念實作 queue
+
+queue 是一種先進先出的資料結構，如果用 JavaScript 原生的 Array 方法 `push` 與 `shift` 來實作的話，會有一個問題，就是 `shift` 的時間複雜度為 `O(n)`，因為每次都需要將 Array 的元素往前移動，所以我們可以透過 Double Linked List 的概念來實作 queue。
+
+我們透過 Doubly Linked List 的概念，實作 `enqueue` 來新增資料，透過 `dequeue` 來刪除資料，透過 `front` 與 `back` 來取得 queue 的第一與最後一個資料，而 `size` 來取得 queue 的長度，並且時間複雜度都為 `O(1)`。
+
+```bash
+sentialTail <-> [3] <-> [2] <-> [1] <-> sentialHead
+```
+
+如上面示意圖， `1` 最先進來，所以在 `dequeue` 時就會先被抽離出 linked list
+
+<Sandpack lang="node">
+
+```js file=index.js
+const Queue = require('./queue.js')
+
+const http = require('http')
+
+const hostname = '127.0.0.1'
+const port = 3000
+
+const server = http.createServer((req, res) => {
+  res.statusCode = 200
+  res.setHeader('Content-Type', 'text/html')
+
+  const queue = new Queue()
+
+  // Insert
+  res.write('Enqueue 1: ')
+  queue.enqueue(1)
+  res.write(queue.print())
+  res.write('<br/>')
+
+  res.write('Enqueue 2: ')
+  queue.enqueue(2)
+  res.write(queue.print())
+  res.write('<br/>')
+
+  res.write('Enqueue 3: ')
+  queue.enqueue(3)
+  res.write(queue.print())
+  res.write('<br/>')
+
+  res.write('Dequeue: ')
+  queue.dequeue()
+  res.write(queue.print())
+  res.write('<br/>')
+
+  res.write('Dequeue: ')
+  queue.dequeue()
+  res.write(queue.print())
+  res.write('<br/>')
+
+  res.end()
+})
+
+server.listen(port, hostname, () => {
+  console.log(`Server running at http://${hostname}:${port}/`)
+})
+```
+
+```js file=queue.js
+const sentialHead = Symbol('sentialHead')
+const sentialTail = Symbol('sentialTail')
+
+class Node {
+  constructor(value) {
+    this.value = value
+    this.next = null
+    this.prev = null
+  }
+}
+
+class Queue {
+  constructor() {
+    this[sentialHead] = new Node(99)
+    this[sentialTail] = new Node(99)
+
+    this[sentialHead].prev = this[sentialTail]
+    this[sentialTail].next = this[sentialHead]
+
+    this.size = 0
+  }
+
+  enqueue(value) {
+    const newNode = new Node(value)
+
+    const tail = this[sentialTail].next
+    tail.prev = newNode
+    newNode.next = tail
+
+    newNode.prev = this[sentialTail]
+    this[sentialTail].next = newNode
+
+    this.size++
+  }
+
+  dequeue(value) {
+    const head = this[sentialHead].prev
+
+    head.prev.next = this[sentialHead]
+    this[sentialHead].prev = head.prev
+
+    this.size--
+
+    return head.value
+  }
+
+  front() {
+    return this[sentialHead].prev?.value
+  }
+
+  back() {
+    return this[sentialTail].next?.value
+  }
+
+  size() {
+    return this.size
+  }
+
+  *values() {
+    let current = this[sentialTail].next
+
+    while (current.next !== null) {
+      yield current.value
+      current = current.next
+    }
+  }
+
+  [Symbol.iterator]() {
+    return this.values()
+  }
+
+  print() {
+    return JSON.stringify(Array.from(this))
+  }
+}
+
+module.exports = Queue
+```
+
+</Sandpack>
+
+## 參考資料
+
+- [CS61B](https://joshhug.gitbooks.io/hug61b/content/chap2/chap22.html)

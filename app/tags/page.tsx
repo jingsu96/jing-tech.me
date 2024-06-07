@@ -3,6 +3,7 @@ import Tag from '@/components/Tag';
 import { slug } from 'github-slugger';
 import tagData from 'app/tag-data.json';
 import { genPageMetadata } from 'app/seo';
+import { TOPIC_EN_TO_ZH } from '@/lib/constants';
 
 export const metadata = genPageMetadata({ title: 'Tags', description: 'Things I blog about' });
 
@@ -23,7 +24,7 @@ export default async function Page() {
           {sortedTags.map((t) => {
             return (
               <div key={t} className="mb-2 mr-5 mt-2">
-                <Tag text={t} />
+                <Tag text={TOPIC_EN_TO_ZH[t] || t} />
                 <Link
                   href={`/tags/${slug(t)}`}
                   className="-ml-2 text-sm font-semibold uppercase text-gray-600 dark:text-gray-300"

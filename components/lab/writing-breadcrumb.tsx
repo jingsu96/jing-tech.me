@@ -6,6 +6,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/lab/ui/breadcrumb';
+import { TOPIC_EN_TO_ZH } from '@/lib/constants';
 import { upperFirst } from '@/lib/utils';
 import { Home } from 'lucide-react';
 import { Fragment } from 'react';
@@ -33,7 +34,9 @@ export const WritingBreadcrumb = ({ path, className }: { path: string; className
           return (
             <Fragment key={url}>
               <BreadcrumbItem>
-                <BreadcrumbLink href={url}>{name === 'writing' ? <Home size={16} /> : upperFirst(name)}</BreadcrumbLink>
+                <BreadcrumbLink href={url}>
+                  {name === 'writing' ? <Home size={16} /> : upperFirst(TOPIC_EN_TO_ZH[name] || name)}
+                </BreadcrumbLink>
               </BreadcrumbItem>
               {idx !== parsedUrl.length - 2 && <BreadcrumbSeparator key={idx} />}
             </Fragment>

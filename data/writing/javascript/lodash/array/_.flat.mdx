@@ -129,8 +129,8 @@ document.body.innerHTML = `
 ### 遞迴 (Recursion)
 
 1. 定義基本情況 (base case)，如果深度是 `0` 或者值不是一個陣列。
-2. 迭代陣列中的每個項目。
-3. 如果項目 (item) 是一個陣列且深度大於 `0`，那麼調用 `flat(item, depth - 1)` 。
+2. 迭代陣列中的每個項目 (item)。
+3. 如果項目是一個陣列且深度大於 `0`，那麼調用 `flat(item, depth - 1)` 。
 4. 否則，我們將項目直接放入新陣列中。
 
 ### 迭代 (Iteration)
@@ -170,6 +170,25 @@ function flat(arr, depth) {
 }
 ```
 
+進一步優化：可以看到上面有 `result` 跟 `forEach` 可以透過 `reduce` 改寫成更簡潔的方式：
+
+```js
+function flat(arr, depth) {
+  if (!depth || !Array.isArray(arr)) {
+    return arr
+  }
+
+  return arr.reduce((result, item) => {
+    if (Array.isArray(item) && depth > 0) {
+      result.push(...flat(item, depth - 1))
+    } else {
+      result.push(item)
+    }
+    return result
+  }, [])
+}
+```
+
 #### 視覺化
 
 可以想像成遞迴就是不斷地堆疊 (Stack)，每次調用 `flat` 函式就是將一個新的函式放入堆疊中，直到達到基本情況 (base case) 時，開始從堆疊中取出函式並執行。
@@ -183,6 +202,16 @@ flat([1, 2, [3, 4, [5, [6]]]], 2)
   [3, 4, 5, 6]
 [1, 2, 3, 4, 5, 6]
 ```
+
+#### 複雜度
+
+- 時間複雜度：O(n \* d)
+
+最壞情況下，如果所有的項目都是陣列並且需要展平到最大深度 `d`，則遞歸的總次數為 `d`，而每次遞歸中，遍歷陣列項目的數量為 `n`，每個元素可能還包含 `m` 個子元素。
+
+- 空間複雜度：O(n \+ d)
+
+遞歸的深度為 `d`，而每次遞歸中，都會創建一個新的陣列來存放結果，且每個陣列中可能包含 `n` 個元素。故總空間複雜度為 `O(n \+ d)`。
 
 ### 迭代 (Iteration)
 
@@ -217,3 +246,7 @@ flat([1, 2, [3, 4, [5, [6]]]], 2)
   stack: [[1, 2], [2, 2], [3, 1], [4, 1], [5, 0], [6, 0]]
 result: [1, 2, 3, 4, 5, 6]
 ```
+
+## 相關題目
+
+1. [bigfrontend.dev - flat](https://bigfrontend.dev/problem/implement-Array-prototype.flat)

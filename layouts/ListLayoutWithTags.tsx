@@ -138,13 +138,13 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
                   {decodeURI(pathname.split('/tags/')[1]) === slug(t) ? (
                     <Link href="/writing" aria-label={`View posts tagged ${t}`}>
                       <Pill
-                        text={`${t} (${tagCounts[t]})`}
+                        text={`${TOPIC_EN_TO_ZH[t] || t} (${tagCounts[t]})`}
                         className="bg-gray-900/10 text-gray-900 dark:bg-gray-100/10 dark:text-gray-200"
                       />
                     </Link>
                   ) : (
                     <Link href={`/tags/${slug(t)}`} aria-label={`View posts tagged ${t}`}>
-                      <Pill text={`${t} (${tagCounts[t]})`} />
+                      <Pill text={`${TOPIC_EN_TO_ZH[t] || t} (${tagCounts[t]})`} />
                     </Link>
                   )}
                 </li>

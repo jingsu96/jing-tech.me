@@ -1,0 +1,282 @@
+---
+title: '資料結構 - Binary Search Tree'
+date: '2023-07-15'
+tags: ['dsa']
+draft: false
+topic: '資料結構 101'
+order: 2
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## Binary Search Tree 資料結構
+
+我們知道陣列是一種線性資料結構，但是當我們要對陣列做搜尋時，我們需要花費 O(n) 的時間複雜度，這是因為陣列的元素是沒有排序的，那有沒有一個資料結構，可以讓我們在更快速的時間內，找到我們要的元素呢？
+
+Binary Search Tree (BST) 就是一種可以讓我們在 O(log n) 的時間複雜度內，找到我們要的元素的資料結構。
+
+但在介紹之前 BST，需要先理解
+
+1. Binary Search 搜尋演算法
+2. Binary Search Tree 的定義
+3. 常用的 BST 操作
+
+## Binary Search 搜尋演算法
+
+Binary Search 是一種搜尋演算法，陣列的資料必須是**已經排序**過的，其會不斷將搜尋範圍減半，直到找到目標為止。而該算法時間複雜度是 O(log n)。
+
+### 搜尋演算法
+
+1. 先找到陣列的中間元素，如果陣列長度是偶數，則取中間兩個元素的左邊那個
+2. 將目標與中間元素比較
+3. 如果目標比中間元素小，則將搜尋範圍縮小到中間元素的左邊
+4. 如果目標比中間元素大，則將搜尋範圍縮小到中間元素的右邊
+5. 重複步驟 1 ~ 4，直到找到目標為止
+
+<Image
+  src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Binary-search-work.gif"
+  height="300px"
+  width="580px"
+  showalt
+  sourceTitle="wikipedia"
+  sourceUrl="https://en.wikipedia.org/wiki/Binary_search_algorithm"
+/>
+
+### 實作
+
+#### recursion
+
+```js
+function binarySearch(arr, target, lo = 0, hi = arr.length - 1) {
+  if (lo > hi) {
+    return -1
+  }
+
+  const mid = Math.floor((lo + hi) / 2)
+
+  if (arr[mid] === target) {
+    return mid
+  }
+
+  if (arr[mid] > target) {
+    return binarySearch(arr, target, lo, mid - 1)
+  } else {
+    return binarySearch(arr, target, mid + 1, hi)
+  }
+}
+```
+
+#### iteration
+
+```js
+function binarySerch(arr, target, lo = 0, hi = arr.length - 1) {
+  let left = lo
+  let right = hi
+  let mid
+
+  while (right >= left) {
+    mid = Math.floor((left + right) / 2)
+    if (arr[mid] === target) {
+      return mid
+    }
+
+    if (arr[mid] > target) {
+      right = mid - 1
+    } else {
+      left = mid + 1
+    }
+  }
+
+  return -1
+}
+```
+
+### 小結
+
+| 時間複雜度 | 空間複雜度 |
+| ---------- | ---------- |
+| O(log n)   | O(1)       |
+
+## Binary Search Tree 的定義
+
+有了 Binary Search 的搜尋演算法的概念後，我們就可以來介紹 Binary Search Tree 了。
+
+首先，Binary Search Tree 是一種樹狀資料結構，其必須符合以下條件
+
+1. 每個節點最多只能有兩個子節點，且每個節點的值都必須大於等於左子節點，且小於等於右子節點。
+2. BST 的節點必須是**唯一**的。例如，如果 BST 已經有一個值為 5 的節點了，那我們就不能再插入一個值為 5 的節點了。
+
+### constructor
+
+```js
+class Node {
+  constructor(key, left, right) {
+    this.key = key
+    this.left = left || null
+    this.right = right || null
+  }
+}
+```
+
+### 常用的 BST 操作
+
+#### find
+
+BST 的搜尋演算法就是 Binary Search，所以我們可以直接套用上面的 Binary Search 搜尋演算法。且相較於 Array 是線性的資料結構，所以在搜尋上時間複雜度是 O(n)，而 BST 由於是樹狀的資料結構，所以時間複雜度是 O(log n)。
+
+**實作**
+
+```js
+function find(root, target) {
+  if (root === null) {
+    return null
+  }
+
+  if (root.key === target) {
+    return root
+  }
+
+  if (root.key > target) {
+    return find(root.left, target)
+  } else {
+    return find(root.right, target)
+  }
+}
+```
+
+#### insert
+
+插入也可以透過 recursion 來實作，
+
+1. 定義 base case，如果當前節點為空，則直接插入。
+2. 比較當前的值與要插入的值，
+
+   2.1 如果要插入比當前節點的值小，則往左子樹插入
+
+   2.2 如果要插入比當前節點的值大，則往右子樹插入
+
+3. 如果當前節點的左子樹或右子樹為空，則直接插入，否則繼續往下找。
+
+**實作**
+
+```js
+function insert(root, value) {
+  if (root === null) {
+    return new Node(value)
+  }
+
+  if (root.key > value) {
+    root.left = insert(root.left, value)
+  } else {
+    root.right = insert(root.right, value)
+  }
+
+  return root
+}
+```
+
+#### delete
+
+刪除節點的時候，有三種情況
+
+1. 要刪除的節點如果沒有子節點，直接刪除即可。(刪除的節點會被 garbage collection 回收)
+
+```bash
+              50                                50
+            /    \         delete(20)          /   \
+         30      70            ———>           30     70
+         /  \    /  \                          \     /  \
+      20   40  60   80                         40  60   80
+```
+
+2. 要刪除的節點只有一個子節點，將子節點取代要刪除的節點。
+
+```bash
+              50                                50
+            /    \         delete(70)          /   \
+         30      70            ———>          30     60
+         /  \    /                          / \
+      20   40  60                          20  40
+```
+
+3. 要刪除的節點有兩個子節點，則將要刪除的節點取代左子樹中最大的節點或右子樹中最小的節點，並將其刪除。
+
+```bash
+              50                                40
+            /    \         delete(50)          /   \
+         30      70            ———>          30    70
+         /  \    /                          /     /
+      20   40  60                         20     60
+```
+
+**實作**
+
+```js
+function deleteNode(root, k) {
+  // Base case
+  if (root === null) {
+    return root
+  }
+
+  // 如果要刪除的值比當前節點的值小，則往左子樹刪除
+  if (k < root.key) {
+    root.left = deleteNode(root.left, k)
+  } else if (k > root.key) {
+    // 如果要刪除的值比當前節點的值大，則往右子樹刪除
+    root.right = deleteNode(root.right, k)
+  } else {
+    // 如果要刪除的值等於當前節點的值，則刪除當前節點
+    // Case 1: 沒有子節點
+    if (root.left === null && root.right === null) {
+      root = null
+    } else if (root.left === null) {
+      // Case 2: 只有一個子節點
+      root = root.right
+    } else if (root.right === null) {
+      root = root.left
+    } else {
+      // Case 3: 有兩個子節點
+      // 找到左子樹中最大的節點
+      let maxNode = findMax(root.left)
+      // 將當前節點的值取代為左子樹中最大的節點
+      root.key = maxNode.key
+      // 刪除左子樹中最大的節點
+      root.left = deleteNode(root.left, maxNode.key)
+    }
+  }
+
+  return root
+}
+
+function findMax(root) {
+  while (root.right !== null) {
+    root = root.right
+  }
+
+  return root
+}
+```
+
+## 總結
+
+Binary Search Tree 是一種樹狀的資料結構，其搜尋的時間複雜度是 O(log n)，並且隨機插入與刪除的時間複雜度也是 O(log n)。
+
+> 如果 BST 的結構不平衡，則搜尋的時間複雜度會退化成 O(n)。
+
+| 操作   | 時間複雜度 | 空間複雜度 |
+| ------ | ---------- | ---------- |
+| insert | O(log n)   | O(1)       |
+| delete | O(log n)   | O(1)       |
+| find   | O(log n)   | O(1)       |
+
+Array 或是 Linked List 的搜尋時間複雜度是 O(n)，而隨機插入與刪除的時間複雜度是 O(n)。
+
+| 操作   | 時間複雜度 | 空間複雜度 |
+| ------ | ---------- | ---------- |
+| insert | O(n)       | O(1)       |
+| delete | O(n)       | O(1)       |
+| find   | O(n)       | O(1)       |
+
+## Leetcode
+
+- <a href="/notes/leetcode/leetcode/binary-search/index">Leetcode - Binary Search</a>

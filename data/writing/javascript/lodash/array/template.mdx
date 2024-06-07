@@ -1,0 +1,126 @@
+---
+title: 'lodash _.{template}'
+date: '2024-06-06'
+tags: ['javascript']
+draft: true
+summary: lodash 函式庫中的 _.{template} 函式
+topic: '基本題型'
+---
+
+## 問題
+
+```typescript
+function template(arr: Array<any>, depth: number): Array<any>
+```
+
+```javascript
+const arr = [1, 2, [3, 4, [5, [6]]]]
+
+flat(arr) // [1, 2, 3, 4, [5, [6]]]
+flat(arr, 2) // [1, 2, 3, 4, 5, [6]]
+flat(arr, Infinity) // [1, 2, 3, 4, 5, 6]
+```
+
+## 練習區
+
+在了解問題後，可以嘗試先寫下你的思路，再到下方的練習區域實際寫出程式碼。
+
+<Sandpack lang="static" activeFile="index.js">
+
+```html file=index.html hidden=true
+<style>
+  body {
+    font-family:
+      noto sans,
+      sans-serif;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    border: 1px solid #e2e2e3;
+    padding: 8px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f2f2f2;
+  }
+
+  pre {
+    margin: 0;
+    font-family: consolas, monospace;
+    font-size: 12px;
+  }
+</style>
+
+<script src="view.js" type="module"></script>
+```
+
+```javascript file=index.js
+/**
+ * @param { Array } arr
+ * @param { number } depth
+ * @returns { Array }
+ */
+function template(arr, depth = 1) {
+  // your code here
+}
+
+export { flat }
+```
+
+```js file=view.js hidden=true
+import { flat } from './index.js'
+
+const testCases = [
+  { input: [1, 2, [3, 4, [5, [6]]]], depth: 1, expected: [1, 2, 3, 4, [5, [6]]] },
+  { input: [1, 2, [3, 4, [5, [6]]]], depth: 2, expected: [1, 2, 3, 4, 5, [6]] },
+  { input: [1, 2, [3, 4, [5, [6]]]], depth: Infinity, expected: [1, 2, 3, 4, 5, 6] },
+]
+
+const createTestRow = (input, depth, expected) => {
+  const output = flat(input, depth)
+  const passed = JSON.stringify(output) === JSON.stringify(expected)
+  return `
+    <tr>
+      <td><pre>${JSON.stringify(input)}${depth !== undefined ? `, ${depth}` : ''}</pre></td>
+      <td><pre>${JSON.stringify(output)}</pre></td>
+      <td>${passed ? '✅' : '❌'}</td>
+    </tr>
+  `
+}
+
+document.body.innerHTML = `
+  <table>
+    <thead>
+      <tr>
+        <th>輸入</th>
+        <th>輸出</th>
+        <th>通過</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${testCases.map(({ input, depth, expected }) => createTestRow(input, depth, expected)).join('')}
+    </tbody>
+  </table>
+`
+```
+
+</Sandpack>
+
+## 追問
+
+1. XXX
+
+## 筆者的思路
+
+## 筆者的解答
+
+## 相關題目
+
+1. XXX

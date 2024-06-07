@@ -1,0 +1,14 @@
+{
+  "redirects": [
+    {
+      "source": "/projects/:path*",
+      "destination": "/series/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/series/data-structures/:path*",
+      "destination": "/writing/dsa/:path*",
+      "permanent": true
+    }
+  ]
+}

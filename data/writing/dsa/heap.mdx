@@ -1,0 +1,742 @@
+---
+title: '資料結構 - Heap'
+date: '2023-07-02'
+tags: ['dsa']
+draft: false
+topic: '資料結構 101'
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## Heap 資料結構
+
+Heap 是一種特殊的樹狀資料結構，該結構必須符合兩個條件：
+
+1. 完全二元樹 (Complete Binary Tree)
+2. 節點的值必須大於等於 (maxHeap) 或小於等於 (minHeap) 其子節點的值
+
+舉 minHeap 來說
+
+1. 第一張圖只有一個節點，兩者皆符合
+2. 第二張圖則是一個完全二元樹，節點也都小於等於其子節點，也符合 minHeap 的條件
+3. 第三張圖儘管節點都小於等於其子節點，但並不是完全二元樹，因此不符合 minHeap 的條件
+
+|                                      ✅                                      |                                    ✅                                    |                                    ❌                                    |
+| :--------------------------------------------------------------------------: | :----------------------------------------------------------------------: | :----------------------------------------------------------------------: |
+| <img src="https://imgur.com/doIcF4Y.png" width="200px" height="140px"></img> | <img src="https://imgur.com/uOmILs6.png" width="200px" height="200px" /> | <img src="https://imgur.com/A8CJpGw.png" width="200px" height="200px" /> |
+
+<Alert
+  title="以下假設我們的 Heap 為 minHeap"
+  content="maxHeap 與 minHeap 的差別就是只有傳入的比較函式不同, minHeap 的比較函式為 `(a, b) => a - b`，maxHeap 的比較函式為 `(a, b)
+  => b - a`"
+/>
+
+## API
+
+```js
+class Heap {
+  constructor() {}
+  /** get the top element */
+  extractRoot() {}
+  /** insert a new element */
+  insert() {}
+  /** get the size of heap */
+  size() {}
+  /** peek the top element */
+  peek() {}
+}
+```
+
+### constructor
+
+Heap 的 constructor 一開始需要放入比較函式，在每次 Heapify (往上移動) 的過程中都會透過該比較函式來決定是否要交換節點的位置，比較函式的定義如下：
+
+```js
+class Heap {
+  constructor(compare) {
+    if (typeof compare !== 'function') {
+      throw new Error('Heap constructor expects a compare function')
+    }
+    // 比較函式
+    this._compare = compare
+    // 用 Array 作為 Heap 的儲存結構
+    this._nodes = []
+    // 儲存 min heap 最大的節點
+    this._leaf = null
+  }
+}
+```
+
+### Insert
+
+首先我們先來看如何插入一個值到 Heap 中，假設我們要插入 `3`，首先會將 `3` 插入到 Heap 的最後一個位置，然後再進行 Heapify， 而 Heapify 的過程就是將 `3` 與其母節點進行比較，如果 `3` 比母節點小，則將其交換位置，直到 `3` 比母節點大或是已經到達根節點為止。
+
+#### pesudo code
+
+```js
+class Heap {
+  constructor() {}
+  insert(value) {
+    // 插入到最後一個位置
+    this.nodes.push(value)
+    // 將該值進行 Heapify
+    this.heapifyUp(this.size() - 1)
+    // 儲存 min heap 最大的節點
+    if (this._compare(value, this.leaf) > 0) {
+      this.leaf = value
+    }
+  }
+}
+```
+
+#### 視覺化
+
+<Image src="https://imgur.com/Gehlr5P.gif" height="250px" width="300px" />
+
+#### 實作
+
+實踐 `insert` 方法，首先我們先來看看如何實作 heapifyUp，heapifyUp 的過程就是將**最新插入的節點**與其**母節點**進行比較，如果該節點比母節點小，則將其交換位置，直到最新插入的節點比母節點大或是已經到達根節點為止。
+
+1. 找出最新插入的節點 (`this._nodes[this.size() - 1]`) 以及其母節點 (`Math.floor((childIndex - 1) / 2)`)
+
+```js
+class Heap {
+  heapifyUp(idx) {
+    // Step 1
+    let childIndex = idx
+    let parentIndex = Math.floor((childIndex - 1) / 2)
+
+    // TODO: Step 2
+    // ...
+  }
+}
+```
+
+2. 比較兩個節點的值
+
+```js
+class Heap {
+  _compareAt(i, j) {
+    return this._compare(this._nodes[i], this._nodes[j])
+  }
+  _shouldSwap(parentIndex, childIndex) {
+    return this._compareAt(parentIndex, childIndex) > 0
+  }
+  heapifyUp(idx) {
+    // Step 1
+    let childIndex = idx
+    let parentIndex = Math.floor((childIndex - 1) / 2)
+
+    // Step 2
+    while (this._shouldSwap(parentIndex, childIndex)) {
+      // TODO: Step 3
+    }
+  }
+}
+```
+
+3. 如果最新插入的節點比母節點小，則交換位置，並且繼續往上比較，直到最新插入的節點比母節點大或是已經到達根節點為止
+
+```js
+class Heap {
+  heapifyUp(idx) {
+    // Step 1
+    let childIndex = idx
+    let parentIndex = Math.floor((childIndex - 1) / 2)
+
+    // Step 2
+    while (this._shouldSwap(parentIndex, childIndex)) {
+      // Step 3
+      this._swap(parentIndex, childIndex)
+      childIndex = parentIndex
+      parentIndex = Math.floor((childIndex - 1) / 2)
+    }
+  }
+}
+```
+
+最後則是將 minHeap `insert` 方法實作出來，首先我們先將新的節點插入到最後一個位置，然後再進行 heapifyUp 的過程，並記錄該 minHeap 最大的節點
+
+```js
+class Heap {
+  insert(value) {
+    this._nodes.push(value)
+    this._heapifyUp(this.size() - 1)
+    if (this._leaf === null || this._compare(value, this._leaf) > 0) {
+      this._leaf = value
+    }
+  }
+}
+```
+
+<Sandpack lang="node">
+
+```js file=index.js
+const { treePrinter } = require('./toTree.js')
+const Heap = require('./heap.js')
+
+const http = require('http')
+
+const hostname = '127.0.0.1'
+const port = 3000
+
+const minHeapCompare = (a, b) => a - b
+const nodes = [1, 5, 1, 6, 5, 6, 3, 7, 7, 8]
+
+const heap = new Heap(minHeapCompare, nodes)
+
+const server = http.createServer((req, res) => {
+  res.statusCode = 200
+  res.setHeader('Content-Type', 'text/html')
+  res.write('<strong> --- Before --- </strong>')
+  res.write('<br/>')
+  res.write(treePrinter(heap._nodes))
+  res.write('<br/>')
+  res.write('<strong> --- After --- </strong>')
+  res.write('<br/>')
+  heap.insert(3)
+  res.write(treePrinter(heap._nodes))
+  res.end()
+})
+
+server.listen(port, hostname, () => {
+  console.log(`Server running at http://${hostname}:${port}/`)
+})
+```
+
+```js file=heap.js
+class Heap {
+  constructor(compare, nodes) {
+    if (typeof compare !== 'function') {
+      throw new Error('Heap constructor expects a compare function')
+    }
+    this._compare = compare
+    this._nodes = nodes || []
+    this._leaf = null
+  }
+
+  _swap(i, j) {
+    const temp = this._nodes[i]
+    this._nodes[i] = this._nodes[j]
+    this._nodes[j] = temp
+  }
+
+  _compareAt(i, j) {
+    return this._compare(this._nodes[i], this._nodes[j])
+  }
+
+  _shouldSwap(parentIndex, childIndex) {
+    if (parentIndex < 0 || parentIndex >= this.size()) {
+      return false
+    }
+
+    if (childIndex < 0 || childIndex >= this.size()) {
+      return false
+    }
+
+    return this._compareAt(parentIndex, childIndex) > 0
+  }
+
+  _heapifyUp(idx) {
+    let childIndex = idx
+    let parentIndex = Math.floor((childIndex - 1) / 2)
+
+    while (this._shouldSwap(parentIndex, childIndex)) {
+      this._swap(parentIndex, childIndex)
+      childIndex = parentIndex
+      parentIndex = Math.floor((childIndex - 1) / 2)
+    }
+  }
+
+  insert(value) {
+    this._nodes.push(value)
+    this._heapifyUp(this.size() - 1)
+    if (this._leaf === null || this._compare(value, this._leaf) > 0) {
+      this._leaf = value
+    }
+    return this
+  }
+
+  size() {
+    return this._nodes.length
+  }
+}
+
+module.exports = Heap
+```
+
+```js file=toTree.js
+function buildTree(arr) {
+  function Node(val) {
+    this.data = val
+    this.left = this.right = null
+  }
+
+  if (!arr.length) {
+    return null
+  }
+
+  let index = 0
+  let root = new Node(arr[index])
+  let queue = [root]
+
+  while (queue.length) {
+    let node = queue.shift()
+    let leftVal = arr[++index]
+    let rightVal = arr[++index]
+
+    if (leftVal !== undefined) {
+      node.left = new Node(leftVal)
+      queue.push(node.left)
+    }
+
+    if (rightVal !== undefined) {
+      node.right = new Node(rightVal)
+      queue.push(node.right)
+    }
+  }
+
+  return root
+}
+
+class Tree {
+  constructor() {
+    this.root = null
+  }
+}
+
+function height(root) {
+  if (root === null) {
+    return 0
+  }
+  return Math.max(height(root.left), height(root.right)) + 1
+}
+
+function getCol(h) {
+  if (h === 1) {
+    return 1
+  }
+  return getCol(h - 1) + getCol(h - 1) + 1
+}
+
+function printTree(M, root, col, row, height) {
+  if (root === null) {
+    return
+  }
+  M[row][col] = root.data
+  printTree(M, root.left, col - Math.pow(2, height - 2), row + 1, height - 1)
+  printTree(M, root.right, col + Math.pow(2, height - 2), row + 1, height - 1)
+}
+
+function treePrinter(arr) {
+  const myTree = new Tree()
+  myTree.root = buildTree(arr)
+
+  const h = height(myTree.root)
+  const col = getCol(h)
+  const M = new Array(h).fill().map(() => new Array(col).fill(0))
+  printTree(M, myTree.root, Math.floor(col / 2), 0, h)
+
+  let htmlOutput = ''
+
+  for (let i = 0; i < M.length; i++) {
+    let row = ''
+    for (let j = 0; j < M[i].length; j++) {
+      if (M[i][j] === 0) {
+        row += ' <span>&nbsp;</span>'
+      } else {
+        row += ` <span>${M[i][j]}</span>`
+      }
+    }
+    htmlOutput += `<div>${row}</div>`
+  }
+
+  return htmlOutput
+}
+
+module.exports = {
+  treePrinter,
+}
+```
+
+</Sandpack>
+
+### extractRoot
+
+再來看看我們如何從 minHeap 中取出最小的節點，首先我們會先將根 (root) 節點取出，然後再將最後一個節點放到根節點的位置，接著再進行 heapifyDown 的過程，而 heapifyDown 的過程就是將**根節點**與其**子節點**進行比較，如果該節點比子節點大，則將其交換位置，直到該節點比子節點小或是已經到達葉節點為止。
+
+#### 視覺化
+
+<Image src="https://imgur.com/Tz6CIJG.gif" height="250px" width="300px" />
+
+#### 實作
+
+實作 `extractRoot` 我們可以分成兩個步驟：
+
+1. 將根節點取出，並將最後一個節點放到根節點的位置
+
+```js
+class Heap {
+  // ...
+  extractRoot() {
+    if (this.size() === 0) {
+      return null
+    }
+
+    // Step 1
+    const root = this._nodes[0]
+
+    this._nodes[0] = this._nodes[this.size() - 1]
+    this._nodes.pop()
+
+    // TODO: Step 2
+  }
+  // ...
+}
+```
+
+2. 將根節點與其子節點進行比較，如果該節點比子節點大，則將其交換位置，直到該節點比子節點小或是已經到達葉節點為止
+
+```js
+class Heap {
+  // ...
+  _hasLeftChild(parentIndex) {
+    let leftChildIndex = parentIndex * 2 + 1
+    return leftChildIndex < this.size()
+  }
+  _hasRightChild(parentIndex) {
+    let rightChildIndex = parentIndex * 2 + 2
+    return rightChildIndex < this.size()
+  }
+  _compareChildrenOf(parentIndex) {
+    if (!this._hasLeftChild(parentIndex) && !this._hasRightChild(parentIndex)) {
+      return null
+    }
+
+    const leftChildIndex = parentIndex * 2 + 1
+    const rightChildIndex = parentIndex * 2 + 2
+
+    if (!this._hasLeftChild(parentIndex)) {
+      return rightChildIndex
+    }
+
+    if (!this._hasRightChild(parentIndex)) {
+      return leftChildIndex
+    }
+
+    return this._compareAt(leftChildIndex, rightChildIndex) > 0 ? rightChildIndex : leftChildIndex
+  }
+  _heapifyDown(idx) {
+    let parentIndex = idx
+    let childIndex = this._compareChildrenOf(parentIndex)
+
+    while (this._shouldSwap(parentIndex, childIndex)) {
+      this._swap(parentIndex, childIndex)
+      parentIndex = childIndex
+      childIndex = this._compareChildrenOf(parentIndex)
+    }
+  }
+  extractRoot() {
+    if (this.size() === 0) {
+      return null
+    }
+
+    // Step 1
+    const root = this._nodes[0]
+
+    this._nodes[0] = this._nodes[this.size() - 1]
+    this._nodes.pop()
+
+    // Step 2
+    this._heapifyDown(0)
+
+    if (root === this._leaf) {
+      this._leaf = this._nodes[0]
+    }
+
+    return root
+  }
+  // ...
+}
+```
+
+<Sandpack lang="node">
+
+```js file=index.js
+const { treePrinter } = require('./toTree.js')
+const Heap = require('./heap.js')
+
+const http = require('http')
+
+const hostname = '127.0.0.1'
+const port = 3000
+
+const minHeapCompare = (a, b) => a - b
+const nodes = [1, 3, 1, 6, 5, 5, 3, 7, 7, 8, 5, 6]
+
+const heap = new Heap(minHeapCompare, nodes)
+
+const server = http.createServer((req, res) => {
+  res.statusCode = 200
+  res.setHeader('Content-Type', 'text/html')
+  res.write('<strong> --- Before --- </strong>')
+  res.write('<br/>')
+  res.write(treePrinter(heap._nodes))
+  res.write('<br/>')
+  res.write('<strong> --- After --- </strong>')
+  res.write('<br/>')
+  const smallest = heap.extractRoot()
+  res.write(treePrinter(heap._nodes))
+  res.write('<br/>')
+  res.write('smallest: ' + smallest)
+  res.end()
+})
+
+server.listen(port, hostname, () => {
+  console.log(`Server running at http://${hostname}:${port}/`)
+})
+```
+
+```js file=heap.js
+class Heap {
+  constructor(compare, nodes) {
+    if (typeof compare !== 'function') {
+      throw new Error('Heap constructor expects a compare function')
+    }
+    this._compare = compare
+    this._nodes = nodes || []
+    this._leaf = null
+  }
+
+  _swap(i, j) {
+    const temp = this._nodes[i]
+    this._nodes[i] = this._nodes[j]
+    this._nodes[j] = temp
+  }
+
+  _compareAt(i, j) {
+    return this._compare(this._nodes[i], this._nodes[j])
+  }
+
+  _shouldSwap(parentIndex, childIndex) {
+    if (parentIndex < 0 || parentIndex >= this.size()) {
+      return false
+    }
+
+    if (childIndex < 0 || childIndex >= this.size()) {
+      return false
+    }
+
+    return this._compareAt(parentIndex, childIndex) > 0
+  }
+
+  _hasLeftChild(parentIndex) {
+    let leftChildIndex = parentIndex * 2 + 1
+    return leftChildIndex < this.size()
+  }
+
+  _hasRightChild(parentIndex) {
+    let rightChildIndex = parentIndex * 2 + 2
+    return rightChildIndex < this.size()
+  }
+
+  _compareChildrenOf(parentIndex) {
+    if (!this._hasLeftChild(parentIndex) && !this._hasRightChild(parentIndex)) {
+      return null
+    }
+
+    const leftChildIndex = parentIndex * 2 + 1
+    const rightChildIndex = parentIndex * 2 + 2
+
+    if (!this._hasLeftChild(parentIndex)) {
+      return rightChildIndex
+    }
+
+    if (!this._hasRightChild(parentIndex)) {
+      return leftChildIndex
+    }
+
+    return this._compareAt(leftChildIndex, rightChildIndex) > 0 ? rightChildIndex : leftChildIndex
+  }
+
+  _heapifyUp(idx) {
+    let childIndex = idx
+    let parentIndex = Math.floor((childIndex - 1) / 2)
+
+    while (this._shouldSwap(parentIndex, childIndex)) {
+      this._swap(parentIndex, childIndex)
+      childIndex = parentIndex
+      parentIndex = Math.floor((childIndex - 1) / 2)
+    }
+  }
+
+  _heapifyDown(idx) {
+    let parentIndex = idx
+    let childIndex = this._compareChildrenOf(parentIndex)
+
+    while (this._shouldSwap(parentIndex, childIndex)) {
+      this._swap(parentIndex, childIndex)
+      parentIndex = childIndex
+      childIndex = this._compareChildrenOf(parentIndex)
+    }
+  }
+
+  extractRoot() {
+    if (this.size() === 0) {
+      return null
+    }
+
+    // Step 1
+    const root = this._nodes[0]
+
+    this._nodes[0] = this._nodes[this.size() - 1]
+    this._nodes.pop()
+
+    // Step 2
+    this._heapifyDown(0)
+
+    if (root === this._leaf) {
+      this._leaf = this._nodes[0]
+    }
+
+    return root
+  }
+
+  insert(value) {
+    this._nodes.push(value)
+    this._heapifyUp(this.size() - 1)
+    if (this._leaf === null || this._compare(value, this._leaf) > 0) {
+      this._leaf = value
+    }
+    return this
+  }
+
+  size() {
+    return this._nodes.length
+  }
+}
+
+module.exports = Heap
+```
+
+```js file=toTree.js
+function buildTree(arr) {
+  function Node(val) {
+    this.data = val
+    this.left = this.right = null
+  }
+
+  if (!arr.length) {
+    return null
+  }
+
+  let index = 0
+  let root = new Node(arr[index])
+  let queue = [root]
+
+  while (queue.length) {
+    let node = queue.shift()
+    let leftVal = arr[++index]
+    let rightVal = arr[++index]
+
+    if (leftVal !== undefined) {
+      node.left = new Node(leftVal)
+      queue.push(node.left)
+    }
+
+    if (rightVal !== undefined) {
+      node.right = new Node(rightVal)
+      queue.push(node.right)
+    }
+  }
+
+  return root
+}
+
+class Tree {
+  constructor() {
+    this.root = null
+  }
+}
+
+function height(root) {
+  if (root === null) {
+    return 0
+  }
+  return Math.max(height(root.left), height(root.right)) + 1
+}
+
+function getCol(h) {
+  if (h === 1) {
+    return 1
+  }
+  return getCol(h - 1) + getCol(h - 1) + 1
+}
+
+function printTree(M, root, col, row, height) {
+  if (root === null) {
+    return
+  }
+  M[row][col] = root.data
+  printTree(M, root.left, col - Math.pow(2, height - 2), row + 1, height - 1)
+  printTree(M, root.right, col + Math.pow(2, height - 2), row + 1, height - 1)
+}
+
+function treePrinter(arr) {
+  const myTree = new Tree()
+  myTree.root = buildTree(arr)
+
+  const h = height(myTree.root)
+  const col = getCol(h)
+  const M = new Array(h).fill().map(() => new Array(col).fill(0))
+  printTree(M, myTree.root, Math.floor(col / 2), 0, h)
+
+  let htmlOutput = ''
+
+  for (let i = 0; i < M.length; i++) {
+    let row = ''
+    for (let j = 0; j < M[i].length; j++) {
+      if (M[i][j] === 0) {
+        row += ' <span>&nbsp;</span>'
+      } else {
+        row += ` <span>${M[i][j]}</span>`
+      }
+    }
+    htmlOutput += `<div>${row}</div>`
+  }
+
+  return htmlOutput
+}
+
+module.exports = {
+  treePrinter,
+}
+```
+
+</Sandpack>
+
+## 總結
+
+最後 Heap 的時間複雜度與空間複雜度如下：
+
+Insert 的操作是在 Array 的最後插入，在進行 `heapifyUp` 的操作。而 `heapifyUp` 最壞情況下需要遍歷從末尾到根的路徑，其長度為樹的高度，因此時間複雜度為 O(log n)。
+
+同理 extractRoot 的操作是將根與最後一個元素交換，再進行 `heapifyDown` 的操作，最壞情況下也需要遍歷從根到葉子的路徑，其長度為樹的高度，因此時間複雜度也為 O(log n)。
+
+而 peekRoot 的操作只是取得根的值，因此時間複雜度為 O(1)。
+
+| 操作        | 時間複雜度 | 空間複雜度 |
+| ----------- | ---------- | ---------- |
+| insert      | O(log n)   | O(n)       |
+| extractRoot | O(log n)   | O(n)       |
+| peekRoot    | O(1)       | O(1)       |
+
+下一篇，我們將介紹如何使用 Heap 來實作 Priority Queue。
+
+## 參考資料
+
+1. [CS61B Heap](https://docs.google.com/presentation/d/1uws16IyE3oGKKbKgTpl7s4a2950ef2CjI7B3ez8Gctw/edit#slide=id.g2174b714862_1_292)
+
+## Leetcode
+
+- <a href="/notes/leetcode/leetcode/heap/index">Leetcode - Heap</a>

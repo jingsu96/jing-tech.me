@@ -5,6 +5,7 @@ import { cn, upperFirst } from '@/lib/utils';
 import { formatDate } from 'pliny/utils/formatDate';
 import siteMetadata from '@/data/siteMetadata';
 import { Badge } from './lab/ui/badge';
+import { TOPIC_EN_TO_ZH } from '@/lib/constants';
 
 const ListItem = ({ date, title, path, tags }: { date: string; title: string; path: string; tags: string[] }) => {
   return (
@@ -17,7 +18,9 @@ const ListItem = ({ date, title, path, tags }: { date: string; title: string; pa
           >
             {formatDate(date, siteMetadata.locale)}
           </time>
-          <Badge className="overflow-hidden text-ellipsis whitespace-nowrap">{upperFirst(tags[0])}</Badge>
+          <Badge className="overflow-hidden text-ellipsis whitespace-nowrap">
+            {upperFirst(TOPIC_EN_TO_ZH[tags[0]])}
+          </Badge>
         </div>
         <div className="order-0 flex w-full overflow-hidden text-ellipsis whitespace-nowrap leading-6 md:order-1 md:pl-4">
           <h2 className="dark:group-hover:text-neutral-300 truncate font-normal group-hover:text-indigo-1 dark:text-white">

@@ -1,0 +1,563 @@
+---
+title: '實作範例 - 計算機'
+date: '2023-12-02'
+tags: ['dsa']
+draft: false
+topic: '實作'
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+本篇文章將會使用 React 實作一個簡單的計算機，並且透過實作計算機的邏輯來瞭解堆疊 (Stack) 的概念。
+
+## 實作計算機
+
+### 四則運算的規則
+
+想必大家對於四則運算的規則都不陌生，但在實作演算法之前，可以透過下面表達式簡單複習一下：
+
+```bash
+4 + ((2 + 3) * 2) - 1
+```
+
+當我們看到這段表達式時，大多數讀者的第一反應就是先計算括號內的表達式，再從左到右根據先乘除後加減的規則來計算出答案。
+
+這就是四則運算的規則:
+
+1. 先乘除後加減
+2. 從左到右
+3. 先括號內後括號外
+
+而所有表達式求值法都是由以下三種元素組成：
+
+- 運算元（Operand）：數字
+- 運算子（Operator）：加減乘除
+- 括號（Parenthesis）：左右括號
+
+如果以視覺化解析出我們思考的先後順序，就會是這樣：
+
+```bash
+4 + ((2 + 3) * 2) - 1 = 4 + (5 * 2) - 1 = 4 + 10 - 1 = 14 - 1 = 13
+```
+
+### 優先級對照表 (Precedence Table)
+
+瞭解規則後就可以整理出運算子的優先級對照表，而這也會是我們在寫邏輯時的依據：
+
+| 比較 | `+` | `-` | `*` | `/` | `(` | `)` |
+| ---- | --- | --- | --- | --- | --- | --- |
+| `+`  | `>` | `>` | `<` | `<` | `<` | `>` |
+| `-`  | `>` | `>` | `<` | `<` | `<` | `>` |
+| `*`  | `>` | `>` | `>` | `>` | `<` | `>` |
+| `/`  | `>` | `>` | `>` | `>` | `<` | `>` |
+| `(`  | `<` | `<` | `<` | `<` | `<` | `=` |
+| `)`  | `>` | `>` | `>` | `>` | `=` | `>` |
+
+1. `+` 和 `-`：這兩個運算符具有相同的優先級，且低於 `*` 和 `/`。就是先乘除後加減的概念。
+2. `*` 和 `/`：這些運算符也具有相同的優先級，但高於 `+` 和 `-`。在缺乏括號的情況下，這些運算會先執行。
+3. `(` 和 `)`：括號用於改變正常的運算優先順序。任何在括號內的運算都會優先執行。
+
+### 演算法實作
+
+#### 1. 建立兩個堆疊
+
+- 運算子 (`OPERATOR`) 堆疊 ：用來存放運算子, 也就是 `+`, `-`, `*`, `/`, `(` 與 `)` 。
+- 運算元 (`OPERAND`) 堆疊：用來存放運算元 , 也就是數字。
+
+#### 2. 從左到右讀取運算式
+
+- 如果是運算元，則直接放入運算元堆疊。
+- 如果是運算子，則依照優先級對照表。
+  - `(`，直接放入運算子堆疊。
+  - `)`，將運算子堆疊中的運算子依序彈出，直到遇到 `(` 為止。
+  - `+`, `-`, `*`, `/`，將運算子堆疊中的運算子依序彈出，直到遇到優先級比自己低的運算子為止，最後再將自己放入運算子堆疊。
+  - 如果是 `=`，則將運算子堆疊中的運算子依序彈出，直到運算子堆疊為空為止。
+
+### 實作計算機邏輯
+
+本篇會將實作分成四個部分：
+
+1. 優先級 (Precede)
+
+   優先級就是比對兩個運算子的優先級，可以嘗試看看將上面的優先級對照表轉換成程式碼。
+
+2. 計算 (Operate) 與驗證
+
+   計算與驗證則是相對簡單，前者只是透過傳入的 `operator` 來計算兩個 `operand` 的結果，後者則是驗證是否為數字。
+
+3. 堆疊 (Stack)
+
+   堆疊則是實作一個簡單的堆疊，這邊使用陣列來實作，如果有想要了解更多可以參考筆者先前寫的 [Data Structure 101 - Stack & Queue](/series/data-structures/queue-and-stack)。
+
+4. 執行 (Evaluate)
+
+   執行則將上面的邏輯組合起來，而以下是 Pseudo Code：
+
+```markdown
+4.1 從左到右讀取運算式
+4.2 如果是運算元 (`0-9` 或是 `.`)，就啟動迴圈讀取完整的數字，並放入運算元堆疊 (`OPERAND`)。
+4.3 如果是運算子
+
+    4.3.1 如果是 `(`，直接放入運算子堆疊 (`OPERATOR`)。因為它的優先級最高，所以不用比較。
+    4.3.2 如果是 `)`，則將運算子堆疊 (`OPERATOR`) 中的運算子依序彈出，直到遇到 `(` 為止。
+    4.3.3 如果是普通運算符（如`+`, `-`, `*`, `/`），則根據優先級判斷是否需要先執行堆疊中的操作符。
+
+4.4. 如果 `OPERAND` 不為空，則將 `OPERAND` 堆疊中的運算元 (`OPERAND1` 與 `OPERAND2`) 進行計算，最後再將計算結果放入 `OPERAND` 堆疊中。
+4.5. 回傳 `OPERAND` 堆疊中的最後一個元素。
+```
+
+<Sandpack lang="static">
+
+```html file=index.html
+<script type="module">
+  import evaluate from './evaluate.js'
+  const expression = '4 + ((2 + 3) * 2) - 1'
+
+  document.getElementById('anwser').innerHTML = evaluate(expression)
+  document.getElementById('expression').innerHTML = expression
+</script>
+
+<body>
+  <div id="root">
+    <strong>Stack - Calculator</strong>
+    <pre><code id='expression'></code></pre>
+    <strong>The Answer is: <span id="anwser"></span></strong>
+  </div>
+</body>
+```
+
+```js file=evaluate.js
+import Stack from './stack.js'
+import isDigit from './isDigit.js'
+import operate from './operate.js'
+import precede from './precede.js'
+
+function evaluate(expression) {
+  const OPERATOR = new Stack()
+  const OPERAND = new Stack()
+
+  // 1. 從左到右讀取運算式
+  for (let i = 0; i < expression.length; i++) {
+    let char = expression.charAt(i)
+
+    // 2. 如果是運算元，則直接放入運算元堆疊。
+    if (isDigit(char) || char === '.') {
+      let stringBuilder = ''
+      while (i < expression.length && (isDigit(char) || char === '.')) {
+        stringBuilder += char
+        i++
+        char = expression.charAt(i)
+      }
+      OPERAND.push(Number(stringBuilder))
+      i--
+    } else if (char !== ' ') {
+      // 3. 如果是運算子，則依照優先級對照表。
+      while (!OPERATOR.isEmpty() && precede(OPERATOR.peek(), char) === '>') {
+        let operand2 = OPERAND.pop()
+        let operand1 = OPERAND.pop()
+        OPERAND.push(operate(operand1, operand2, OPERATOR.pop()))
+      }
+
+      if (char === ')' && OPERATOR.peek() === '(') {
+        OPERATOR.pop() // Discard the '('
+      } else if (char !== ')') {
+        OPERATOR.push(char)
+      }
+    }
+  }
+
+  while (!OPERATOR.isEmpty()) {
+    let operand2 = OPERAND.pop()
+    let operand1 = OPERAND.pop()
+    OPERAND.push(operate(operand1, operand2, OPERATOR.pop()))
+  }
+
+  return OPERAND.pop()
+}
+
+export default evaluate
+```
+
+```js file=precede.js
+function precede(operator1, operator2) {
+  switch (operator1) {
+    case '+':
+    case '-': {
+      if (['+', '-', ')'].includes(operator2)) {
+        return '>'
+      }
+      return '<'
+    }
+    case '*':
+    case '/': {
+      if ('(' === operator2) {
+        return '<'
+      }
+      return '>'
+    }
+    case '(': {
+      if (')' === operator2) {
+        return '='
+      }
+      return '<'
+    }
+    case ')':
+      return '>'
+    default:
+      return '<'
+  }
+}
+
+export default precede
+```
+
+```js file=operate.js
+function operate(operand, operand2, operator) {
+  switch (operator) {
+    case '+':
+      return operand + operand2
+    case '-':
+      return operand - operand2
+    case '*':
+      return operand * operand2
+    case '/':
+      return operand / operand2
+  }
+
+  return 0
+}
+
+export default operate
+```
+
+```js file=isDigit.js
+function isDigit(char) {
+  return /[0-9]/.test(char)
+}
+
+export default isDigit
+```
+
+```js file=stack.js
+class Stack {
+  constructor() {
+    this.stack = []
+  }
+  pop() {
+    return this.stack.pop()
+  }
+  push(element) {
+    this.stack.push(element)
+    return this.size()
+  }
+  isEmpty() {
+    return this.stack.length === 0
+  }
+  peek() {
+    return this.isEmpty() ? null : this.stack[this.size() - 1]
+  }
+  size() {
+    return this.stack.length
+  }
+}
+export default Stack
+```
+
+</Sandpack>
+
+## 使用者介面 - 計算機
+
+將上面的邏輯實作完成後，就可以透過 React 實作一個簡單的計算機。
+
+<Sandpack activeFile="/Calculator.js">
+
+```js file=App.js
+import Calculator from './Calculator.js'
+
+export default () => {
+  return <Calculator />
+}
+```
+
+```js file=Calculator.js active=true
+import React, { useState } from 'react'
+import evaluate from './evaluate.js'
+import { layoutConfig } from './layout.js'
+import './calculator.css'
+
+function Calculator() {
+  const [input, setInput] = useState('')
+  const [error, setError] = useState(false)
+
+  const handleInput = (buttonValue) => {
+    switch (buttonValue) {
+      case 'C':
+        reset()
+        break
+      case '=':
+        calculateResult()
+        break
+      default:
+        if (error) {
+          setInput(buttonValue)
+          setError(false)
+        } else {
+          setInput(input + buttonValue)
+        }
+    }
+  }
+
+  const calculateResult = () => {
+    try {
+      setInput(String(evaluate(input)))
+      setError(false)
+    } catch (e) {
+      setInput('Error')
+      setError(true)
+    }
+  }
+
+  const reset = () => {
+    setInput('')
+    setError(false)
+  }
+
+  return (
+    <div className="calculator">
+      <div className="display">{error ? 'Error' : input || '0'}</div>
+      <div className="button-grid">
+        {layoutConfig.map((button, index) => (
+          <button
+            key={index}
+            onClick={() => handleInput(button.value)}
+            className={button.className || ''}
+          >
+            {button.display}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default Calculator
+```
+
+```js file=layout.js
+export const layoutConfig = [
+  { display: 'C', value: 'C', className: 'clear-button' },
+  { display: '(', value: '(' },
+  { display: ')', value: ')' },
+  { display: '/', value: '/' },
+  { display: '7', value: '7' },
+  { display: '8', value: '8' },
+  { display: '9', value: '9' },
+  { display: '*', value: '*' },
+  { display: '4', value: '4' },
+  { display: '5', value: '5' },
+  { display: '6', value: '6' },
+  { display: '-', value: '-' },
+  { display: '1', value: '1' },
+  { display: '2', value: '2' },
+  { display: '3', value: '3' },
+  { display: '+', value: '+' },
+  { display: '0', value: '0', className: 'zero-button' },
+  { display: '.', value: '.' },
+  { display: '=', value: '=', className: 'equals-button' },
+]
+```
+
+```css file=calculator.css
+.calculator {
+  max-width: 100%;
+  margin: auto;
+  padding: 20px;
+  background-color: #333;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.display {
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  text-align: right;
+  font-size: 1.5em;
+}
+
+.button-grid {
+  display: grid;
+  /* 4 columns */
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 10px;
+}
+
+button {
+  padding: 5px;
+  border-radius: 8px;
+  background-color: #eee;
+  font-size: 1.2em;
+  cursor: pointer;
+  color: white;
+  background-color: #666;
+  transition: background-color 0.3s ease;
+  border: none;
+}
+
+button.equals-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+button.clear-button {
+  background-color: #f44336;
+  color: white;
+}
+
+button.zero-button {
+  grid-column: span 2;
+}
+```
+
+```js file=evaluate.js hidden=true
+import Stack from './stack.js'
+import isDigit from './isDigit.js'
+import operate from './operate.js'
+import precede from './precede.js'
+
+function evaluate(expression) {
+  const OPERATOR = new Stack()
+  const OPERAND = new Stack()
+
+  // 1. 從左到右讀取運算式
+  for (let i = 0; i < expression.length; i++) {
+    let char = expression.charAt(i)
+
+    // 2. 如果是運算元，則直接放入運算元堆疊。
+    if (isDigit(char) || char === '.') {
+      let stringBuilder = ''
+      while (i < expression.length && (isDigit(char) || char === '.')) {
+        stringBuilder += char
+        i++
+        char = expression.charAt(i)
+      }
+      OPERAND.push(Number(stringBuilder))
+      i--
+    } else if (char !== ' ') {
+      // 3. 如果是運算子，則依照優先級對照表。
+      while (!OPERATOR.isEmpty() && precede(OPERATOR.peek(), char) === '>') {
+        let operand2 = OPERAND.pop()
+        let operand1 = OPERAND.pop()
+        OPERAND.push(operate(operand1, operand2, OPERATOR.pop()))
+      }
+
+      if (char === ')' && OPERATOR.peek() === '(') {
+        OPERATOR.pop() // Discard the '('
+      } else if (char !== ')') {
+        OPERATOR.push(char)
+      }
+    }
+  }
+
+  while (!OPERATOR.isEmpty()) {
+    let operand2 = OPERAND.pop()
+    let operand1 = OPERAND.pop()
+    OPERAND.push(operate(operand1, operand2, OPERATOR.pop()))
+  }
+
+  return OPERAND.pop()
+}
+
+export default evaluate
+```
+
+```js file=precede.js hidden=true
+function precede(operator1, operator2) {
+  switch (operator1) {
+    case '+':
+    case '-': {
+      if (['+', '-', ')'].includes(operator2)) {
+        return '>'
+      }
+      return '<'
+    }
+    case '*':
+    case '/': {
+      if ('(' === operator2) {
+        return '<'
+      }
+      return '>'
+    }
+    case '(': {
+      if (')' === operator2) {
+        return '='
+      }
+      return '<'
+    }
+    case ')':
+      return '>'
+    default:
+      return '<'
+  }
+}
+
+export default precede
+```
+
+```js file=operate.js hidden=true
+function operate(operand, operand2, operator) {
+  switch (operator) {
+    case '+':
+      return operand + operand2
+    case '-':
+      return operand - operand2
+    case '*':
+      return operand * operand2
+    case '/':
+      return operand / operand2
+  }
+
+  return 0
+}
+
+export default operate
+```
+
+```js file=isDigit.js hidden=true
+function isDigit(char) {
+  return /[0-9]/.test(char)
+}
+
+export default isDigit
+```
+
+```js file=stack.js hidden=true
+class Stack {
+  constructor() {
+    this.stack = []
+  }
+  pop() {
+    return this.stack.pop()
+  }
+  push(element) {
+    this.stack.push(element)
+    return this.size()
+  }
+  isEmpty() {
+    return this.stack.length === 0
+  }
+  peek() {
+    return this.isEmpty() ? null : this.stack[this.size() - 1]
+  }
+  size() {
+    return this.stack.length
+  }
+}
+export default Stack
+```
+
+</Sandpack>

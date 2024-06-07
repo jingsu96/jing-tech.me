@@ -1,0 +1,151 @@
+---
+title: 'lodash _.memoize'
+date: '2024-06-08'
+tags: ['javascript']
+draft: trues
+summary: lodash 函式庫中的 _.memorize 函式
+topic: '基本題型'
+---
+
+## 問題
+
+`memoize` 函式是一個高階函數 ([higher-order function](https://eloquentjavascript.net/05_higher_order.html))，它接收一個函式作為輸入，並返回該函式的 memoized（儲存結果的）版本。
+
+memoized 函式會快取 (cache) 每個已經計算過的值，並在之後接收到相同輸入時返回快取結果。這可以顯著提高涉及複雜處理/顯著延遲且重複被同樣參數調用的函式的性能。
+
+```typescript
+function memoize(func: Function): Function
+```
+
+`fibonacci` 就是一個非常經典的例子，由於其計算過程是指數級的，因此在計算較大的數字時，將會非常花時間。如果在這裡有不太清楚的話，可以參考 [cs61a - measuring efficiency 的 lecture](https://www.youtube.com/playlist?list=PL6BsET-8jgYU9eOK2Ft8hQuzIWb4h-Tim)。
+
+```javascript
+function fibonacci(n) {
+  console.log(`I'm calculating fibonacci(${n})`)
+
+  if (n <= 1) {
+    return n
+  }
+  return fibonacci(n - 1) + fibonacci(n - 2)
+}
+```
+
+這時候我們就可以透過 `memoize` 函式來優化這個函式：
+
+```javascript
+const memoizedFibonacci = memoize(fibonacci)
+
+console.log(memoizedFibonacci(20)) // I'm calculating fibonacci(20)...
+console.log(memoizedFibonacci(20)) // No log, return immediately
+```
+
+## 練習區
+
+在了解問題後，可以嘗試先寫下你的思路，再到下方的練習區域實際寫出程式碼。
+
+<Sandpack lang="static" activeFile="index.js">
+
+```html file=index.html hidden=true
+<style>
+  body {
+    font-family:
+      noto sans,
+      sans-serif;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    border: 1px solid #e2e2e3;
+    padding: 8px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f2f2f2;
+  }
+
+  pre {
+    margin: 0;
+    font-family: consolas, monospace;
+    font-size: 12px;
+  }
+</style>
+
+<script src="view.js" type="module"></script>
+```
+
+```javascript file=index.js
+/**
+ * @param {Function} func
+ * @returns {Function}
+ */
+function memoize(func) {
+  // your code here
+  return () => {}
+}
+
+export { memoize }
+```
+
+```js file=view.js hidden=true
+import { memoize } from './index.js'
+
+const fibonacci = (n) => {
+  if (n <= 1) return n
+  return fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+const memoizedFibonacci = memoize(fibonacci)
+
+const testCases = [
+  { input: [5], expected: 5 },
+  { input: [10], expected: 55 },
+  { input: [20], expected: 6765 },
+]
+
+const createTestRow = (input, expected) => {
+  const output = memoizedFibonacci(...input)
+  const passed = output === expected
+  return `
+    <tr>
+      <td><pre>${JSON.stringify(input)}</pre></td>
+      <td><pre>${output}</pre></td>
+      <td>${passed ? '✅' : '❌'}</td>
+    </tr>
+  `
+}
+
+document.body.innerHTML = `
+  <table>
+    <thead>
+      <tr>
+        <th>輸入</th>
+        <th>輸出</th>
+        <th>通過</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${testCases.map(({ input, expected }) => createTestRow(input, expected)).join('')}
+    </tbody>
+  </table>
+`
+```
+
+</Sandpack>
+
+## 追問
+
+1. XXX
+
+## 筆者的思路
+
+## 筆者的解答
+
+## 相關題目
+
+1. XXX

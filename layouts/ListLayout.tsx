@@ -8,6 +8,7 @@ import type { Blog } from 'contentlayer/generated';
 import Link from '@/components/CustomLink';
 import Tag from '@/components/Tag';
 import siteMetadata from '@/data/siteMetadata';
+import { TOPIC_EN_TO_ZH } from '@/lib/constants';
 
 interface PaginationProps {
   totalPages: number;
@@ -121,7 +122,11 @@ export default function ListLayout({ posts, title, initialDisplayPosts = [], pag
                           {title}
                         </Link>
                       </h3>
-                      <div className="flex flex-wrap">{tags?.map((tag) => <Tag key={tag} text={tag} />)}</div>
+                      <div className="flex flex-wrap">
+                        {tags?.map((tag) => {
+                          return <Tag key={tag} text={TOPIC_EN_TO_ZH[tag] || tag} />;
+                        })}
+                      </div>
                     </div>
                     <div className="prose max-w-none text-gray-500 dark:text-gray-400">{summary}</div>
                   </div>

@@ -1,4 +1,6 @@
 const { withContentlayer } = require('next-contentlayer2');
+const { redirect } = require('next/dist/server/api-utils');
+const redirects = require('./redirects.json');
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
@@ -64,6 +66,9 @@ module.exports = () => {
     pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
     eslint: {
       dirs: ['app', 'components', 'layouts', 'scripts'],
+    },
+    async redirects() {
+      return redirects.redirects;
     },
     images: {
       domains: [

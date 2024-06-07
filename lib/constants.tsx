@@ -192,6 +192,11 @@ export const ORDER = {
   'writing/javascript/lodash/array': {
     基本題型: 1,
   },
+  'writing/dsa': {
+    基本介紹: 1,
+    '資料結構 101': 2,
+    實作: 3,
+  },
 };
 
 export const TOPIC_EN_TO_ZH = {
@@ -199,6 +204,8 @@ export const TOPIC_EN_TO_ZH = {
   career: '職涯',
   rust: 'Rust',
   javascript: 'JavaScript',
-  'user-experience': '使用者體驗',
+  'user-experiences': '使用者體驗',
   others: '隨記',
+  dsa: '資結與演算法',
+  experiences: '經驗分享',
 };

@@ -1,0 +1,495 @@
+---
+title: '資料結構 - Stack & Queue'
+date: '2023-11-25'
+tags: ['dsa']
+draft: false
+topic: '資料結構 101'
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+本篇文章將會介紹 Queue 和 Stack 的概念，兩者都是資料收集 (Data Collection) 很重要的概念。以下將會用 JavaScript 來實作這兩種資料結構。
+
+## 堆疊 (Stack)
+
+<Image
+  src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Lifo_stack.svg/350px-Lifo_stack.svg.png"
+  alt="Stack"
+  width={350}
+  height={245}
+  showalt="true"
+  sourceTitle="Wikipedia"
+  sourceUrl="https://en.wikipedia.org/wiki/Stack_(abstract_data_type)"
+  className="bg-white"
+/>
+
+### 什麼是堆疊 ?
+
+堆疊就是一種後進先出 (**L**ast **I**n **F**irst **O**ut) 的資料結構，也就是最後一個加入的元素會最先被移除。
+
+### Stack 的特點與應用
+
+#### 特點
+
+- 如上面所提到的 Stack 是一個具有 LIFO 特性的資料結構。
+- 只能在 Stack 的頂端 (Top) 執行 `push` 和 `pop` 的動作。
+
+#### 應用
+
+不管在現實是或是在電腦科學中，Stack 都是一個很常見的資料結構。
+
+舉現實生活中的例子來說，當你去迴轉壽司店時，總是會將空盤子堆成一堆，最後在從最上面的盤子開始拿起，放入店家回收盤子的投入口。而這就是一個 Stack 的概念。
+
+在電腦科學中，Stack 的概念更是普遍，舉凡像是 Function Call Stack、Undo / Redo 又或是 DFS 演算法等等，皆是使用 Stack 的概念實作。
+
+### API 設計 (API Interface)
+
+Stack 是一種抽象的資料型別 (Abstract Data Type)，其包含以下幾種操作：
+
+```javascript
+class Stack {
+  pop() {} // 刪除 Stack 頂部第一個元素
+  push() {} // 新增元素到 Stack 頂部
+  isEmpty() {} // 檢查 Stack 是否為空
+  peek() {} // 回傳 Stack 頂部第一個元素
+  size() {} // 回傳 Stack 的長度
+}
+```
+
+通常我們希望將上述的操作都能夠是 `O(1)` 的時間複雜度，以及空間複雜度為 `O(n)`。
+
+### 實作
+
+由於 Stack 是一種抽象的資料型別，因此我們可以使用不同的資料結構來實作，本篇將會介紹兩種實作方式。
+
+#### 1. Array 實作
+
+Array 來實作 Stack 是最直覺的方式，因為 Array 原生的方法 (method) 就具有 LIFO 的特性，因此我們只需要使用 `push` 和 `pop` 這兩個方法即可。
+
+```javascript
+class Stack {
+  constructor() {
+    this.stack = []
+  }
+  pop() {
+    return this.stack.pop()
+  }
+  push(element) {
+    this.stack.push(element)
+    return this.size()
+  }
+  isEmpty() {
+    return this.stack.length === 0
+  }
+  peek() {
+    return this.isEmpty() ? null : this.stack[this.size() - 1]
+  }
+  size() {
+    return this.stack.length
+  }
+}
+```
+
+\*大家也可以用 `unshift/shift` 來實作看看，並思考兩者有什麼不同？
+
+#### 2. Linked List 實作
+
+Double Linked List 是一種雙向的資料結構，其每個節點 (Node) 都包含 `value`、`next` 和 `prev` 三個屬性，其中 `next` 和 `prev` 分別指向下一個節點和上一個節點。
+
+如果想要了解更多關於 Linked List 的資訊，可以參考筆者之前寫的文章 [Data Structure 101 - Linked List](/series/data-structures/linked-list/)。
+
+使用 Linked List 來實作 Stack 的話，我們需要兩個 sentinel node，分別為 `head` 和 `tail`，其分別指向 Stack 的頂部和底部。
+
+當我們要新增一個元素到 Stack 時，我們只需要將新的元素插入到 `tail` 的前面一個節點即可 (`push`)，而當我們要刪除 Stack 的頂部元素 (`pop`) 時 ，我們只需要將 `tail` 的前一個節點刪除即可。
+
+<Sandpack lang="static">
+
+```js file=index.html
+<!DOCTYPE html>
+
+
+<script type="module">
+  // ========= Playground =========
+  // Open browser console to see the result
+  import Stack from './stack.js';
+  const stack = new Stack();
+  stack.push('1');
+  stack.push('2');
+  stack.push('3');
+  stack.print(); // 1 -> 2 -> 3
+  stack.pop(); // 3
+  stack.print(); // 1 -> 2
+</script>
+
+<body>
+    <code>
+      <pre>const stack = new Stack();</pre>
+      <pre>stack.push('1');</pre>
+      <pre>stack.push('2');</pre>
+      <pre>stack.push('3');</pre>
+      <pre>stack.print(); // 1 -> 2 -> 3</pre>
+      <pre>stack.pop(); // 3</pre>
+      <pre>stack.print(); // 1 -> 2</pre>
+    </code>
+</body>
+```
+
+```js file=stack.js
+class Node {
+  constructor(value) {
+    this.value = value
+    this.next = null
+    this.prev = null
+  }
+}
+
+const SENTINEL_VALUE = 99
+const sentinelHead = Symbol('sentinelHead')
+const sentinelTail = Symbol('sentinelTail')
+
+class Stack {
+  constructor() {
+    this.size = 0
+    this[sentinelHead] = new Node(SENTINEL_VALUE)
+    this[sentinelTail] = new Node(SENTINEL_VALUE)
+
+    // 連結 sentinel head 和 sentinel tail
+    this[sentinelHead].next = this[sentinelTail]
+    this[sentinelTail].prev = this[sentinelHead]
+  }
+
+  push(element) {
+    // Pseudo code:
+    // 1. 建立一個新的 Node
+    // 2. 將新的 Node 插入到 Linked List 的最後一個節點
+    // 2.1 新的 Node 的 next 指向 tail sentinel
+    // 2.2 tail sentinel 的 prev 指向新的 Node
+    // 2.3 新的 Node 的 prev 指向原本最後一個節點
+    // 2.4 原本最後一個節點的 next 指向新的 Node
+    // 3. 將 linked list 的 size 加 1
+
+    const newNode = new Node(element) // 1
+    const prevNode = this[sentinelTail].prev
+
+    newNode.next = this[sentinelTail] // 2.1
+    this[sentinelTail].prev = newNode // 2.2
+
+    newNode.prev = prevNode // 2.3
+    prevNode.next = newNode // 2.4
+
+    return ++this.size // 3
+  }
+
+  pop() {
+    // Pseudo code:
+    // 1. 檢查 Linked List 的 size 是否為 0，如果是則回傳 null
+    // 2. 找到 Linked List 的最後一個節點
+    // 3. 將最後一個節點從 Linked List 中移除
+    // 3.1 tail sentinel 的 prev 指向原本最後一個節點的 prev
+    // 3.2 原本最後一個節點的 prev 的 next 指向 tail sentinel
+    // 4. 將 Linked List 的 size 減 1
+    // 5. 回傳最後一個節點的 value
+
+    if (this.isEmpty()) {
+      return null // 1
+    }
+
+    const oldNode = this[sentinelTail].prev // 2
+
+    this[sentinelTail].prev = oldNode.prev // 3.1
+    oldNode.prev.next = this[sentinelTail] // 3.2
+
+    this.size-- // 4
+
+    return oldNode.value // 5
+  }
+
+  peek() {
+    if (this.isEmpty()) {
+      return null
+    }
+    return this[sentinelTail].prev.value
+  }
+
+  isEmpty() {
+    return this.size === 0
+  }
+
+  size() {
+    return this.size
+  }
+
+  *values() {
+    let current = this[sentinelHead].next
+
+    while (current.next !== null) {
+      yield current.value
+      current = current.next
+    }
+
+    return current.value
+  }
+
+  [Symbol.iterator]() {
+    return this.values()
+  }
+
+  print() {
+    const values = [...this.values()]
+    console.log(values.join(' -> '))
+  }
+}
+
+export default Stack
+```
+
+</Sandpack>
+
+### 效能
+
+Array (使用原生 `pop` & `push`) 與 Doubly Linked List 在實作 Stack 上的效能是一樣的，而其時間與空間複雜度如下：
+
+#### 時間複雜度
+
+| 操作 | Array | Linked List |
+| ---- | ----- | ----------- |
+| push | O(1)  | O(1)        |
+| pop  | O(1)  | O(1)        |
+
+#### 空間複雜度
+
+空間複雜度則皆為 O(n)。
+
+## 佇列 (Queue)
+
+<Image
+  src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Data_Queue.svg/220px-Data_Queue.svg.png"
+  alt="Queue"
+  width={350}
+  height={245}
+  showalt="true"
+  sourceTitle="Wikipedia"
+  sourceUrl="https://en.wikipedia.org/wiki/Queue_(abstract_data_type)"
+  className="bg-white"
+/>
+
+### 什麼是佇列 ?
+
+佇列就是一個先進先出 (**F**irst **I**n **F**irst **O**ut) 的資料結構，也就是最先加入的元素會最先被移除。
+
+### 佇列的特點與應用
+
+#### 特點
+
+- 如上面所提到的 Queue 是一個具有 FIFO 特性的資料結構。
+- 插入元素 (`enqueue`) 的那端稱為隊尾 , 刪除元素 (`dequeue`) 的那端為隊頭 。
+
+#### 應用
+
+佇列在現實生活中也是一個很常見的資料結構，像是辦公室的印表機一定是會先印出先進入列印佇列的文件，而不是後進入列印佇列的文件。
+
+在電腦科學中，佇列也是一個很常見的資料結構，像是 BFS 演算法、排程 (Scheduling) 等等，皆是使用 Queue 的概念實作。
+
+### API 設計 (API Interface)
+
+Queue 與 Stack 一樣也是一種抽象的資料型別 (Abstract Data Type)，其包含以下幾種操作：
+
+```javascript
+class Queue {
+  enqueue() {} // 新增元素到 Queue 的尾部
+  dequeue() {} // 刪除 Queue 的頭部第一個元素
+  isEmpty() {} // 檢查 Queue 是否為空
+  peek() {} // 回傳 Queue 頭部第一個元素
+  size() {} // 回傳 Queue 的長度
+}
+```
+
+通常我們希望將上述的操作都能夠是 `O(1)` 的時間複雜度，以及空間複雜度為 `O(n)`。
+
+### 實作
+
+#### 1. Array 實作
+
+使用 Array 實作會有一個問題，就是當我們要從佇列的隊尾刪除第一個元素時，由於 `shift` 的操作，使 Array 中的所有元素都往前移動一個位置，這樣的話時間複雜度就會變成 `O(n)`。
+
+```javascript
+class Queue {
+  constructor() {
+    this.queue = []
+  }
+  enqueue(element) {
+    this.queue.push(element)
+    return this.size()
+  }
+  dequeue() {
+    return this.queue.shift()
+  }
+  isEmpty() {
+    return this.queue.length === 0
+  }
+  peek() {
+    return this.isEmpty() ? null : this.queue[0]
+  }
+  size() {
+    return this.queue.length
+  }
+}
+```
+
+#### 2. Linked List 實作
+
+由於 Array 在實作 Queue 上沒有辦法達到最佳的效能。而使用 Linked List 來實作 Queue 則是一個更好的選擇。
+
+接下來就會用 Double Linked List 來實作 Queue，其實作方式與 Stack 的實作方式很像。
+
+<Sandpack lang="static">
+
+```js file=index.html
+<!DOCTYPE html>
+
+
+<script type="module">
+  // ========= Playground =========
+  // Open browser console to see the result
+  import Queue from './queue.js';
+  const queue = new Queue();
+  queue.enqueue('1');
+  queue.enqueue('2');
+  queue.enqueue('3');
+  queue.print(); // 1 -> 2 -> 3
+  queue.dequeue(); // 1
+  queue.print(); // 2 -> 3
+</script>
+
+<body>
+    <code>
+      <pre>const queue = new Queue();</pre>
+      <pre>queue.enqueue('1');</pre>
+      <pre>queue.enqueue('2');</pre>
+      <pre>queue.enqueue('3');</pre>
+      <pre>queue.print(); // 1 -> 2 -> 3</pre>
+      <pre>queue.dequeue(); // 1 </pre>
+      <pre>queue.print(); // 2 -> 3</pre>
+    </code>
+</body>
+
+```
+
+```js file=queue.js
+class Node {
+  constructor(value) {
+    this.value = value
+    this.next = null
+    this.prev = null
+  }
+}
+
+const SENTINEL_VALUE = 99
+const sentinelHead = Symbol('sentinelHead')
+const sentinelTail = Symbol('sentinelTail')
+
+class Queue {
+  constructor() {
+    this[sentinelHead] = new Node(SENTINEL_VALUE)
+    this[sentinelTail] = new Node(SENTINEL_VALUE)
+
+    this[sentinelHead].next = this[sentinelTail]
+    this[sentinelTail].prev = this[sentinelHead]
+
+    this.size = 0
+  }
+
+  enqueue(value) {
+    // 1. 建立一個新的 node
+    // 2. 將新的 node 插入到 tail sentinel 的前面
+    // 2.1 新的 node 的 next 指向 tail sentinel
+    // 2.2 tail sentinel 的 prev 指向新的 node
+    // 2.3 新的 node 的 prev 指向 tail sentinel 的 prev
+    // 2.4 tail sentinel 的 prev 的 next 指向新的 node
+    // 3. 將 queue 的 size 加 1
+
+    const newNode = new Node(value)
+    const tailNode = this[sentinelTail].prev
+
+    tailNode.next = newNode
+    newNode.prev = tailNode
+
+    newNode.next = this[sentinelTail]
+    this[sentinelTail].prev = newNode
+
+    return ++this.size
+  }
+
+  dequeue() {
+    // 1. 將第一個 node 從 queue 中移除
+    // 1.1 head sentinel 的 next 指向 head sentinel 的 next 的 next
+    // 1.2 head sentinel 的 next 的 prev 指向 head sentinel
+    // 2. 將 queue 的 size 減 1
+
+    if (this.isEmpty()) {
+      return null
+    }
+
+    const oldNode = this[sentinelHead].next
+
+    oldNode.next.prev = this[sentinelHead]
+    this[sentinelHead].next = oldNode.next
+
+    this.size--
+
+    return oldNode.value
+  }
+
+  peek() {
+    if (this.isEmpty()) {
+      return null
+    }
+    return this[sentinelHead].next.value
+  }
+
+  isEmpty() {
+    return this.size === 0
+  }
+
+  size() {
+    return this.size
+  }
+
+  *values() {
+    let current = this[sentinelHead].next
+
+    while (current !== this[sentinelTail]) {
+      yield current.value
+      current = current.next
+    }
+  }
+
+  [Symbol.iterator]() {
+    return this.values()
+  }
+
+  print() {
+    const values = [...this.values()]
+    console.log(values.join(' -> '))
+  }
+}
+
+export default Queue
+```
+
+</Sandpack>
+
+### 效能
+
+#### 時間複雜度
+
+| 操作    | Array | Linked List |
+| ------- | ----- | ----------- |
+| enqueue | O(1)  | O(1)        |
+| dequeue | O(n)  | O(1)        |
+
+#### 空間複雜度
+
+空間複雜度則皆為 O(n)。
