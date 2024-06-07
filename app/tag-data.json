@@ -1,9 +1,1 @@
-{
-  "design-system": 30,
-  "career": 3,
-  "javascript": 4,
-  "others": 1,
-  "dsa": 6,
-  "user-experiences": 1,
-  "rust": 11
-}
+{ "design-system": 24, "dsa": 6, "others": 1, "career": 3, "javascript": 3 }
