@@ -101,8 +101,7 @@ const angle = (theta * 180) / Math.PI
 
 只要 `angle` 的值在有效範圍內，就會將父層選單的 `pointer-events` 設為 `none`，這樣就可以避免在移動過程中觸發其他選單項目而導致子選單關閉。
 
-<div className="hidden lg:flex">
-  <Sandpack lang="static" >
+<Sandpack lang="static" className="hidden lg:block">
 
 ```html file=index.html
 <!doctype html>
@@ -197,8 +196,7 @@ const angle = (theta * 180) / Math.PI
 </html>
 ```
 
-  </Sandpack>
-</div>
+</Sandpack>
 
 #### 移動速度
 

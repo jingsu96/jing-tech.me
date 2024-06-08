@@ -179,6 +179,7 @@ export const groupPostsByTopic = (posts, postIdx) => {
 
           if (targetGroup) {
             targetGroup.posts.push(post);
+            targetGroup.posts.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
           } else {
             acc[findIdx] = { topic: post.topic, posts: [post] };
           }

@@ -30,7 +30,10 @@ const CollapsibleList = ({
         <h2>{topic}</h2>
       </AccordionTrigger>
       <AccordionContent className="flex flex-col gap-1 pt-2">
-        {posts?.map?.((post) => <WritingLink key={post.slug} post={post} isActive={post.slug === slug} />)}
+        {posts
+          // sort by date
+          ?.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .map?.((post) => <WritingLink key={post.slug} post={post} isActive={post.slug === slug} />)}
       </AccordionContent>
     </AccordionItem>
   );

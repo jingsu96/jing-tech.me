@@ -1,0 +1,210 @@
+---
+title: '前端面試手寫練習 - lodash _.memoize'
+date: '2024-06-08'
+tags: ['javascript']
+draft: true
+summary: lodash 函式庫中的 _.memorize 函式
+topic: '基本題型'
+---
+
+## 問題
+
+`memoize` 函式是一個高階函數 ([higher-order function](https://eloquentjavascript.net/05_higher_order.html))，它接收一個函式作為輸入，並返回該函式的 memoized（儲存結果的）版本。
+
+被記憶過後的函式就會快取 (cache) 每個已經計算過的值，並在之後接收到相同輸入時返回快取結果。這可以顯著提高涉及複雜處理/顯著延遲且重複被同樣參數調用的函式的性能。
+
+```typescript
+function memoize(func: Function, resolver): Function: Function;
+```
+
+`resolver` 是讓開發者自定義快取的 key 的函式，如果不提供，則預設為 `(...args) => args.join('_')`。
+
+`fibonacci` 就是一個非常經典的例子，由於其計算過程是指數級的，因此在計算較大的數字時，將會非常花時間，所以是非常適合使用 `memoize` 來優化的例子。
+
+如果在這裡有不太清楚 `fibonacci` 的話，可以參考 [cs61a - measuring efficiency 的 lecture](https://www.youtube.com/playlist?list=PL6BsET-8jgYU9eOK2Ft8hQuzIWb4h-Tim)。
+
+```javascript
+function fibonacci(n) {
+  console.log(`I'm calculating fibonacci(${n})`)
+
+  if (n <= 1) {
+    return n
+  }
+  return fibonacci(n - 1) + fibonacci(n - 2)
+}
+```
+
+當 `fibonacci` 在使用 `memoize` 後的結果，可以看到第二次呼叫 `fibonacci(20)` 時，不會再執行計算，而是直接返回快取的結果。
+
+```javascript
+const memoizedFibonacci = memoize(fibonacci)
+
+console.log(memoizedFibonacci(20)) // I'm calculating fibonacci(20)...
+console.log(memoizedFibonacci(20)) // No log, return immediately
+```
+
+## 練習區
+
+了解問題後，讀者們可以嘗試先寫下思路，再到下方的練習區域實際寫出程式碼。也可以移除 test 檔內的 `skip` 來測試追問題是否正確。
+
+<Sandpack lang="test-ts" activeFile="index.js" showTests={true}>
+
+```js file=index.js
+/**
+ * @param {Function} func
+ * @param {Function} resolver
+ * @returns {Function}
+ */
+function memoize(func, resolver = (...args) => args.join('_')) {
+  // your code here
+  return () => {}
+}
+
+export { memoize }
+```
+
+```js file=memoize.test.js
+import { memoize } from './index.js'
+
+describe('memoize', () => {
+  it('should memoize a function and return the same result for the same input', () => {
+    const square = memoize((x) => x * x)
+    expect(square(2)).toBe(4)
+    expect(square(2)).toBe(4) // should return cached result
+  })
+
+  it('should call the original function once for the same input', () => {
+    const spy = jest.fn((x) => x * x)
+    const memoizedSquare = memoize(spy)
+    memoizedSquare(3)
+    memoizedSquare(3)
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+
+  it('should handle multiple arguments correctly', () => {
+    const add = memoize((a, b) => a + b)
+    expect(add(2, 3)).toBe(5)
+    expect(add(2, 3)).toBe(5) // should return cached result
+  })
+
+  it('should handle different arguments separately', () => {
+    const multiply = memoize((a, b) => a * b)
+    expect(multiply(2, 3)).toBe(6)
+    expect(multiply(2, 4)).toBe(8)
+    expect(multiply(2, 3)).toBe(6) // should return cached result
+  })
+
+  it('should allow custom resolver', () => {
+    const resolver = () => 'always-the-same-key'
+    const concat = memoize((a, b) => a + b, resolver)
+
+    expect(concat('foo', 'bar')).toBe('foobar')
+    expect(concat('foo1', 'bar1')).toBe('foobar') // should return cached result
+  })
+
+  it('should work with objects as arguments', () => {
+    const spy = jest.fn((obj) => obj.value * 2)
+    const memoizedFn = memoize(spy)
+    const obj = { value: 5 }
+    expect(memoizedFn(obj)).toBe(10)
+    expect(memoizedFn(obj)).toBe(10) // should return cached result
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+
+  it('should work with complex nested function calls', () => {
+    const factorial = memoize((n) => (n <= 1 ? 1 : n * factorial(n - 1)))
+    expect(factorial(5)).toBe(120)
+    expect(factorial(5)).toBe(120) // should return cached result
+  })
+
+  it.skip('should handle cache clearing correctly', () => {
+    const fn = (x) => x * 2
+    const memoizedFn = memoize(fn)
+    memoizedFn.cache.clear()
+    expect(memoizedFn(2)).toBe(4) // recomputes after cache clear
+  })
+
+  it.skip('should support clearing cache entries based on keys', () => {
+    const spy = jest.fn((x) => x * x)
+    const memoizedSquare = memoize(spy, (x) => x)
+    memoizedSquare(3)
+    expect(spy).toHaveBeenCalledTimes(1)
+    memoizedSquare.cache.delete(3)
+    memoizedSquare(3)
+    expect(spy).toHaveBeenCalledTimes(2) // recomputes after cache entry deletion
+  })
+})
+```
+
+</Sandpack>
+
+## 追問
+
+1. 是否可以支援清除快取 (cache)？
+
+```javascript
+const memoizedFibonacci = memoize(fibonacci)
+
+console.log(memoizedFibonacci(20)) // I'm calculating fibonacci(20)...
+console.log(memoizedFibonacci(20)) // No log, return immediately
+
+memoizedFibonacci.cache.clear()
+
+console.log(memoizedFibonacci(20)) // I'm calculating fibonacci(20)...
+```
+
+## 筆者的思路
+
+1. 決定用來快取的資料結構，例如 object, map, set ..., 在這裡，筆者選擇用 `Map`，因為 `Map` 能夠有效地存儲各種類型的鍵。
+2. 創建雜湊值 (hash key)，這裡先簡單的使用 `args.join('_')` 來創建。
+3. 如果在快取中找不到鍵，則計算值。
+4. 如果已經在快取中，則是回傳存儲值。
+
+## 筆者的解答
+
+### 基礎版
+
+```javascript
+function memoize(func, resolver = (...args) => args.join('_')) {
+  let cache = new Map()
+
+  return (...args) => {
+    const hashkey = resolver(...args)
+
+    if (!cache.has(hashkey)) {
+      const result = func.apply(this, args)
+      cache.set(hashkey, result)
+    }
+
+    return cache.get(hashkey)
+  }
+}
+
+export { memoize }
+```
+
+### 追問版
+
+```javascript
+function memoize(func, resolver = (...args) => args.join('_')) {
+  let cache = new Map()
+
+  const memoized = (...args) => {
+    const hashkey = resolver(...args)
+
+    if (!cache.has(hashkey)) {
+      const result = func.apply(this, args)
+      cache.set(hashkey, result)
+    }
+
+    return cache.get(hashkey)
+  }
+
+  memoized.cache = cache
+  return memoized
+}
+```
+
+## 相關題目
+
+1. [bigfronend - generic memoize function](https://bigfrontend.dev/problem/implement-general-memoization-function)

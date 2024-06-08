@@ -16,6 +16,7 @@ import { CustomTheme } from './Themes';
 import { useTheme } from 'next-themes';
 import { NavigationBar } from './NavigationBar';
 import { useMounted } from '@/hooks/useMounted';
+import { cn } from '@/lib/utils';
 
 const sandboxStyle = `
 * {
@@ -80,6 +81,7 @@ function SandpackRoot(props) {
     activeFile = '/App.js',
     showTerminal,
     showTests,
+    className,
   } = props;
   const [devToolsLoaded, setDevToolsLoaded] = useState(false);
   const mounted = useMounted();
@@ -109,7 +111,7 @@ function SandpackRoot(props) {
   }
 
   return (
-    <div className="sandpack my-8" translate="no" key={theme}>
+    <div className={cn('sandpack my-8', className)} translate="no" key={theme}>
       {['vanilla', 'node', 'static', 'test-ts'].includes(props.lang) ? (
         <SandpackProvider
           template={props.lang}

@@ -186,10 +186,12 @@ export const ORDER = {
     使用者介面: 1,
   },
   'writing/javascript/lodash': {
-    基本介紹: 1,
-    '主題 - 陣列': 2,
+    '前端面試手寫 Lodash': 1,
   },
   'writing/javascript/lodash/array': {
+    基本題型: 1,
+  },
+  'writing/javascript/lodash/general': {
     基本題型: 1,
   },
   'writing/dsa': {
