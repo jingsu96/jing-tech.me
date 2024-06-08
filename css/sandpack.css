@@ -159,7 +159,8 @@ html.dark .cm-activeLine {
 
 @media (min-width: 400px) {
   .sandpack .sp-layout > .sp-stack {
-    height: 200px;
+    max-height: 406px;
+    height: auto;
   }
 }
 
@@ -200,7 +201,7 @@ html.dark .cm-activeLine {
   }
 }
 
-.sandpack .sp-layout .sandpack-expand {
+.sandpack .sp-editor .sandpack .sp-layout .sandpack-expand {
   border-left: none;
   margin-left: 0;
 }

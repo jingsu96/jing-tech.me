@@ -64,7 +64,7 @@ const ScrollTopAndComment = () => {
           transition={{ duration: 0.5, ease: 'easeIn' }}
           className={'fixed bottom-2 right-2 z-50 flex flex-col gap-3 lg:bottom-8 lg:right-8'}
         >
-          {siteMetadata.comments?.provider && (
+          {siteMetadata.comments?.provider && !isMobile && (
             <FloatButton label="Scroll To Comment" onClick={handleScrollToComment}>
               <MessageCircleMore size={16} />
             </FloatButton>

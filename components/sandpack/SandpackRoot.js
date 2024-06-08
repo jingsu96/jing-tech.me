@@ -7,6 +7,7 @@ import {
   SandpackCodeEditor,
   SandpackLayout,
   SandpackPreview,
+  SandpackTests,
 } from '@codesandbox/sandpack-react';
 import { CustomPreset } from './CustomPreset';
 import { createFileMap } from './utils';
@@ -78,6 +79,7 @@ function SandpackRoot(props) {
     lang = 'react',
     activeFile = '/App.js',
     showTerminal,
+    showTests,
   } = props;
   const [devToolsLoaded, setDevToolsLoaded] = useState(false);
   const mounted = useMounted();
@@ -99,9 +101,16 @@ function SandpackRoot(props) {
     };
   }
 
+  if (lang === 'test-ts') {
+    files['/add.test.ts'] = {
+      code: null,
+      hidden: true,
+    };
+  }
+
   return (
     <div className="sandpack my-8" translate="no" key={theme}>
-      {['vanilla', 'node', 'static'].includes(props.lang) ? (
+      {['vanilla', 'node', 'static', 'test-ts'].includes(props.lang) ? (
         <SandpackProvider
           template={props.lang}
           files={
@@ -124,8 +133,9 @@ function SandpackRoot(props) {
           <NavigationBar />
           <SandpackLayout>
             <SandpackCodeEditor showLineNumbers showInlineErrors showTabs={false} showRunButton={false} />
-            {mounted && <SandpackPreview style={showTerminal && { display: 'none' }} />}
+            {mounted && <SandpackPreview style={(showTerminal || showTests) && { display: 'none' }} />}
             {showTerminal && <SandpackConsole standalone={true} />}
+            {showTests && <SandpackTests verbose={true} />}
           </SandpackLayout>
         </SandpackProvider>
       ) : (
