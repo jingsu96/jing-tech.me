@@ -52,14 +52,14 @@ export async function generateMetadata({ params }: { params: { slug: string[] } 
       publishedTime: publishedAt,
       modifiedTime: modifiedAt,
       url: './',
-      images: [`/opengraph/${post.slug}.png`],
+      images: [`/opengraph/${post.slug}`],
       authors: authors.length > 0 ? authors : [siteMetadata.author],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.summary,
-      images: [`/opengraph/${post.slug}.png`],
+      images: [`/opengraph/${post.slug}`],
     },
   };
 }
