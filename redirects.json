@@ -9,6 +9,36 @@
       "source": "/series/data-structures/:path*",
       "destination": "/writing/dsa/:path*",
       "permanent": true
+    },
+    {
+      "source": "/series/functional-programming/:path*",
+      "destination": "/writing/functional-programming/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/series/design-system/:path*",
+      "destination": "/writing/design-system/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/series/frontend/flatten-array/",
+      "destination": "/writing/javascript/lodash/array/_.flat",
+      "permanent": true
+    },
+    {
+      "source": "/blog/career/2021_frontend_interview/",
+      "destination": "/writing/experiences/2021_frontend_interview/",
+      "permanent": true
+    },
+    {
+      "source": "/blog/career/career-1/",
+      "destination": "/writing/experiences/my_path_to_software_engineering/",
+      "permanent": true
+    },
+    {
+      "source": "/blog/career/2022_frontend_learning/",
+      "destination": "/writing/experiences/2024_frontend_learning/",
+      "permanent": true
     }
   ]
 }

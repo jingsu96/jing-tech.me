@@ -1,4 +1,4 @@
-.tweetCard :global(.react-tweet-theme) {
+/* .tweetCard :global(.react-tweet-theme) {
   @apply min-w-full max-w-0 border-0 border-none font-sans text-base;
   --tweet-container-margin: 0;
   --tweet-body-font-size: 1rem;
@@ -11,6 +11,13 @@
   --tweet-bg-color: #fff;
   --tweet-bg-color-hover: #fff;
 }
+
+html.dark .tweetCard :global(.react-tweet-theme) {
+  --tweet-font-color: #f9fafb;
+  --tweet-font-color-secondary: #64748b;
+  --tweet-bg-color: #1a202c;
+  --tweet-bg-color-hover: #2d3748;
+} */
 
 .tweetCard :global(.react-tweet-theme) [class^='tweet-container_article__'] {
   @apply p-4;
@@ -25,6 +32,11 @@
 .tweetCard :global(.react-tweet-theme) [class^='tweet-info_infoLink__'],
 .tweetCard :global(.react-tweet-theme) [class^='tweet-header_authorFollow__'] {
   @apply hidden;
+}
+
+.tweetCard :global(.react-tweet-theme) [class^='tweet-header_avatarOverflow__'] > img,
+.tweetCard :global(.react-tweet-theme) [class^='quoted-tweet-header_avatar__'] > img {
+  margin: 0 !important;
 }
 
 .tweetCard :global(.react-tweet-theme) [class^='tweet-header_author__'] {

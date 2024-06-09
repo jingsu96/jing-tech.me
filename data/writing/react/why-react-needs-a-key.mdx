@@ -1,0 +1,550 @@
+---
+title: 為什麼 React 需要 key?
+date: '2022-04-09'
+tags: ['react']
+draft: false
+authors: ['default']
+topic: '基本概念'
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+作為一名 React 的開發者， 你可能曾經收到提醒你要記得放 key 的警示！
+
+`Warning: Each child in a list should have a unique "key" prop`
+
+有些開發者可能就直接傳入 `index` 作為 key，但這其實解決不了問題，同時這樣做也是 React 的 anti-pattern。
+
+本篇文章將會透過一些例子來解釋為什麼 React 需要 key，以及為什麼不能用 `index` 作為 key。
+
+## key 很重要嗎?
+
+根據下圖可以想看看，要將兩邊的色圈進行交換，你會怎麼做呢？
+
+<Image src="/static/images/blog/react-key/color.png" alt="colors" height="117" width="259" />
+
+如果簡單想一下就會發現有兩種可能：
+
+1. **位置互換**：紅圈、藍圈相互交換
+2. **顏色改變**：將紅色改成藍色，藍色改成紅色
+
+儘管這兩種方式在單純將色圈交換時看起來是一樣的，但當色圈存在著某種的狀態 (e.g. 記錄被點擊次數)，那這樣 **位置交換** 跟 **顏色改變** 就有很大的差異了！
+
+想像一下紅圈被點擊次數是 **10**， 藍圈被點擊次數為 **5**，我們透過下圖來了其何不同：
+
+|                                              位置互換                                               |                                               顏色改變                                               |
+| :-------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------: |
+| <Image src="/static/images/blog/react-key/pos_change.png" alt="colors" height="292" width="228"  /> | <Image src="/static/images/blog/react-key/color_change.png" alt="colors" height="292" width="228" /> |
+
+**位置互換**會將被點擊次數一起互換，而**顏色改變**則是只有改變顏色，其被點擊次數依然保留在原本的位置。
+
+這也是為什麼 React 需要 key 的原因，因為 React 不知道你要做的是 **位置互換** 還是 **顏色改變**，所以我們需要 `key` 來告訴 React 這個 Element 的唯一性，讓 React 能夠正確的進行更新。
+
+## 為什麼 React 需要 key ?
+
+假設現在有三個為一組的色圈，分別為 **紅**、**藍** 與 **黃**，並且透過 `map` 渲染出該組色圈 (如下圖)
+
+<Image src="/static/images/blog/react-key/div-1.png" alt="colors" height="402" width="301" />
+
+```js
+// 示意結構
+<div>
+  <Color color="red" />
+  <Color color="blue" />
+  <Color color="yellow" />
+</div>
+```
+
+### 兩種情境理解 React 的渲染機制
+
+接下來我們透過兩種情境來驗證當 **沒有** 放 key 時 React 的渲染機制
+
+#### 1. 透過點擊事件在最後新增一個黑色
+
+頁面渲染三色後，我們再透過點擊事件在**最後**新增一個黑色，大家可以想想會 log 出什麼?
+
+<Sandpack>
+
+```js file=index.js
+import React, { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './styles.css'
+
+import App from './App'
+
+const root = createRoot(document.getElementById('root'))
+root.render(<App />)
+```
+
+```js file=App.js
+import React from 'react'
+import Colors from './Colors.js'
+
+export default () => {
+  return <Colors />
+}
+```
+
+```js file=Colors.js
+import React from 'react'
+import Color from './Color.js'
+
+const COLORS = ['red', 'blue', 'yellow']
+
+const Colors = () => {
+  const [colors, setColors] = React.useState(COLORS)
+
+  const handleAddBlack = () => {
+    setColors([...COLORS, 'black'])
+  }
+
+  return (
+    <div>
+      <div className="container">
+        {colors.map((c) => (
+          <Color color={c} />
+        ))}
+      </div>
+      <br />
+      <button onClick={handleAddBlack}>add black</button>
+    </div>
+  )
+}
+
+export default Colors
+```
+
+```js file=Color.js
+import React from 'react'
+
+const COLOR_HEX = {
+  red: '#fa5252',
+  yellow: '#fab005',
+  blue: '#7950f2',
+}
+
+const Color = ({ color }) => {
+  React.useEffect(() => {
+    console.log(`---在最後新增一個黑色--- \n ${color} mount`)
+
+    return () => {
+      console.log(`---在最後新增一個黑色--- \n ${color} unmount`)
+    }
+  }, [color])
+
+  return (
+    <div>
+      <div className={`circle`} style={{ background: COLOR_HEX[color] || color }} />
+    </div>
+  )
+}
+
+export default Color
+```
+
+```css
+.circle {
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  opacity: 50%;
+}
+
+.container {
+  display: flex;
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
+.container > div {
+  padding: 10px;
+}
+```
+
+</Sandpack>
+
+我們可以看到在點擊新增後 console 會再 log 出一個 `black mount` (可以開啟 chrome devtool 的 console 查看)
+
+```bash
+---在最後新增一個黑色---
+ black mount
+```
+
+這裡可以想像成當點擊新增後，React 會將變化的部分的 Tree 重新建構並且與改變前的 Tree 進行比較，React 會比較每個 item 的位置，決定是否有沒有需要打掉重建，或是只要改變某些屬性就好，這個過程我們稱作 [**reconciliation**](https://zh-hant.reactjs.org/docs/reconciliation.html)。
+
+在這個情境下， React 在 reconciliation 時，發現前三個色圈都跟之前一樣，心想太棒了，省事省事，所以前三個 Element 保留，到黑色時發現是新增的，所以就創建黑圈在最後。
+
+<Image src="/static/images/blog/react-key/div-2.png" alt="colors" height="310" width="526" />
+
+```js
+<div>
+  <Color color="red" />
+  <Color color="blue" />
+  <Color color="yellow" />
+  <Color color="black" /> // 新增的黑色
+</div>
+```
+
+#### 2. 透過點擊事件在最前方新增一個黑色
+
+在第二個情境，讀者們可以將上面的程式碼稍作修改：
+
+- 將 `Colors.js` 的第 10 行改成
+
+  ```js
+  setColors(['black', ...COLORS])
+  ```
+
+- `Color.js` 的 `useEffect` 改成
+
+  ```js
+  React.useEffect(() => {
+    console.log(`---最前方新增一個黑色--- \n ${color} mount`)
+
+    return () => {
+      console.log(`---最前方新增一個黑色--- \n ${color} unmount`)
+    }
+  }, [color])
+  ```
+
+- 清掉 console，再點擊重整按鈕
+
+  此時我們看到 console 印出了 3 次 unmount 以及 4 次 mount! 也就是說 React 在 reconciliation 時發現第一個跟之前不一樣，所以就把所有的 React Element 打掉重建。
+
+### 加入狀態
+
+理解 React 的渲染機制後，現在我們在把有狀態時的情境加進來，假設這組色圈都本身都記錄了被點擊次數，而 React 會用 key 去辨識是否需要重新渲染該 Element 與保留該 Elment 正確的狀態，**如果沒有提供 key 就會 fallback 使用 array 的 index 作為 key！**
+
+<Image src="/static/images/blog/react-key/div-3.png" alt="colors" height="493" width="702" />
+
+```js
+<div>
+  <Color key={0} color="red" />
+  <Color key={1} color="blue" />
+  <Color key={2} color="yellow" />
+</div>
+```
+
+接下來我們將狀態加入上述兩種情境
+
+#### 1. 透過點擊事件在最後新增一個黑色 (加入狀態)
+
+在按下新增按鈕之前大家可以想像一下裡面的狀態會是什麼？
+
+<Sandpack>
+
+```js file=index.js
+import React, { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './styles.css'
+
+import App from './App'
+
+const root = createRoot(document.getElementById('root'))
+root.render(<App />)
+```
+
+```js file=App.js
+import React from 'react'
+import Colors from './Colors.js'
+
+export default () => {
+  return <Colors />
+}
+```
+
+```js file=Colors.js
+import React from 'react'
+import Color from './Color.js'
+
+const COLORS = ['red', 'blue', 'yellow']
+
+const Colors = () => {
+  const [colors, setColors] = React.useState(COLORS)
+
+  const handleAddBlack = () => {
+    setColors([...COLORS, 'black'])
+  }
+
+  return (
+    <div>
+      <div className="container">
+        {colors.map((c) => (
+          <Color color={c} />
+        ))}
+      </div>
+      <br />
+      <button onClick={handleAddBlack}>add black</button>
+    </div>
+  )
+}
+
+export default Colors
+```
+
+```js file=Color.js
+import React from 'react'
+
+const COLOR_HEX = {
+  red: '#fa5252',
+  yellow: '#fab005',
+  blue: '#7950f2',
+}
+
+const COLOR_COUNT = {
+  red: 5,
+  blue: 10,
+  yellow: 15,
+  black: 20,
+}
+
+const Color = ({ color }) => {
+  const [count, setCount] = React.useState(COLOR_COUNT[color] || 0)
+
+  React.useEffect(() => {
+    console.log(`---在最後新增一個黑色--- \n ${color} mount ${count}`)
+
+    return () => {
+      console.log(`---在最後新增一個黑色--- \n ${color} unmount`)
+    }
+  }, [color])
+
+  return (
+    <div className="colorContainer">
+      <div
+        style={{ background: COLOR_HEX[color] || color }}
+        className="inner"
+        onClick={() => setCount((prev) => prev + 1)}
+      >
+        <span className="count">{count}</span>
+      </div>
+    </div>
+  )
+}
+
+export default Color
+```
+
+```css
+.container {
+  display: flex;
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
+.container > div {
+  padding: 10px;
+}
+
+.colorContainer {
+  position: relative;
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 50px;
+  border-radius: 50px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.count {
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+}
+```
+
+</Sandpack>
+
+就像前面所說的，由於 React 在 reconciliation 時看到前面三個色圈是一樣的，所以不會打掉重建，並且 key **恰好**也是相同的，所以裡面的點擊次數也會是正確的。
+
+<Image src="/static/images/blog/react-key/div-4.png" alt="colors" height="399" width="762" />
+
+#### 2. 透過點擊事件在最前方新增一個黑色 (加入狀態)
+
+那在前方新增一個黑色呢？大家可以將照著前面程式碼修改的步驟，完成後點擊新增按鈕，看看 console 會印出什麼？
+
+點擊新增後我們可以看到，因為我們沒有提供 key，所以 React 將 Element 重新建立後，卻不知道狀態是哪個 Element 的，所以只能用 children array 的 index 將 state 塞回去 ，導致 state 亂掉的現象。
+
+<Image src="/static/images/blog/react-key/div-5.png" alt="colors" height="435" width="762" />
+
+```js
+<div>
+  <Color key={0} color="black" />
+  <Color key={1} color="red" />
+  <Color key={2} color="blue" />
+  <Color key={3} color="yellow" />
+</div>
+```
+
+#### 3. 加入 key
+
+我們可以在 `Colors.js` 的第 17 行將 key 加入
+
+```js
+<Color color={c} key={c} />
+```
+
+就可以看到一切都會是正常的了，因為我們提供了唯一的 key，讓 React 知道那些項目需要被 **刪除** / **更新** / **插入**，這也是我們需要 **唯一 key** 的原因，有了它，React 不但可以省去重建 Element 所花的時間，也可以將 state 完整保存！
+
+<Image src="/static/images/blog/react-key/div-6.png" alt="colors" height="435" width="762" />
+
+```js
+<div>
+  <Color key="black" color="black" />
+  <Color key="red" color="red" />
+  <Color key="blue" color="blue" />
+  <Color key="yellow" color="yellow" />
+</div>
+```
+
+## 結論
+
+**記得要放唯一 key !!!**
+
+最後用 playground 來做個小結吧！在 playground 內可以看到下列三種結果
+
+- 沒有放 key
+- 用 index 作為 key
+- 用唯一值作為 key
+
+按下 shuffle 之後前兩者都不會將原項目的 state 進行轉移，**只有使用唯一值作為 key 的方式，才會將原項目的 state 一起變動!**
+
+<Sandpack>
+
+```js
+import React from 'react'
+import Example from './Example.js'
+import { shuffle, COLORS } from './tool.js'
+
+const App = () => {
+  const [colors, setColors] = React.useState(COLORS)
+
+  return (
+    <>
+      <button className="shuffle" onClick={() => setColors(shuffle(COLORS))}>
+        shuffle
+      </button>
+      <Example colors={colors} />
+    </>
+  )
+}
+
+export default App
+```
+
+```js file=Example.js
+import React from 'react'
+import Color from './Color.js'
+import { COLORS } from './tool.js'
+
+const Example = ({ colors }) => {
+  return (
+    <>
+      <h2>沒有放 key</h2>
+      <div className="container">
+        {colors.map((c) => (
+          <Color bkColor={c} />
+        ))}
+      </div>
+      <br />
+      <h2>用 index 作為 key</h2>
+      <div className="container">
+        {colors.map((c, i) => (
+          <Color bkColor={c} key={i} />
+        ))}
+      </div>
+      <br />
+      <h2>用唯一值作為 key</h2>
+      <div className="container">
+        {colors.map((c) => (
+          <Color bkColor={c} key={c} />
+        ))}
+      </div>
+    </>
+  )
+}
+
+export default Example
+```
+
+```js file=Color.js
+import React from 'react'
+
+const Color = ({ defaultValue = 0, bkColor }) => {
+  const [count, setCount] = React.useState(defaultValue)
+
+  return (
+    <div className="colorContainer">
+      <div
+        style={{ background: bkColor }}
+        className="inner"
+        onClick={() => setCount((prev) => prev + 1)}
+      >
+        <span className="count">{count}</span>
+      </div>
+    </div>
+  )
+}
+
+export default Color
+```
+
+```js file=tool.js
+const COLORS = ['#fa5252', '#fab005', '#7950f2']
+
+const shuffle = (arr) => {
+  const arrWithRand = arr.map((x) => [x, Math.random()])
+  arrWithRand.sort((a, b) => b[1] - a[1])
+  return arrWithRand.map((x) => x[0])
+}
+
+export { shuffle, COLORS }
+```
+
+```css
+.container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+.container > div {
+  margin-right: 10px;
+}
+
+.colorContainer {
+  position: relative;
+  overflow: hidden;
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 50px;
+  border-radius: 50px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.count {
+  color: rgba(0, 0, 0);
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.shuffle {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+}
+```
+
+</Sandpack>

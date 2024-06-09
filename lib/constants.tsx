@@ -199,6 +199,13 @@ export const ORDER = {
     '資料結構 101': 2,
     實作: 3,
   },
+  'writing/react': {
+    基本概念: 1,
+  },
+  'writing/functional-programming': {
+    基本介紹: 1,
+    基礎概念: 2,
+  },
 };
 
 export const TOPIC_EN_TO_ZH = {
@@ -210,4 +217,6 @@ export const TOPIC_EN_TO_ZH = {
   others: '隨記',
   dsa: '資結與演算法',
   experiences: '經驗分享',
+  react: 'React',
+  'functional-programming': '函數式編程',
 };
