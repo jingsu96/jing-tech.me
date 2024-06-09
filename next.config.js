@@ -1,6 +1,7 @@
 const { withContentlayer } = require('next-contentlayer2');
 const { redirect } = require('next/dist/server/api-utils');
 const redirects = require('./redirects.json');
+const { IgnorePlugin } = require('webpack');
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
