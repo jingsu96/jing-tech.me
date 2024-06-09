@@ -6,6 +6,11 @@
       "permanent": true
     },
     {
+      "source": "/zh-hant/series/data-structures/:path*",
+      "destination": "/writing/dsa/:path*",
+      "permanent": true
+    },
+    {
       "source": "/series/data-structures/:path*",
       "destination": "/writing/dsa/:path*",
       "permanent": true
@@ -13,6 +18,11 @@
     {
       "source": "/series/functional-programming/:path*",
       "destination": "/writing/functional-programming/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/writing/:path*/index",
+      "destination": "/writing/:path*/",
       "permanent": true
     },
     {
