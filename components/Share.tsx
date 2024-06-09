@@ -9,7 +9,7 @@ import { Copy, CopyCheck } from 'lucide-react';
 
 export default function Share() {
   const pathname = usePathname();
-  const shareUrl = `https://www.jing-tech.me/${pathname}`;
+  const shareUrl = `https://www.jing-tech.me${pathname}`;
   const [copied, setCopied] = useState(false);
 
   const onCopy = () => {

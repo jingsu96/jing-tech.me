@@ -4,7 +4,7 @@ const siteMetadata = {
   author: 'JingHuang Su',
   position: 'Software Engineer',
   headerTitle: 'www.jing-tech.me',
-  description: 'A blog created with Next.js and Tailwind.css',
+  description: '網頁工程大小事 | Exploring the World of Software Engineering',
   language: 'zh-TW',
   locale: 'zh-TW',
   theme: 'light', // system, dark or light
