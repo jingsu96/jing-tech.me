@@ -1,0 +1,90 @@
+---
+title: '前端面試手寫練習 - lodash _.chunk'
+date: '2024-06-10'
+tags: ['javascript']
+draft: false
+summary: lodash 函式庫中的 _.chunk 函式
+topic: '基本題型'
+---
+
+## 問題
+
+chunk 是一個函式 ，它可以將輸入陣列分割成長度為 `size` 的區塊，如果數組不能均勻分割，最後一個區塊將會存放所有剩餘的元素。此外該函式並不會改變原始陣列。
+
+```typescript
+function chunk(arr: Array, size: number = 1): Array<Array>
+```
+
+```javascript
+chunk(['a', 'b', 'c', 'd']) // => [['a'], ['b'], ['c'], ['d']]
+chunk([1, 2, 3, 4], 2) // => [[1, 2], [3, 4]]
+chunk([1, 2, 3, 4], 3) // => [[1, 2, 3], [4]]
+```
+
+## 練習區
+
+在了解問題後，可以嘗試先寫下你的思路，再到下方的練習區域實際寫出程式碼。
+
+<Sandpack lang="test-ts" activeFile="index.js" showTests={true}>
+
+```js file=index.js
+/**
+ * @param {Array} arr
+ * @param {number} size
+ * @returns {Array}
+ */
+function chunk(arr, size = 1) {
+  // your code here
+  return arr
+}
+
+export { chunk }
+```
+
+```js file=flat.test.js hidden=true
+import { chunk } from './index.js'
+
+describe('chunk', () => {
+  it('returns an array', () => {
+    expect(Array.isArray(chunk(['a', 'b', 'c', 'd']))).toBe(true)
+  })
+
+  it('returns single sub-array if chunk size exceeds length', () => {
+    expect(chunk([1], 3)).toEqual([[1]])
+  })
+
+  it('splits array into chunks and remainder', () => {
+    expect(chunk([1, 2, 3, 4], 3)).toEqual([[1, 2, 3], [4]])
+  })
+})
+```
+
+</Sandpack>
+
+## 筆者思路
+
+1. 首先檢查 `arr` 是否為陣列，以及 `size` 是否大於等於 `1`。如果任一條件不滿足，回傳陣列本身。
+2. 遍歷和分割陣列：使用 for 迴圈遍歷輸入陣列，每次迴圈的長度為 `size` 。在每次迭代中，使用 `array.slice(i, i + size)` 來獲取從 `i` 到 `size` 這段長度的陣列片段，並將這個片段推送到 `result`。
+3. 返回結果
+
+## 筆者解答
+
+```javascript
+function chunk(arr, size = 1) {
+  if (!Array.isArray(arr) || size < 1) {
+    return arr
+  }
+
+  const result = []
+
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size))
+  }
+
+  return result
+}
+```
+
+## 相關題目
+
+1. [bigfrontend.dev - chunk](https://bigfrontend.dev/problem/implement-lodash-chunk)

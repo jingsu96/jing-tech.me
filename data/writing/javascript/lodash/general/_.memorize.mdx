@@ -153,14 +153,14 @@ memoizedFibonacci.cache.clear()
 console.log(memoizedFibonacci(20)) // I'm calculating fibonacci(20)...
 ```
 
-## 筆者的思路
+## 筆者思路
 
 1. 決定用來快取的資料結構，例如 object, map, set ..., 在這裡，筆者選擇用 `Map`，因為 `Map` 能夠有效地存儲各種類型的鍵。
 2. 創建雜湊值 (hash key)，這裡先簡單的使用 `args.join('_')` 來創建。
 3. 如果在快取中找不到鍵，則計算值。
 4. 如果已經在快取中，則是回傳存儲值。
 
-## 筆者的解答
+## 筆者解答
 
 ### 基礎版
 
