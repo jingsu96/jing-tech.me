@@ -5,7 +5,7 @@ import { genPageMetadata } from 'app/seo';
 
 const POSTS_PER_PAGE = 12;
 
-export const metadata = genPageMetadata({ title: 'Writing' });
+export const metadata = genPageMetadata({ title: '文章' });
 
 export default function BlogPage() {
   const posts = allCoreContent(sortPosts(allBlogs));
