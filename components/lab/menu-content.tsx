@@ -57,6 +57,7 @@ const Header = ({ from }) => {
           height={40}
           loading="lazy"
           className="rounded-full border shadow-sm"
+          id="menu-icon"
         />
         <div className="flex flex-col">
           <span className="font-semibold tracking-tight">{title}</span>
