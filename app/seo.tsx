@@ -23,7 +23,7 @@ export function genPageMetadata({ title, description, image, ...rest }: PageSEOP
     twitter: {
       title: `${title} | ${siteMetadata.title}`,
       card: 'summary_large_image',
-      images: image ? [image] : [siteMetadata.socialBanner],
+      images: [image as any],
     },
     ...rest,
   };
