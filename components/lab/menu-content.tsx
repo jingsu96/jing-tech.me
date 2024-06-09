@@ -12,7 +12,7 @@ import { Languages } from 'lucide-react';
 import { Select, SelectTrigger, SelectContent, SelectItem } from '@/components/lab/ui/select';
 import { cn } from '@/lib/utils';
 
-const locales = { 'zh-tw': 'v2.jing-tech.me', en: 'en.jing-tech.me' };
+const locales = { 'zh-tw': 'www.jing-tech.me', en: 'en.jing-tech.me' };
 const LANDGUAGE = { 'zh-tw': '繁體中文', en: 'English' };
 
 const LanguageSelect = ({ className, iconSize = 20 }: { className?: string; iconSize?: number }) => {
