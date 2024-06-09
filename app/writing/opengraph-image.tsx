@@ -27,7 +27,7 @@ export default async function Image() {
   return new ImageResponse(
     (
       <OpenGraphImage
-        title={metadata?.openGraph?.title as any}
+        title={metadata?.title as any}
         description={metadata?.openGraph?.description || ''}
         icon={<Logo />}
       />
