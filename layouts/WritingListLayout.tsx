@@ -115,7 +115,7 @@ const WritingListLayout = ({ filteredPosts, slug, classname }) => {
         </AnimatePresence>
         <button
           className={cn(
-            'absolute left-[-15px] top-[50%] hidden rounded-full border border-gray-300 bg-bg-alt p-1 lg:flex'
+            'absolute left-[-15px] top-[50%] z-10 hidden rounded-full border border-gray-300 bg-bg-alt p-1 lg:flex'
           )}
           onClick={() => setSidebarVisible((prev) => !prev)}
         >

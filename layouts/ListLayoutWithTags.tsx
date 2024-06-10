@@ -109,7 +109,6 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
               )}
               <ul>
                 {sortedTags.map((t) => {
-                  console.log(pathname.split('/tags/')[1], slug(t));
                   return (
                     <li key={t} className="my-3">
                       {pathname.split('/tags/')[1]?.includes(slug(t)) ? (

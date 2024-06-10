@@ -1,0 +1,184 @@
+---
+title: '前端面試手寫練習 - lodash _.get'
+date: '2024-06-10'
+tags: ['javascript']
+draft: false
+summary: lodash 函式庫中的 _.get 函式
+topic: '基本題型'
+---
+
+## 問題
+
+以前在讀取物件中深層嵌套的屬性時，為了確保程式不會因為中間某個屬性不存在而報錯，我們往往會使用第三方函式庫來處理這個問題，例如 lodash 函式庫中的 `_.get` 函式。
+
+儘管現在可選串連 (optional chaining) 運算子 `?.` 的普及，讓我們對這類型的函式依賴度降低，但其實現方式仍值得探討。
+
+```javascript
+const user1 = {
+  profile: {
+    name: { firstName: 'John', lastName: 'Doe' },
+    age: 99,
+    gender: 'Male',
+  },
+}
+
+const user2 = {
+  profile: {
+    age: 79,
+    gender: 'Female',
+  },
+}
+
+function getFirstName(user) {
+  return user.profile.name.firstName
+}
+```
+
+舉上面例子來說，`getFirstName(user1)` 可以正常執行，但是執行 `getFirstName(user2)` 則會因為 `user2.profile` 裡不存在 `name` 屬性而噴錯。
+
+接下來讓我們寫一個自己的版本作為 `get`。該函式接受一個物件、一個路徑字串或路徑陣列，以及一個可選的預設值。如果路徑存在，則返回路徑對應的值，否則返回預設值。
+
+```js
+get(user1, 'profile.name.firstName') // 'John'
+get(user1, 'profile.gender') // 'Male'
+get(user2, 'profile.name.firstName') // undefined
+get(user2, 'profile.name.firstName', 'Unknown') // 'Unknown'
+```
+
+## 練習區
+
+在了解問題後，可以嘗試先寫下你的思路，再到下方的練習區域實際寫出程式碼。
+
+<Sandpack lang="test-ts" activeFile="index.js" showTests={true}>
+
+```js file=index.js
+/**
+ * @param {Object} objectParam
+ * @param {string|Array<string>} pathParam
+ * @param {*} [defaultValue]
+ * @return {*}
+ */
+function get(object, path, defaultValue = undefined) {
+  // your code here
+}
+
+export { get }
+```
+
+```js file=get.test.js
+import { get } from './index.js'
+
+describe('get', () => {
+  const obj = { a: { b: { c: [1, 2, 3] } } }
+
+  test('should return {b:{c:[1,2,3]}} for path "a"', () => {
+    expect(get(obj, 'a')).toEqual({ b: { c: [1, 2, 3] } })
+  })
+
+  test('should return {c:[1,2,3]} for path "a.b"', () => {
+    expect(get(obj, 'a.b')).toEqual({ c: [1, 2, 3] })
+  })
+
+  test('should return [1,2,3] for path "a.b.c"', () => {
+    expect(get(obj, 'a.b.c')).toEqual([1, 2, 3])
+  })
+
+  test('should return [1,2,3] for path ["a","b","c"]', () => {
+    expect(get(obj, ['a', 'b', 'c'])).toEqual([1, 2, 3])
+  })
+
+  test('should return 1 for path "a.b.c.0"', () => {
+    expect(get(obj, 'a.b.c.0')).toBe(1)
+  })
+
+  test('should return 2 for path ["a","b","c", "1"]', () => {
+    expect(get(obj, ['a', 'b', 'c', '1'])).toBe(2)
+  })
+
+  test('should return 3 for path "a.b.c.2"', () => {
+    expect(get(obj, 'a.b.c.2')).toBe(3)
+  })
+
+  test('should return "jing-tech" for path ["a","b","c", "3"]', () => {
+    const updatedObj = {
+      ...obj,
+      a: { ...obj.a, b: { ...obj.a.b, c: [...obj.a.b.c, 'jing-tech'] } },
+    }
+    expect(get(updatedObj, ['a', 'b', 'c', '3'])).toBe('jing-tech')
+  })
+})
+```
+
+</Sandpack>
+
+## 追問
+
+1. 如果你是用遞迴 (Recursion) 的方式來實踐，那是否可以也用迭代 (Iteration) 的方式來實踐？ 反之。
+
+## 筆者思路
+
+### 遞迴 (Recursion)
+
+1. 首先我們需要判斷 `path` 是否為字串，如果是字串則將其轉換為陣列。
+2. 建立一個 helper function 來處理遞迴。
+3. 定義基本情況 (base case)，如果 `path` 長度為 `0` 則回傳 `object` 本身。
+4. 將 `object` 指向 `path` 的第一個元素，並將 `path` 切片 (slice)。
+5. 重複呼叫 helper function 直到 `path` 長度為 `0`。
+
+### 迭代 (Iteration)
+
+1. 首先我們需要判斷 `path` 是否為字串，如果是字串則將其轉換為陣列。
+2. 對 `path` 進行迭代，並判斷如果 `object` 裡有對應的 path 則將 `object` 指向該 path 的值。否則回傳 `defaultValue`。
+3. 回傳最後指針 (pointer) 指向的位置
+
+## 筆者解答
+
+### 遞迴 (Recursion)
+
+```javascript
+function get(object, path, defaultValue = undefined) {
+  path = Array.isArray(path) ? path : path.split('.')
+
+  const helper = (obj, p) => {
+    if (p.length === 0) {
+      return obj
+    }
+
+    if (obj[p[0]]) {
+      return helper(obj[p[0]], p.slice(1))
+    } else {
+      return defaultValue
+    }
+  }
+
+  return helper(object, path)
+}
+```
+
+### 迭代 (Iteration)
+
+```javascript
+function get(object, path, defaultValue = undefined) {
+  path = Array.isArray(path) ? path : path.split('.')
+  let result = object
+
+  if (path.length === 0) {
+    return defaultValue
+  }
+
+  for (let item of path) {
+    if (result[item]) {
+      result = result[item]
+    } else {
+      result = defaultValue
+      break
+    }
+  }
+
+  return result
+}
+```
+
+## 相關題目
+
+1. [bigfrontend.dev - get](https://bigfrontend.dev/problem/implement-lodash-get)

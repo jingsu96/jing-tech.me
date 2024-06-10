@@ -194,6 +194,9 @@ export const ORDER = {
   'writing/javascript/lodash/general': {
     基本題型: 1,
   },
+  'writing/javascript/lodash/object': {
+    基本題型: 1,
+  },
   'writing/dsa': {
     基本介紹: 1,
     '資料結構 101': 2,
