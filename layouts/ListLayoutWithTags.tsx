@@ -109,9 +109,10 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
               )}
               <ul>
                 {sortedTags.map((t) => {
+                  console.log(pathname.split('/tags/')[1], slug(t));
                   return (
                     <li key={t} className="my-3">
-                      {pathname.split('/tags/')[1] === slug(t) ? (
+                      {pathname.split('/tags/')[1]?.includes(slug(t)) ? (
                         <h3 className="inline px-3 py-2 text-sm font-bold uppercase text-indigo-1">
                           {`${TOPIC_EN_TO_ZH[t]} (${tagCounts[t]})`}
                         </h3>
@@ -135,7 +136,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
             {sortedTags.map((t) => {
               return (
                 <li key={t} className="mr-2 list-none">
-                  {decodeURI(pathname.split('/tags/')[1]) === slug(t) ? (
+                  {pathname.split('/tags/')[1]?.includes(slug(t)) ? (
                     <Link href="/writing" aria-label={`View posts tagged ${t}`}>
                       <Pill
                         text={`${TOPIC_EN_TO_ZH[t] || t} (${tagCounts[t]})`}
