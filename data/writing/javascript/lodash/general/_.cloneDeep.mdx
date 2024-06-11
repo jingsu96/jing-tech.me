@@ -238,7 +238,6 @@ function cloneDeep(value, cloned = new Map()) {
   let result = {}
 
   cloned.set(value, result)
-
   ;[...Object.getOwnPropertyNames(value), ...Object.getOwnPropertySymbols(value)].forEach((key) => {
     result[key] = cloneDeep(value[key], cloned)
   })
@@ -252,3 +251,7 @@ export { cloneDeep }
 ## 相關題目
 
 1. [bigfrontend.dev - chunk](https://bigfrontend.dev/problem/implement-lodash-chunk)
+
+## 延伸閱讀
+
+1. [Deep Cloning Objects in JavaScript, the Modern Way](https://www.builder.io/blog/structured-clone)
