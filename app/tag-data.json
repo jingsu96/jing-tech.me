@@ -1,9 +1,9 @@
 {
-  "dsa": 6,
   "design-system": 30,
-  "functional-programming": 6,
+  "dsa": 6,
   "career": 3,
-  "javascript": 8,
+  "functional-programming": 6,
+  "javascript": 10,
   "others": 1,
   "react": 1,
   "rust": 11,

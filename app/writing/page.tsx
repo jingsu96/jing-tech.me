@@ -8,7 +8,9 @@ const POSTS_PER_PAGE = 12;
 export const metadata = genPageMetadata({ title: '文章', image: '/writing/opengraph-image' });
 
 export default function BlogPage() {
-  const posts = allCoreContent(sortPosts(allBlogs));
+  const posts = allCoreContent(sortPosts(allBlogs)).filter((post) => {
+    return !post.skip;
+  });
   const pageNumber = 1;
   const initialDisplayPosts = posts.slice(POSTS_PER_PAGE * (pageNumber - 1), POSTS_PER_PAGE * pageNumber);
   const pagination = {

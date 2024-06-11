@@ -1,0 +1,254 @@
+---
+title: '前端面試手寫練習 - lodash _.cloneDeep'
+date: '2024-06-11'
+tags: ['javascript']
+draft: false
+summary: lodash 函式庫中的 _.cloneDeep 函式
+topic: '基本題型'
+---
+
+## 問題
+
+深拷貝 (Deep Clone) 是將其理解為將一個物件及其所有屬性和子屬性完整複製到一個新物件中。在這個過程中，複製的值不會指向原始物件的屬性，因此對深拷貝後的物件進行的任何更改都不會影響原始物件。
+
+接者我們將實現一個 `cloneDeep` 函式，這個函式會對 JavaScript 的物件進行深拷貝。
+
+```typescript
+function cloneDeep(obj: any): any
+```
+
+### 範例
+
+```javascript
+const taipei1 = { city: { population: 2600000 } }
+const clonedTaipei1 = deepClone(taipei1)
+
+clonedTaipei1.city.population = 2700000 // 改變複製後的人口數
+console.log(clonedTaipei1.city.population) // 2700000
+console.log(taipei1.city.population) // 2600000
+
+const taipei2 = { landmarks: [{ name: '台北 101' }] }
+const clonedTaipei2 = deepClone(taipei2)
+
+taipei2.landmarks[0].name = '大安森林公園' // 修改原始物件中的地標名稱
+console.log(taipei2.landmarks[0].name) // '大安森林公園'
+console.log(clonedTaipei2.landmarks[0].name) // '台北 101'
+```
+
+## 練習區
+
+在了解問題後，可以嘗試先寫下你的思路，再到下方的練習區域實際寫出程式碼。
+
+<Sandpack lang="test-ts" activeFile="index.js" showTests={true}>
+
+```js file=index.js
+/**
+ * @param {any} value
+ * @returns {any}
+ */
+function cloneDeep(value) {
+  // your code here
+}
+
+export { cloneDeep }
+```
+
+```js file=flat.test.js
+import { cloneDeep } from './index.js'
+
+describe('cloneDeep', () => {
+  test('should deep clone a primitive value', () => {
+    expect(cloneDeep('foo')).toEqual('foo')
+    expect(cloneDeep(123)).toEqual(123)
+  })
+
+  test('should deep clone an object', () => {
+    const obj = { role: 'foo' }
+    const clonedObj = cloneDeep(obj)
+    clonedObj.role = 'bar'
+    expect(obj).toEqual({ role: 'foo' })
+  })
+
+  test('should deep clone a nested object', () => {
+    const obj = { user: { role: 'jing-tech owner', id: '1996' } }
+    const clonedObj = cloneDeep(obj)
+    clonedObj.user.role = 'CEO'
+    expect(obj).toEqual({ user: { role: 'jing-tech owner', id: '1996' } })
+  })
+
+  test.skip('should deep clone an object with Symbol properties', () => {
+    const sym = Symbol()
+    const obj = { [sym]: 'jing-tech' }
+    const result = cloneDeep(obj)
+    expect(result[sym]).toBe('jing-tech')
+  })
+
+  test.skip('should deep clone an array', () => {
+    const arr = [1, [2, 3], { a: { b: { c: 3 }, d: 4 } }]
+    const result = cloneDeep(arr)
+    expect(result).toEqual(arr)
+    expect(result).not.toBe(arr) // Ensure it's a deep clone
+  })
+
+  test.skip('should handle circular references in objects', () => {
+    const obj = { a: { b: { c: null } } }
+    obj.a.b.c = obj
+    const result = cloneDeep(obj)
+    expect(result.a.b.c).toBe(result)
+  })
+})
+```
+
+</Sandpack>
+
+## 追問 (可以將測試案例中的 `skip` 移除)
+
+1. 是否能處理循環引用、Symbol 屬性與陣列的深拷貝？
+
+## 筆者思路
+
+### 簡易版
+
+1. 如果 `value` 不是物件或是 `null`，直接返回 `value`。
+2. 如果 `value` 是物件，創建一個新的物件 `result`。
+3. 使用 `Object.getOwnPropertyNames` 取得 `value` 的所有屬性，並遍歷其所有屬性，對每個屬性進行深拷貝，並將其放入 `result` 中。
+4. 返回 `result`。
+
+### 追問
+
+1. 對於陣列的深拷貝，可以新增一個條件是專門檢查 `value` 是否是陣列，如果是陣列的話，我們就對陣列中的每個元素進行深拷貝。
+2. 對於循環引用的處理，可以使用 `Map` 來記錄已經複製過的物件，當我們遇到循環引用時，我們可以直接返回 `Map` 中的物件。
+3. 對於 Symbol 屬性的處理，可以直接在 `for...in` 迴圈中加入 `Object.getOwnPropertySymbols` 來處理。
+
+## 筆者解答
+
+### 解法一. 使用 JSON.parse 和 JSON.stringify
+
+#### 程式碼
+
+```javascript
+function cloneDeep(value) {
+  return JSON.parse(JSON.stringify(value))
+}
+```
+
+#### 詳解
+
+在 `strucutredClone` API 還沒出來以前，要快速對一個物件進行深拷貝的其中一個選擇就是用 `JSON.parse` 和 `JSON.stringify`。
+
+但這個方法有一些限制，例如：
+
+```javascript
+const target = {
+  date: new Date(),
+  name: 'John Doe',
+}
+
+const cloned = cloneDeep(target)
+console.log(cloned.date instanceof Date) // ❌ false, 會將其轉成字串
+```
+
+因為 `JSON.stringify` 只能處理基本物件、陣列以及字串，所以當我們對 `Date` 物件進行深拷貝時，它會被轉換成字串，另外像是 `Map`、`Set`、`Function` 等等都無法正確的被深拷貝，也無法處理循環引用的情況。
+
+### 解法二. 使用 `strucutredClone` API
+
+#### 程式碼
+
+```javascript
+function cloneDeep(value) {
+  return structuredClone(value)
+}
+```
+
+#### 詳解
+
+`structuredClone` API 是 2022 年才開始被各大瀏覽器支援的方法 - 可以參考 [Web Status Platform](https://webstatus.dev/features/structured-clone?q=structuredClone&startDate=2022-01-01&endDate=2024-06-11)，它可以用來創建複雜 JavaScript 物件的深拷貝。
+
+雖然說它的能力比使用 `JSON.parse` 和 `JSON.stringify` 強大，但是它也有一些限制，例如：
+
+1. 無法處理 Symbol properties (符號屬性)：
+
+   ```javascript
+   const sym = Symbol('symbol')
+   const obj = { [sym]: 'John Doe' }
+   const clonedObj = structuredClone(obj)
+   console.log(clonedObj[sym]) // ❌ undefined
+   ```
+
+2. 無法處理 Function properties (函式屬性)：
+
+   ```javascript
+   const obj = {
+     func: function () {
+       return 'Hello'
+     },
+   }
+   const clonedObj = structuredClone(obj)
+   console.log(clonedObj.func) // ❌ undefined
+   ```
+
+除了這些還有像是無法複製 DOM 節點、物件原型鏈等，如果想要看更多 `structuredClone` 的使用與其限制，可以參考 [MDN - structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/structuredClone)。
+
+### 解法三. 手寫深拷貝
+
+#### 基本
+
+```javascript
+/**
+ * @param {any} value
+ * @returns {any}
+ */
+function cloneDeep(value) {
+  if (typeof value !== 'object' || value === null) {
+    return value
+  }
+
+  let result = {}
+
+  ;[...Object.getOwnPropertyNames(value)].forEach((key) => {
+    result[key] = cloneDeep(value[key])
+  })
+
+  return result
+}
+
+export { cloneDeep }
+```
+
+### 追問
+
+```javascript
+/**
+ * @param {any} value
+ * @returns {any}
+ */
+function cloneDeep(value, cloned = new Map()) {
+  if (typeof value !== 'object' || value === null) {
+    return value
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => cloneDeep(item, cloned))
+  }
+
+  if (cloned.has(value)) {
+    return cloned.get(value)
+  }
+
+  let result = {}
+
+  cloned.set(value, result)
+
+  ;[...Object.getOwnPropertyNames(value), ...Object.getOwnPropertySymbols(value)].forEach((key) => {
+    result[key] = cloneDeep(value[key], cloned)
+  })
+
+  return result
+}
+
+export { cloneDeep }
+```
+
+## 相關題目
+
+1. [bigfrontend.dev - chunk](https://bigfrontend.dev/problem/implement-lodash-chunk)
