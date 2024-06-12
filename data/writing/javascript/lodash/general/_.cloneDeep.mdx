@@ -200,19 +200,19 @@ function cloneDeep(value) {
  */
 function cloneDeep(value) {
   if (typeof value !== 'object' || value === null) {
-    return value
+    return value;
   }
 
   let result = {}
 
-  ;[...Object.getOwnPropertyNames(value)].forEach((key) => {
-    result[key] = cloneDeep(value[key])
-  })
+  [...Object.getOwnPropertyNames(value)].forEach((key) => {
+    result[key] = cloneDeep(value[key]);
+  });
 
-  return result
+  return result;
 }
 
-export { cloneDeep }
+export { cloneDeep };
 ```
 
 ### 追問
@@ -224,33 +224,33 @@ export { cloneDeep }
  */
 function cloneDeep(value, cloned = new Map()) {
   if (typeof value !== 'object' || value === null) {
-    return value
+    return value;
   }
 
   if (Array.isArray(value)) {
-    return value.map((item) => cloneDeep(item, cloned))
+    return value.map((item) => cloneDeep(item, cloned));
   }
 
   if (cloned.has(value)) {
-    return cloned.get(value)
+    return cloned.get(value);
   }
 
-  let result = {}
-
+  let result = {};
   cloned.set(value, result)
-  ;[...Object.getOwnPropertyNames(value), ...Object.getOwnPropertySymbols(value)].forEach((key) => {
-    result[key] = cloneDeep(value[key], cloned)
-  })
 
-  return result
+  [...Object.getOwnPropertyNames(value), ...Object.getOwnPropertySymbols(value)].forEach((key) => {
+    result[key] = cloneDeep(value[key], cloned);
+  });
+
+  return result;
 }
 
-export { cloneDeep }
+export { cloneDeep };
 ```
 
 ## 相關題目
 
-1. [bigfrontend.dev - chunk](https://bigfrontend.dev/problem/implement-lodash-chunk)
+1. [bigfrontend.dev - cloneDeep](https://bigfrontend.dev/problem/create-cloneDeep)
 
 ## 延伸閱讀
 
