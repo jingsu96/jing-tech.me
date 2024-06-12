@@ -31,7 +31,7 @@ export default function Share() {
           <Link
             target="_blank"
             rel="noopener noreferrer"
-            href={`https://twitter.com/share?url=${encodeURI(shareUrl)}&text=${encodeURI(`@jing_tech_tw`)}`}
+            href={`https://twitter.com/share?url=${encodeURI(shareUrl)}&text=${encodeURI(`@jing_tech_tw `)}`}
           >
             <X className="share-icon h-5 w-5" />
             <span className="sr-only">Share on Twitter</span>
@@ -41,7 +41,7 @@ export default function Share() {
           <Link
             target="_blank"
             rel="noopener noreferrer"
-            href={`https://threads.net/intent/post?text=${encodeURI(`${shareUrl} @jing.tech`)}`}
+            href={`https://threads.net/intent/post?text=${encodeURI(`${shareUrl} @jing.tech `)}`}
           >
             <Threads className="share-icon h-5 w-5" />
             <span className="sr-only">Share on Thread</span>
