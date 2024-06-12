@@ -15,6 +15,8 @@ chunk 是一個函式 ，它可以將輸入陣列分割成長度為 `size` 的�
 function chunk(arr: Array, size: number = 1): Array<Array>
 ```
 
+## 範例
+
 ```javascript
 chunk(['a', 'b', 'c', 'd']) // => [['a'], ['b'], ['c'], ['d']]
 chunk([1, 2, 3, 4], 2) // => [[1, 2], [3, 4]]
@@ -41,7 +43,7 @@ function chunk(arr, size = 1) {
 export { chunk }
 ```
 
-```js file=flat.test.js hidden=true
+```js file=chunk.test.js hidden=true
 import { chunk } from './index.js'
 
 describe('chunk', () => {
