@@ -31,7 +31,7 @@ function throttle(func: Function, wait: number): Function
 
 ## 範例
 
-舉例來說，有時需要根據頁面的寬度來切換手機或是桌機的版面，我們可以透過透過 `resize` 事件來監聽視窗大小的變化，然而這不需要在每一次 `resize` 事件觸發時都去執行，這時候就可以透過 throttle 來限制執行的頻率。
+舉例來說，有時我們需要根據頁面的寬度來切換手機或桌機的 UI。這時可以透過 resize 事件來監聽視窗大小的變化，進而對 UI 進行改動。由於我們只需要知道頁面寬度是否達到臨界點，因此不需要在每一次 resize 事件觸發時都去執行改動。這時候就可以透過 throttle 來限制執行的頻率。
 
 ```javascript
 window.addEventListener('resize', throttle(onResize, 1000))
@@ -39,7 +39,7 @@ window.addEventListener('resize', throttle(onResize, 1000))
 
 ## 練習區
 
-在了解問題後，可以嘗試先寫下你的思路，再到下方的練習區域實際寫出程式碼。
+在了解問題後，可以嘗試先寫下您的思路，再到下方的練習區域實際寫出程式碼。
 
 <Sandpack lang="test-ts" activeFile="index.js" showTests={true}>
 
@@ -159,9 +159,9 @@ describe('throttle', () => {
 
 ## 筆者思路
 
-1. 由於這是節流函式，所以需要有了開關來控制是否可以執行。所以先建立一個變數 `isThrottled` 來控制是否可以執行。
-2. 接下來就是確認當每次函式被調用時，是否可以執行。如果 `isThrottled` 為 `true`，則直接返回。
-3. 如果可以執行，則將 `isThrottled` 設為 `true`，並可以夠過 setTimeout 在 `wait` 毫秒後將 `isThrottled` 設為 `false`。
+1. 由於這是一個節流函式，因此需要一個開關來控制是否可以執行。所以先建立一個變數 `isThrottled` 來控制是否可以執行。
+2. 接下來，當每次函式被調用時，需要確認是否可以執行。如果 `isThrottled` 為 `true`，則直接返回。
+3. 如果可以執行，則將節流開關開啟 (`isThrottled` 設為 `true`)，並通過 setTimeout 在 `wait` 毫秒後將開關關閉 (`isThrottled` 設為 `false`)。
 
 ## 筆者解答
 
