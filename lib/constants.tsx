@@ -185,16 +185,16 @@ export const ORDER = {
   'writing/user-experiences/practical': {
     使用者介面: 1,
   },
-  'writing/javascript/lodash': {
-    '前端面試手寫 Lodash': 1,
+  'writing/fe-interview-questions/utility': {
+    前端面試手寫題: 1,
   },
-  'writing/javascript/lodash/array': {
+  'writing/fe-interview-questions/utility/array': {
     基本題型: 1,
   },
-  'writing/javascript/lodash/general': {
+  'writing/fe-interview-questions/utility/general': {
     基本題型: 1,
   },
-  'writing/javascript/lodash/object': {
+  'writing/fe-interview-questions/utility/object': {
     基本題型: 1,
   },
   'writing/dsa': {
@@ -215,7 +215,7 @@ export const TOPIC_EN_TO_ZH = {
   'design-system': '設計系統',
   career: '職涯',
   rust: 'Rust',
-  javascript: 'JavaScript',
+  'fe-interview-questions': '前端面試題',
   'user-experiences': '使用者體驗',
   others: '隨記',
   dsa: '資結與演算法',
