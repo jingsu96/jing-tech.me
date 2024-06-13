@@ -1,0 +1,332 @@
+---
+title: '前端面試手寫練習 - throttle (進階)'
+date: '2024-06-13'
+tags: ['fe-interview-questions']
+draft: false
+summary: 前端面試手寫練習 - throttle 函式 (進階)
+topic: '基本題型'
+---
+
+我們已經介紹過 [基本的 throttle](/writing/fe-interview-questions/utility/general/throttle) 如何進行實作，如果還沒看過看篇文章的讀者建議先閱讀。
+
+## 問題
+
+在先前的版本中，似乎少了一些使用上彈性以及功能，想像一下，如果今天是實作一個無限滾動的功能，每當使用者滾動到底部時才會載入更多的資料，但聰明的你發現不需要每次滑動時都去呼叫載入更多，這毫無意義。
+
+這時候剛好想上次有實作過的 throttle，所以就開心地將它拿來使用，所以行為看起來會是以下範例：
+
+<Sandpack lang="static" activeFile="throttle.js">
+
+```js file=throttle.js
+function throttle(func, wait) {
+  let isThrottled = false
+
+  return function (...args) {
+    if (isThrottled) {
+      return
+    }
+
+    isThrottled = true
+
+    setTimeout(() => {
+      isThrottled = false
+    }, wait)
+
+    func.apply(this, args)
+  }
+}
+
+export { throttle }
+```
+
+```js file=index.js
+import { throttle } from './throttle.js'
+
+const content = document.getElementById('content')
+const loader = document.getElementById('loader')
+let page = 1
+
+// 異步取得資料
+function fetchContent(page) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const items = []
+      for (let i = 1; i <= 10; i++) {
+        items.push(`<div class="item">項目 ${i + (page - 1) * 10}</div>`)
+      }
+      resolve(items)
+    }, 1000)
+  })
+}
+
+// 載入更多資料
+function loadMoreContent() {
+  loader.style.display = 'block'
+  fetchContent(page).then((items) => {
+    items.forEach((item) => {
+      content.insertAdjacentHTML('beforeend', item)
+    })
+    loader.style.display = 'none'
+    page += 1
+  })
+}
+
+// 無限滾動
+window.addEventListener(
+  'scroll',
+  throttle(() => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+      loadMoreContent()
+    }
+  }, 1000)
+)
+
+// 第一次載入
+loadMoreContent()
+```
+
+```css file=styles.css hidden=true
+body {
+  font-family: Notosans, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f9;
+}
+
+main {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.content .item {
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.loader {
+  text-align: center;
+  font-size: 1.2rem;
+  margin: 2rem 0;
+}
+```
+
+```html file=index.html hidden=true
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Infinite Scroll with Throttle</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <div id="content" class="content">
+        <!-- Content items will be loaded here -->
+      </div>
+      <div id="loader" class="loader">載入中...</div>
+    </main>
+    <script src="index.js" type="module"></script>
+  </body>
+</html>
+```
+
+</Sandpack>
+
+不知道各位讀者有沒有發現問題？如果將 `loadMoreContent` 用先前的 `throttle` 包起來，會發現每次滾動到底部時就沒反應了，原因是最後一次滑動事件被忽略了。
+
+主要是先前的 `throttle` 只會確保不是冷卻時間時才會執行，這代表它可以確保第一次 (稱作 leading) 滾動時會執行 `loadMoreContent`，但當滾動到底部時，`throttle` 可能因為還在冷卻時間，而被忽略掉了。
+
+所以本篇文章就是要實作一個更進階的 `throttle`，讓可以讓開發者自行決定是否在冷卻時間時的最後一次事件 (稱作 trailing) 也被執行 。
+
+```typescript
+function throttle(
+  func: Function,
+  wait: number,
+  options: { leading?: boolean; trailing?: boolean }
+): Function
+```
+
+## 練習區
+
+在了解問題後，可以嘗試先寫下您的思路，再到下方的練習區域實際寫出程式碼。
+
+<Sandpack lang="test-ts" activeFile="index.js" showTests={true}>
+
+```js file=index.js
+/**
+ * @param {Function} func
+ * @param {number} wait
+ * @param {Object} options
+ * @returns {Function}
+ */
+function throttle(func, wait, options) {
+  // your code here
+}
+
+export { throttle }
+```
+
+```js file=throttle.test.js hidden=true
+import { throttle } from './index.js'
+
+describe('throttle', () => {
+  test('should be a function when initialized', () => {
+    const throttledFunc = throttle(() => {}, 50)
+    expect(throttledFunc).toBeInstanceOf(Function)
+  })
+
+  test('should invoke callback immediately upon first call', () => {
+    let count = 0
+    const throttledIncrement = throttle(() => {
+      count++
+    }, 50)
+
+    expect(count).toBe(0)
+    throttledIncrement()
+    expect(count).toBe(1)
+  })
+
+  test('should throttle subsequent immediate invocations', () => {
+    let count = 0
+    const throttledIncrement = throttle(() => {
+      count++
+    }, 50)
+
+    expect(count).toBe(0)
+    throttledIncrement()
+    expect(count).toBe(1)
+    throttledIncrement()
+    expect(count).toBe(1)
+  })
+
+  test('should throttle invocations with delay', (done) => {
+    let count = 0
+    const throttledIncrement = throttle(() => {
+      count++
+    }, 100)
+
+    expect(count).toBe(0)
+    throttledIncrement()
+    expect(count).toBe(1)
+
+    setTimeout(() => {
+      throttledIncrement()
+      expect(count).toBe(1)
+    }, 25)
+
+    setTimeout(() => {
+      throttledIncrement()
+      expect(count).toBe(1)
+      done()
+    }, 50)
+  })
+
+  test('should allow invocation after throttle period', (done) => {
+    let count = 0
+    const throttledIncrement = throttle(() => {
+      count++
+    }, 50)
+
+    expect(count).toBe(0)
+    throttledIncrement()
+    expect(count).toBe(1)
+
+    setTimeout(() => {
+      throttledIncrement()
+      expect(count).toBe(2)
+      done()
+    }, 60)
+  })
+
+  test('should invoke callback on trailing edge if trailing is true', (done) => {
+    let count = 0
+    const throttledIncrement = throttle(
+      () => {
+        count++
+      },
+      50,
+      { leading: true, trailing: true }
+    )
+
+    expect(count).toBe(0)
+    throttledIncrement()
+    expect(count).toBe(1)
+
+    setTimeout(() => {
+      throttledIncrement()
+      expect(count).toBe(1)
+    }, 25)
+
+    setTimeout(() => {
+      throttledIncrement()
+      expect(count).toBe(1)
+    }, 40)
+
+    setTimeout(() => {
+      expect(count).toBe(2)
+      done()
+    }, 100)
+  })
+})
+```
+
+</Sandpack>
+
+## 筆者思路
+
+1. 我們可以先實作一個 `leading` 跟 `trailing` 都為 `true` 的版本。
+2. 只需基於原本的 `throttle` 函式，加上 `savedArgs` 跟 `savedThis` 來儲存最後一次的參數與 `this`。
+3. 並在 setTimeout 結束時，檢查是否有 `savedArgs`，如果有的話就執行一次 `func`，並將 `savedArgs` 與 `savedThis` 設為 `null`。
+4. 最後再加上 `options` 的判斷，如果 `leading` 與 `trailing` 為 `false`，則不執行 `func`。
+
+## 筆者解答
+
+```javascript
+function throttle(func, wait, options = { leading: true, trailing: true }) {
+  let isThrottled = false
+  let savedArgs
+  let savedThis
+
+  return function (...args) {
+    if (isThrottled) {
+      savedThis = this
+      savedArgs = args
+      return
+    }
+
+    if (options.leading) {
+      func.apply(this, args)
+    }
+
+    isThrottled = true
+
+    setTimeout(() => {
+      isThrottled = false
+      if (savedArgs && options.trailing) {
+        func.apply(savedThis, savedArgs)
+        savedThis = savedArgs = null
+      }
+    }, wait)
+  }
+}
+```
+
+## 相關題目
+
+1. [bigfrontend.dev - basic throttle](https://bigfrontend.dev/problem/implement-basic-throttle)
+
+## 延伸閱讀
+
+1. [Debounce vs Throttle: Definitive Visual Guide](https://kettanaito.com/blog/debounce-vs-throttle)

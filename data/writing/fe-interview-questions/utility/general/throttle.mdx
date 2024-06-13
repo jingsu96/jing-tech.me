@@ -19,12 +19,14 @@ function throttle(func: Function, wait: number): Function
 
 ### 示意圖
 
+每 ─ 代表 1s。
+
 ```bash
-加入 throttle 之前:
+原始事件流:
 ─ A ─ B ─ C ─ ─ D ─ ─ ─ ─ ─ ─ E ─ ─ F ─ G
 
-加入 throttle 之後:
-─ A ─ ─ ─ C ─ ─ ─D ─ ─ ─ ─ ─  E ─ ─ ─ ─ G
+加入 throttle (wait: 3s) 之後：
+─ A ─ ─ ─ ─ ─ C ─ ─ ─ ─ ─ ─ E ─ ─ ─ ─ ─ ─ G
 ```
 
 可以看到加入 throttle 之後，函式 `B` 與 `F` 被忽略了，而在忽略的那段時間就是冷卻時間。
@@ -126,31 +128,6 @@ describe('throttle', () => {
       expect(count).toBe(2)
       done()
     }, 60)
-  })
-
-  test.skip('[bonus] throttle function maintains context and arguments', () => {
-    const mockFunc = jest.fn()
-    const context = { value: 42 }
-    const throttledFunc = throttle(function () {
-      return mockFunc(this.value)
-    }, 1000)
-
-    // Call the function with a specific context
-    throttledFunc.call(context)
-    expect(mockFunc).toHaveBeenCalledTimes(1)
-    expect(mockFunc).toHaveBeenCalledWith(42)
-
-    // Call the function within the throttle period with different context
-    const newContext = { value: 99 }
-    throttledFunc.call(newContext)
-    expect(mockFunc).toHaveBeenCalledTimes(1) // Still 1 because of throttling
-
-    // Fast forward time by 1000ms
-    jest.advanceTimersByTime(1000)
-
-    // After the throttle period, the second call should execute
-    expect(mockFunc).toHaveBeenCalledTimes(2)
-    expect(mockFunc).toHaveBeenCalledWith(99)
   })
 })
 ```
