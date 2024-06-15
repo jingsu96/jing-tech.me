@@ -7,19 +7,20 @@ interface StatusCardProps {
   title: string;
   content: string | React.ReactNode;
   className?: string;
+  size?: number;
 }
 
-const StatusCard: React.FC = ({ status, title, content, className }: StatusCardProps) => {
+const StatusCard: React.FC = ({ status, title, content, className, size = 24 }: StatusCardProps) => {
   const getStatusIcon = (status: StatusCardProps['status']) => {
     switch (status) {
       case 'success':
-        return <Check size={24} color="#5c73e7" />;
+        return <Check size={size} color="#5c73e7" />;
       case 'error':
-        return <Ban size={24} color="#5c73e7" />;
+        return <Ban size={size} color="#5c73e7" />;
       case 'warning':
-        return <CircleAlert size={24} color="#5c73e7" />;
+        return <CircleAlert size={size} color="#5c73e7" />;
       default:
-        return <CircleAlert size={24} color="#5c73e7" />;
+        return <CircleAlert size={size} color="#5c73e7" />;
     }
   };
 
@@ -30,7 +31,7 @@ const StatusCard: React.FC = ({ status, title, content, className }: StatusCardP
         className
       )}
     >
-      <div className="absolute left-0 top-0 translate-x-[-50%] translate-y-[-50%] transform rounded-full border-border bg-bg-alt p-2 shadow-jt1">
+      <div className="absolute left-0 top-0 translate-x-[-50%] translate-y-[-50%] transform rounded-full border-border bg-bg-primary p-2 dark:bg-bg-alt dark:shadow-jt1">
         {getStatusIcon(status)}
       </div>
       <strong className="text-color-info mb-2 block text-lg font-medium">{title}</strong>

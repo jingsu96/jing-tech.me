@@ -196,10 +196,6 @@ function cloneDeep(value) {
 #### 基本
 
 ```javascript
-/**
- * @param {any} value
- * @returns {any}
- */
 function cloneDeep(value) {
   if (typeof value !== 'object' || value === null) {
     return value;
@@ -220,10 +216,6 @@ export { cloneDeep };
 ### 追問
 
 ```javascript
-/**
- * @param {any} value
- * @returns {any}
- */
 function cloneDeep(value, cloned = new Map()) {
   if (typeof value !== 'object' || value === null) {
     return value;

@@ -1,0 +1,276 @@
+---
+title: '前端面試手寫練習 - debounce'
+date: '2024-06-15'
+tags: ['fe-interview-questions']
+draft: false
+summary: 前端面試手寫練習 - debounce 函式
+topic: '基本題型'
+---
+
+## 問題
+
+debounce 與 [throttle](/writing/fe-interview-questions/utility/general/throttle) 都是在前端開發中相當常見的一種優化手段，而 debounce 的概念就是當事件被觸發後，會延遲一段時間再執行，如果在這段時間內又被觸發，則會重新計算延遲時間。
+
+```typescript
+debounce(func, [(wait = 0)])
+```
+
+- func：要防抖動的事件函式
+- wait：延遲時間，單位為毫秒
+
+### 示意圖
+
+```bash
+原始事件流 (每 ─ 代表 1s):
+─ A ─ B ─ C ─ ─ D ─ ─ ─ ─ ─ ─ E ─ ─ F ─ G ─ ─ ─
+
+加入 throttle (wait: 3s) 之後：
+─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ D ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ G
+```
+
+可以看到加入 debounce 之後，只有事件 `D` 與 `G` 被執行。
+
+## 範例
+
+<StatusCard
+  content="此範例只有展示 debounce 的概念，實務上還是需要考慮到快取, 請求取消等等的邏輯。"
+  className="mt-8"
+  size={20}
+/>
+
+實務上最經典的例子就是透過 debounce 來優化搜尋功能，當使用者輸入關鍵字時，並不會立即發送請求，而是等待一段時間，再發送下一個請求。
+
+<Sandpack lang="static" activeFile="/index.js">
+
+```javascript file=index.js
+import debounce from './debounce.js'
+
+const input = document.querySelector('#input')
+const list = document.querySelector('#list')
+const errorMsg = document.querySelector('#error')
+const requestHit = document.querySelector('#request-hit')
+
+const DELAY_TIME = 500
+let requestCount = 0
+
+input.addEventListener(
+  'keyup',
+  debounce(() => fetchData(input.value), DELAY_TIME)
+)
+
+function fetchData(keyword) {
+  errorMsg.innerHTML = ''
+  requestCount++
+  requestHit.innerHTML = `累積請求發送次數: ${requestCount || 0}`
+
+  if (!input.value) {
+    return (list.innerHTML = '')
+  }
+
+  fetch(`https://jsonplaceholder.typicode.com/posts?title_like=${keyword}`)
+    .then((response) => response.json())
+    .then((data) => {
+      if (!data.length) {
+        throw new Error('搜尋不到任何資料，請再試一次！')
+      }
+      const html = data
+        .slice(0, 5)
+        .map((item) => {
+          const escapedInput = escapeHTML(keyword)
+          const highlightedTitle =
+            item.title && item.title.replace(escapedInput, `<b>${escapedInput}</b>`)
+          return `<li>${highlightedTitle}</li>`
+        })
+        .join('')
+
+      list.innerHTML = html
+    })
+    .catch((error) => {
+      list.innerHTML = ''
+      errorMsg.innerHTML = `${error.message}`
+    })
+}
+
+function escapeHTML(str) {
+  return str.replace(
+    /[&<>'"]/g,
+    (tag) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;',
+      })[tag] || tag
+  )
+}
+```
+
+```html file=index.html hidden=true
+<head>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<div class="container">
+  <span id="request-hit">累積請求發送次數: 0</span>
+  <input id="input" type="text" placeholder="輸入框" />
+  <ul id="list"></ul>
+  <span id="error"></span>
+</div>
+<script src="./index.js" type="module"></script>
+```
+
+```css file=styles.css hidden=true
+body {
+  background-color: #f0f2f5;
+  font-family: 'Arial', sans-serif;
+  height: 100vh;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+input {
+  height: 40px;
+  padding: 0 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s;
+}
+
+input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+  width: 100%;
+}
+
+li {
+  padding: 5px 15px;
+  margin-bottom: 4px;
+  transition: background-color 0.3s;
+}
+
+#error {
+  color: red;
+  margin-top: 4px;
+}
+
+#request-hit {
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #555;
+}
+```
+
+```javascript file=debounce.js hidden=true
+export default function debounce(func, wait) {
+  let timeoutId = null
+
+  const _debounce = (...args) => {
+    const effect = () => {
+      timeoutId = null
+      return func.apply(this, args)
+    }
+
+    clearTimeout(timeoutId)
+    timeoutId = setTimeout(effect, wait)
+  }
+
+  return _debounce
+}
+```
+
+</Sandpack>
+
+可以看到輸入關鍵字時，「累積請求發送次數」只有在停止輸入一段時間後才會增加。相反的，如果把在 keyup 時的 debounce 函式移除，則會在每次輸入時都會看到請求次數增加。
+
+## 練習區
+
+在了解問題後，可以嘗試先寫下您的思路，再到下方的練習區域實際寫出程式碼。
+
+<Sandpack lang="test-ts" activeFile="index.js" showTests={true}>
+
+```js file=index.js
+/**
+ * @param {Function} func
+ * @param {number} wait
+ * @returns {Function}
+ */
+function debounce(func, wait = 0) {
+  // your code here
+}
+
+export { debounce }
+```
+
+```js file=debounce.test.js hidden=true
+import { debounce } from './index.js'
+
+describe('debounce', () => {
+  test('should initialize the debounced function', () => {
+    const debouncedFunction = debounce(() => {}, 50)
+    expect(debouncedFunction).toBeTruthy()
+  })
+
+  test('should execute the debounced function after the specified duration', (done) => {
+    let counter = 0
+    const debouncedIncrement = debounce(() => {
+      counter++
+    }, 10)
+
+    expect(counter).toBe(0)
+    debouncedIncrement()
+    expect(counter).toBe(0)
+
+    setTimeout(() => {
+      expect(counter).toBe(1)
+      done()
+    }, 20)
+  })
+})
+```
+
+</Sandpack>
+
+## 筆者思路
+
+1. 這個 throttle 的實作方式非常相近，但較於 throttle 是在 timeout 結束時將開關再次打開， debounce 則是在 timeout 結束時呼叫 `func` 並將 `timer` 設為 `null`。
+2. 造著這個思路，我們可以先宣告一個 `timer` 變數，並在 debounce 函式中返回一個新的函式。
+3. 在這個新函式中，我們會先檢查 `timer` 是否存在，如果存在則清除計時器。
+4. 接著設定一個新的計時器，並在時間到時執行 `func`，並將 `timer` 設為 `null`。
+
+## 筆者解答
+
+```javascript
+function debounce(func, wait = 0) {
+  let timer = null
+
+  return function (...args) {
+    if (timer) {
+      clearTimeout(timer)
+    }
+
+    timer = setTimeout(() => {
+      timer = null
+      func.apply(this, args)
+    }, wait)
+  }
+}
+```
+
+## 相關題目
+
+1. [bigfrontend.dev - basic debounce](https://bigfrontend.dev/problem/implement-basic-debounce)
+
+## 延伸閱讀
+
+1. [Debounce vs Throttle: Definitive Visual Guide](https://kettanaito.com/blog/debounce-vs-throttle)

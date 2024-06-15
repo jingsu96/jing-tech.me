@@ -39,12 +39,12 @@ export const PROFILES = {
     ),
   },
   instagram: {
-    title: 'Instagram',
+    title: '前端技術分享',
     url: 'https://www.instagram.com/jing.tech',
     icon: <Instagram size={16} />,
   },
   thread: {
-    title: 'thread',
+    title: '前端技術雜談',
     url: 'https://www.threads.net/@jing.tech',
     icon: (
       <svg
@@ -71,12 +71,12 @@ export const COLLECTION_IDS = [18259129];
 export const LINKS = [
   {
     href: '/',
-    label: 'Home',
+    label: '首頁',
     icon: <SparklesIcon size={16} />,
   },
   {
     href: '/writing',
-    label: 'Writing',
+    label: '文章',
     icon: <PencilLineIcon size={16} />,
   },
   // {
@@ -193,6 +193,7 @@ export const ORDER = {
   },
   'writing/fe-interview-questions/utility/general': {
     基本題型: 1,
+    進階題型: 2,
   },
   'writing/fe-interview-questions/utility/object': {
     基本題型: 1,

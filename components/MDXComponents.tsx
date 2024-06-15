@@ -17,6 +17,7 @@ import CodeBlock from './code-block';
 import TOCInline from './TOCInline';
 import { TweetCard } from './lab/tweet-card/tweet-card';
 import StatusCard from './StatusCard';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './lab/ui/tabs';
 
 export const components: MDXComponents = {
   Image: ZoomImage,
@@ -44,4 +45,10 @@ export const components: MDXComponents = {
   Sandpack,
   TweetCard,
   StatusCard,
+
+  // - Tabs
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
 };

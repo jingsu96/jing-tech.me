@@ -13,20 +13,21 @@ throttle 是一個函式，它可以限制一個函式在一段時間內只能�
 
 可以把它想像成節流的概念，可以限制某些事件或是行為其被觸發的頻率。
 
-```typescript
-function throttle(func: Function, wait: number): Function
+```javascript
+throttle(func, [(wait = 0)])
 ```
+
+- func：要節流的事件函式
+- wait：延遲時間，單位為毫秒
 
 ### 示意圖
 
-每 ─ 代表 1s。
-
 ```bash
-原始事件流:
+原始事件流 (每 ─ 代表 1s):
 ─ A ─ B ─ C ─ ─ D ─ ─ ─ ─ ─ ─ E ─ ─ F ─ G
 
 加入 throttle (wait: 3s) 之後：
-─ A ─ ─ ─ ─ ─ C ─ ─ ─ ─ ─ ─ E ─ ─ ─ ─ ─ ─ G
+─ A ─ ─ ─ C ─ ─ ─ ─ ─ ─ ─ ─ ─ E ─ ─ ─ ─ G
 ```
 
 可以看到加入 throttle 之後，函式 `B` 與 `F` 被忽略了，而在忽略的那段時間就是冷卻時間。
@@ -51,7 +52,7 @@ window.addEventListener('resize', throttle(onResize, 1000))
  * @param {number} wait
  * @returns {Function}
  */
-function throttle(func, wait) {
+function throttle(func, wait = 0) {
   // your code here
 }
 
@@ -142,34 +143,61 @@ describe('throttle', () => {
 
 ## 筆者解答
 
-```javascript
-/**
- * @param {Function} func
- * @param {number} wait
- * @returns {Function}
- */
-function throttle(func, wait) {
-  let isThrottled = false
+<Tabs defaultValue="方法 1" className="w-full">
+  <TabsList>
+    <TabsTrigger value="方法 1">寫法 1</TabsTrigger>
+    <TabsTrigger value="方法 2">寫法 2</TabsTrigger>
+  </TabsList>
+  <TabsContent value="方法 1">
+  
+    ```javascript
+    function throttle(func, wait = 0) {
+      let isThrottled = false;
 
-  return function (...args) {
-    if (isThrottled) {
-      return
+      return function (...args) {
+        if (isThrottled) {
+          return;
+        }
+
+        isThrottled = true;
+
+        setTimeout(() => {
+          isThrottled = false;
+        }, wait);
+
+        func.apply(this, args);
+      };
     }
+    ```
 
-    isThrottled = true
+  </TabsContent>
+  <TabsContent value="方法 2">
+  
+    ```javascript
+    function throttle(func, wait = 0) {
+      let timerId = null;
 
-    setTimeout(() => {
-      isThrottled = false
-    }, wait)
+      return function (...args) {
+        if (timerId) {
+          return;
+        }
 
-    func.apply(this, args)
-  }
-}
-```
+        timerId = setTimeout(() => {
+          timerId = null;
+        }, wait);
+
+        func.apply(this, args);
+      };
+    }
+    ```
+
+  </TabsContent>
+</Tabs>
 
 ## 相關題目
 
-1. [bigfrontend.dev - basic throttle](https://bigfrontend.dev/problem/implement-basic-throttle)
+1. [throttle (進階)](/writing/fe-interview-questions/utility/general/advanced-throttle)
+2. [bigfrontend.dev - basic throttle](https://bigfrontend.dev/problem/implement-basic-throttle)
 
 ## 延伸閱讀
 

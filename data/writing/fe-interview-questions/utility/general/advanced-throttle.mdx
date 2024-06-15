@@ -4,7 +4,7 @@ date: '2024-06-13'
 tags: ['fe-interview-questions']
 draft: false
 summary: 前端面試手寫練習 - throttle 函式 (進階)
-topic: '基本題型'
+topic: '進階題型'
 ---
 
 <StatusCard
@@ -13,7 +13,7 @@ topic: '基本題型'
     <span>
       我們已經介紹過{' '}
       <a herf="/writing/fe-interview-questions/utility/general/throttle">基本的 throttle </a>
-      如何實作，如果還沒看過該篇文章的讀者建議先閱讀。
+      如何實作，如果讀者還沒有閱讀過，建議先參考該篇文章。
     </span>
   }
   className="mt-2"
@@ -181,7 +181,7 @@ function throttle(
  * @param {Object} options
  * @returns {Function}
  */
-function throttle(func, wait, options) {
+function throttle(func, wait = 0, options) {
   // your code here
 }
 
@@ -306,12 +306,6 @@ describe('throttle', () => {
 ## 筆者解答
 
 ```javascript
-/**
- * @param {Function} func
- * @param {number} wait
- * @param {Object} options
- * @returns {Function}
- */
 function throttle(func, wait, options = { leading: true, trailing: true }) {
   let isThrottled = false
   let savedArgs
