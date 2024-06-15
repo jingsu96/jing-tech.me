@@ -7,7 +7,17 @@ summary: 前端面試手寫練習 - throttle 函式 (進階)
 topic: '基本題型'
 ---
 
-我們已經介紹過 [基本的 throttle](/writing/fe-interview-questions/utility/general/throttle) 如何進行實作，如果還沒看過看篇文章的讀者建議先閱讀。
+<StatusCard
+  title="小提醒"
+  content={
+    <span>
+      我們已經介紹過{' '}
+      <a herf="/writing/fe-interview-questions/utility/general/throttle">基本的 throttle </a>
+      如何實作，如果還沒看過該篇文章的讀者建議先閱讀。
+    </span>
+  }
+  className="mt-2"
+/>
 
 ## 問題
 
@@ -284,20 +294,39 @@ describe('throttle', () => {
 
 </Sandpack>
 
+實作完成後，可以將您的程式碼複製到上面的範例中，理論上在滑動到底部時就可以正常載入更多資料了。
+
 ## 筆者思路
 
 1. 我們可以先實作一個 `leading` 跟 `trailing` 都為 `true` 的版本。
 2. 只需基於原本的 `throttle` 函式，加上 `savedArgs` 跟 `savedThis` 來儲存最後一次的參數與 `this`。
-3. 並在 setTimeout 結束時，檢查是否有 `savedArgs`，如果有的話就執行一次 `func`，並將 `savedArgs` 與 `savedThis` 設為 `null`。
+3. 並在 setTimeout 結束時，先執行一次 `func`，同時檢查是否有 `savedArgs`，如果有的話就將 `savedArgs` 與 `savedThis` 設為 `null`，並在冷卻時間結束後執行一次 `func`。
 4. 最後再加上 `options` 的判斷，如果 `leading` 與 `trailing` 為 `false`，則不執行 `func`。
 
 ## 筆者解答
 
 ```javascript
+/**
+ * @param {Function} func
+ * @param {number} wait
+ * @param {Object} options
+ * @returns {Function}
+ */
 function throttle(func, wait, options = { leading: true, trailing: true }) {
   let isThrottled = false
   let savedArgs
   let savedThis
+
+  const later = () => {
+    if (savedArgs && options.trailing) {
+      func.apply(savedThis, savedArgs)
+      savedThis = savedArgs = null
+
+      setTimeout(later, wait)
+    } else {
+      isThrottled = false
+    }
+  }
 
   return function (...args) {
     if (isThrottled) {
@@ -306,26 +335,19 @@ function throttle(func, wait, options = { leading: true, trailing: true }) {
       return
     }
 
+    isThrottled = true
+    setTimeout(later, wait)
+
     if (options.leading) {
       func.apply(this, args)
     }
-
-    isThrottled = true
-
-    setTimeout(() => {
-      isThrottled = false
-      if (savedArgs && options.trailing) {
-        func.apply(savedThis, savedArgs)
-        savedThis = savedArgs = null
-      }
-    }, wait)
   }
 }
 ```
 
 ## 相關題目
 
-1. [bigfrontend.dev - basic throttle](https://bigfrontend.dev/problem/implement-basic-throttle)
+1. [bigfrontend.dev - throttle with leading & trailing option](https://bigfrontend.dev/problem/implement-throttle-with-leading-and-trailing-option)
 
 ## 延伸閱讀
 

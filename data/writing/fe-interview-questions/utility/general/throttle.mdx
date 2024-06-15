@@ -143,6 +143,11 @@ describe('throttle', () => {
 ## 筆者解答
 
 ```javascript
+/**
+ * @param {Function} func
+ * @param {number} wait
+ * @returns {Function}
+ */
 function throttle(func, wait) {
   let isThrottled = false
 

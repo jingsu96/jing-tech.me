@@ -16,6 +16,7 @@ import Sandpack from './sandpack';
 import CodeBlock from './code-block';
 import TOCInline from './TOCInline';
 import { TweetCard } from './lab/tweet-card/tweet-card';
+import StatusCard from './StatusCard';
 
 export const components: MDXComponents = {
   Image: ZoomImage,
@@ -42,4 +43,5 @@ export const components: MDXComponents = {
   BlogNewsletterForm,
   Sandpack,
   TweetCard,
+  StatusCard,
 };
