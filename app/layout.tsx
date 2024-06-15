@@ -17,6 +17,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import siteMetadata from '@/data/siteMetadata';
 
 import { ThemeProviders } from './theme-providers';
+import Link from 'next/link';
 
 const space_grotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -79,6 +80,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1b1b1f" />
       <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
       <body>
+        <a id="skip" href="#skip-target">
+          Skip to main content
+        </a>
         {/* eslint-disable-next-line react/no-unknown-property */}
         <ThemeProviders>
           <main vaul-drawer-wrapper="" className="min-h-screen bg-bg-primary">
@@ -95,7 +99,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <SideMenu className="relative hidden h-[100vh] max-h-[100vh] lg:flex">
                   <MenuContent />
                 </SideMenu>
-                <SectionContainer>{children}</SectionContainer>
+                <SectionContainer>
+                  <span id="skip-target"></span>
+                  {children}
+                </SectionContainer>
               </SearchProvider>
             </div>
           </main>

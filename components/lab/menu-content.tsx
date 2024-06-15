@@ -23,6 +23,7 @@ const LanguageSelect = ({ className, iconSize = 20 }: { className?: string; icon
   return (
     <Select defaultValue="zh-tw" onValueChange={changeLanguage}>
       <SelectTrigger
+        aria-label="切換語言"
         className={cn(
           'mb-4 ml-auto mt-auto w-fit border-border focus:outline-none [&:has(:focus-visible)]:ring-1',
           className
@@ -93,7 +94,7 @@ export const MenuContent = ({ from }: { from?: string }) => {
         </div>
         <hr />
         <div className="mt-4 flex flex-col gap-2 text-sm">
-          <span className="px-2 text-xs font-medium leading-relaxed text-gray-600 dark:text-gray-200">Online</span>
+          <span className="px-2 text-xs font-medium leading-relaxed text-gray-600 dark:text-gray-200">相關連結</span>
           <div className="flex flex-col gap-1">
             {Object.values(PROFILES).map((profile) => (
               <NavigationLink key={profile.url} href={profile.url} label={profile.title} icon={profile.icon} />

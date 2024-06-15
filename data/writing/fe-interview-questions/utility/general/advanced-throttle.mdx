@@ -158,7 +158,7 @@ main {
 
 主要是先前的 `throttle` 只會確保不是冷卻時間時才會執行，這代表它可以確保第一次 (稱作 leading) 滾動時會執行 `loadMoreContent`，但當滾動到底部時，`throttle` 可能因為還在冷卻時間，而被忽略掉了。
 
-所以本篇文章就是要實作一個更進階的 `throttle`，讓可以讓開發者自行決定是否在冷卻時間時的最後一次事件 (稱作 trailing) 也被執行 。
+所以本篇文章就是要實作一個更進階的 `throttle`，讓可以讓開發者自行決定是否要在 leading 與 trailing 時執行。
 
 ```typescript
 function throttle(

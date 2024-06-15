@@ -24,7 +24,10 @@ const ThemeSwitch = ({ className, offSet = 4 }: { className?: string; offSet?: n
   return mounted ? (
     <div className={cn(className)}>
       <Select value={theme} onValueChange={setTheme}>
-        <SelectTrigger className="border-none p-0 focus:outline-none [&:has(:focus-visible)]:ring-1">
+        <SelectTrigger
+          className="border-none p-0 focus:outline-none [&:has(:focus-visible)]:ring-1"
+          aria-label="深淺模式"
+        >
           {resolvedTheme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
         </SelectTrigger>
         <SelectContent position="popper" className="rounded-md bg-bg-primary shadow-jt2" sideOffset={-5}>

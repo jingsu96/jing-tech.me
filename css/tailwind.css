@@ -239,3 +239,22 @@ html body[data-scroll-locked] {
   overflow-x: hidden;
   overflow-y: auto;
 }
+
+#skip {
+  position: absolute;
+  top: -1000%;
+  left: -1000%;
+}
+
+#skip:focus {
+  top: 10px;
+  left: 10px;
+  color: #000;
+  z-index: 1000;
+}
+
+.dark {
+  #skip {
+    color: #fff;
+  }
+}
