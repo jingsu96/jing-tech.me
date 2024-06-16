@@ -33,16 +33,29 @@ debounce(func, [(wait = 0)], [(option = { leading: false, trailing: true })];
 
 ### 示意圖
 
-<div className="mb-[-30px]">
+**原始事件流 (每 ─ 代表 1s)**
 
-| 情境                                   | 事件流                                              |
-| -------------------------------------- | --------------------------------------------------- |
-| **原始事件流 (每 ─ 代表 1s)**          | `─ A ─ B ─ C ─ ─ D ─ ─ ─ ─ ─ ─ E ─ ─ F ─ G ─ ─ ─`   |
-| **leading: false 以及 trailing: true** | `─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ D ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ G`   |
-| **leading: true 以及 trailing: false** | `─ A ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ E ─ ─ ─ ─ ─ ─ ─ ─ ─`     |
-| **leading: true 以及 trailing: true**  | `─ A ─ ─ ─ ─ ─ ─ D ─ ─ ─ ─ ─ ─ E ─ ─ ─ ─ ─ ─ ─ ─ G` |
+```bash
+─ A ─ B ─ C ─ ─ D ─ ─ ─ ─ ─ ─ E ─ ─ F ─ G ─ ─ ─
+```
 
-</div>
+**leading: false 以及 trailing: true**
+
+```bash
+─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ D ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ G
+```
+
+**leading: true 以及 trailing: false**
+
+```bash
+─ A ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ E ─ ─ ─ ─ ─ ─ ─ ─ ─
+```
+
+**leading: true 以及 trailing: true**
+
+```bash
+─ A ─ ─ ─ ─ ─ D ─ ─ ─ ─ ─ ─ E ─ ─ ─ ─ ─ ─ ─ ─ G
+```
 
 ## 練習區
 
