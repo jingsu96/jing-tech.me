@@ -1,0 +1,195 @@
+---
+title: '前端面試手寫練習 - debounce (進階)'
+date: '2024-06-16'
+tags: ['fe-interview-questions']
+draft: false
+summary: 前端面試手寫練習 - debounce 函式 (進階)
+topic: '進階題型'
+---
+
+<StatusCard
+  title="小提醒"
+  content={
+    <span>
+      我們已經介紹過{' '}
+      <a href="/writing/fe-interview-questions/utility/general/debounce">基本的 debounce</a>{' '}
+      如何實作，如果讀者還沒有閱讀過，建議先參考該篇文章。
+    </span>
+  }
+  className="mt-2"
+/>
+
+## 問題
+
+debounce (進階) 與 [throttle (進階)](/writing/fe-interview-questions/utility/general/advanced-throttle) 都是要多了一個 `option` 參數，這個參數包含了 `leading` 與 `trailing` 兩個屬性，分別代表是否要執行第一次與最後一次的事件。
+
+```typescript
+debounce(func, [(wait = 0)], [(option = { leading: false, trailing: true })];
+```
+
+- func：要防抖動的事件函式
+- wait：延遲時間，單位為毫秒
+- option：選項物件，包含 `leading` 與 `trailing` 兩個屬性，分別代表是否要執行第一次與最後一次的事件
+
+### 示意圖
+
+<div className="mb-[-30px]">
+
+| 情境                                   | 事件流                                              |
+| -------------------------------------- | --------------------------------------------------- |
+| **原始事件流 (每 ─ 代表 1s)**          | `─ A ─ B ─ C ─ ─ D ─ ─ ─ ─ ─ ─ E ─ ─ F ─ G ─ ─ ─`   |
+| **leading: false 以及 trailing: true** | `─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ D ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ G`   |
+| **leading: true 以及 trailing: false** | `─ A ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ E ─ ─ ─ ─ ─ ─ ─ ─ ─`     |
+| **leading: true 以及 trailing: true**  | `─ A ─ ─ ─ ─ ─ ─ D ─ ─ ─ ─ ─ ─ E ─ ─ ─ ─ ─ ─ ─ ─ G` |
+
+</div>
+
+## 練習區
+
+在了解問題後，可以嘗試先寫下您的思路，再到下方的練習區域實際寫出程式碼。
+
+<Sandpack lang="test-ts" activeFile="index.js" showTests={true}>
+
+```js file=index.js
+/**
+ * @param {Function} func
+ * @param {number} wait
+ * @param {Object} option { leading: false, trailing: true }
+ * @returns {Function}
+ */
+function debounce(func, wait = 0, option = { leading: false, trailing: true }) {
+  // your code here
+}
+
+export { debounce }
+```
+
+```js file=debounce.test.js hidden=true
+import { debounce } from './index.js'
+
+// Helper function to simulate a delay
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+describe('debounce', () => {
+  it('should debounce function calls', async () => {
+    const mockFunc = jest.fn()
+    const debouncedFunc = debounce(mockFunc, 200)
+
+    // Call the debounced function several times
+    debouncedFunc()
+    debouncedFunc()
+    debouncedFunc()
+
+    // Wait for less than the debounce time
+    await wait(100)
+
+    // The function should not have been called yet
+    expect(mockFunc).not.toHaveBeenCalled()
+
+    // Wait for the debounce time to pass
+    await wait(200)
+
+    // Now the function should have been called once
+    expect(mockFunc).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call the function immediately if leading option is true', async () => {
+    const mockFunc = jest.fn()
+    const debouncedFunc = debounce(mockFunc, 200, { leading: true, trailing: true })
+
+    // Call the debounced function several times
+    debouncedFunc()
+    debouncedFunc()
+    debouncedFunc()
+
+    // The function should have been called immediately
+    expect(mockFunc).toHaveBeenCalledTimes(1)
+
+    // Wait for the debounce time to pass
+    await wait(200)
+
+    // The function should have been called again due to the trailing option
+    expect(mockFunc).toHaveBeenCalledTimes(2)
+  })
+
+  it('should not call the function twice if trailing option is false', async () => {
+    const mockFunc = jest.fn()
+    const debouncedFunc = debounce(mockFunc, 200, { trailing: false })
+
+    // Call the debounced function several times
+    debouncedFunc()
+    debouncedFunc()
+    debouncedFunc()
+
+    // Wait for the debounce time to pass
+    await wait(200)
+
+    // The function should not have been called again
+    expect(mockFunc).toHaveBeenCalledTimes(0)
+  })
+
+  it('should call the function only once if both leading and trailing options are true', async () => {
+    const mockFunc = jest.fn()
+    const debouncedFunc = debounce(mockFunc, 200, { leading: true, trailing: true })
+
+    // Call the debounced function several times
+    debouncedFunc()
+    debouncedFunc()
+    debouncedFunc()
+
+    // The function should have been called immediately
+    expect(mockFunc).toHaveBeenCalledTimes(1)
+
+    // Wait for the debounce time to pass
+    await wait(200)
+
+    // The function should have been called again due to the trailing option
+    expect(mockFunc).toHaveBeenCalledTimes(2)
+  })
+})
+```
+
+</Sandpack>
+
+## 筆者思路
+
+1. debounce (進階) 與先前的 debounce 函式非常相似，而這次只是多了 `option` 參數。
+2. 當 `leading` 為 `true` 時，我們需要在 debounce 函式中先執行一次 `func`。反之要將最後一次的參數儲存起來，在 timeout 結束執行 `func` 時使用。
+3. 在 timeout 結束後並當 `trailing` 為 `true` 時，再次執行 `func`。
+
+## 筆者解答
+
+```javascript
+function debounce(func, wait, option = { leading: false, trailing: true }) {
+  let timerId = null
+  let lastArgs = null
+
+  return function (...args) {
+    if (timerId) {
+      clearTimeout(timerId)
+    }
+
+    if (option.leading && !timerId) {
+      func.apply(this, args)
+    } else {
+      lastArgs = args
+    }
+
+    timerId = setTimeout(() => {
+      if (option.trailing && lastArgs) {
+        func.apply(this, lastArgs)
+      }
+      timerId = null
+      lastArgs = null
+    }, wait)
+  }
+}
+```
+
+## 相關題目
+
+1. [bigfrontend.dev - debounce with leading & trailing option](https://bigfrontend.dev/problem/implement-debounce-with-leading-and-trailing-option)
+
+## 延伸閱讀
+
+1. [Debounce vs Throttle: Definitive Visual Guide](https://kettanaito.com/blog/debounce-vs-throttle)
