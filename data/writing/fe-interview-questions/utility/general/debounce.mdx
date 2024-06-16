@@ -243,8 +243,8 @@ describe('debounce', () => {
 
 ## 筆者思路
 
-1. 這個 throttle 的實作方式非常相近，但較於 throttle 是在 timeout 結束時將開關再次打開， debounce 則是在 timeout 結束時呼叫 `func` 並將 `timer` 設為 `null`。
-2. 造著這個思路，我們可以先宣告一個 `timer` 變數，並在 debounce 函式中返回一個新的函式。
+1. 這與 throttle 的實作方式非常相近，但較於 throttle 是在 timeout 結束時將開關再次打開， debounce 則是在 timeout 結束時呼叫 `func` 並將 `timer` 設為 `null`。
+2. 照著這個思路，我們可以先宣告一個 `timer` 變數，並在 debounce 函式中返回一個新的函式。
 3. 在這個新函式中，我們會先檢查 `timer` 是否存在，如果存在則清除計時器。
 4. 接著設定一個新的計時器，並在時間到時執行 `func`，並將 `timer` 設為 `null`。
 
