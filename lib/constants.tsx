@@ -197,6 +197,7 @@ export const ORDER = {
   },
   'writing/fe-interview-questions/utility/object': {
     基本題型: 1,
+    進階題型: 2,
   },
   'writing/dsa': {
     基本介紹: 1,

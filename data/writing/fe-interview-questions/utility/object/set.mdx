@@ -1,0 +1,143 @@
+---
+title: '前端面試手寫練習 - set'
+date: '2024-06-17'
+tags: ['fe-interview-questions']
+draft: false
+summary: 前端面試手寫練習 - set 函式
+topic: '進階題型'
+---
+
+## 問題
+
+在前篇我們提到了如何透過 [前端面試手寫練習 - get](/writing/fe-interview-questions/utility/object/get) 來讀取物件中深層嵌套的屬性。
+
+本篇我們將會來實作一個可以新增或更新深層嵌套物件中屬性的函式 `set`，此函式接受一個物件、一個路徑字串或路徑陣列，以及一個值。如果路徑存在，則設置路徑對應的值，否則創建路徑。
+
+```javascript
+function set(obj: Object, path: string | Array<string>, value: any): void;
+```
+
+## 範例
+
+假設今天我們要更改 `user` 這個物件裡 `firstName` 的值，我們可能會這樣寫：
+
+```javascript
+const user = {
+  profile: {
+    name: { firstName: 'John', lastName: 'Doe' },
+    age: 99,
+  },
+}
+
+user.profile.name.firstName = 'Jane'
+```
+
+這看起來非常直觀，然而在現實開發中，我們沒辦法確保 `profile`、`name` 是否存在，如果直接更改可能會導致像 `TypeError: Cannot set property 'firstName' of undefined` 的錯誤。
+
+而 `set` 函式可以幫助我們避免這個問題：
+
+```js
+set(user1, 'profile.name.firstName', 'Jane')
+console.log(user1.profile.name.firstName) // 'Jane'
+```
+
+甚至當 `profile`、`name` 不存在時，`set` 函式會自動幫我們創建這些路徑。
+
+```js
+const user2 = {}
+set(user2, 'profile.name.firstName', 'Jane')
+console.log(user2.profile.name.firstName) // 'Jane'
+console.log(user2) // { profile: { name: { firstName: 'Jane' } } }
+```
+
+## 練習區
+
+在了解問題後，可以嘗試先寫下您的思路，再到下方的練習區域實際寫出程式碼。
+
+<Sandpack lang="test-ts" activeFile="index.js" showTests={true}>
+
+```js file=index.js
+/**
+ * @param {Object} obj
+ * @param {string | Array<string>} path
+ * @param {any} value
+ * @returns {void}
+ */
+function set(obj, path, value) {
+  // your code here
+}
+
+export { set }
+```
+
+```js file=set.test.js
+import { set } from './index.js'
+
+describe('set', () => {
+  test('should set a property at the given path of an object', () => {
+    const object = { a: [{ b: { c: 3 } }] }
+    set(object, 'a[0].b.c', 4)
+
+    expect(object.a[0].b.c).toBe(4)
+  })
+
+  test('should create the path if it does not exist', () => {
+    const object = {}
+    set(object, 'a[0].b.c', 4)
+
+    expect(object.a[0].b.c).toBe(4)
+  })
+
+  test('should handle array paths correctly', () => {
+    const object = { a: [{ b: { c: 3 } }] }
+    set(object, ['a', '0', 'b', 'c'], 4)
+
+    expect(object.a[0].b.c).toBe(4)
+  })
+
+  test('should set a property with special characters in the path', () => {
+    const object = {}
+    set(object, 'a.b.c.d', 5)
+
+    expect(object.a.b.c.d).toBe(5)
+  })
+})
+```
+
+</Sandpack>
+
+## 筆者思路
+
+1. 首先我們需要判斷 `path` 是否為字串，如果是字串則將其轉換為陣列。
+2. 建立一個指標 `pointer` 指向物件 `obj`。
+3. 遍歷 `path` 陣列，對於每個元素 `p`：
+   - 如果 `pointer` 中不存在 `p` 或 `pointer[p]` 不是物件，則根據下一個 path 的類型創建一個空物件或空陣列。
+   - 將 `pointer` 指向 `pointer[p]`。
+4. 將 `pointer` 的最後一個元素設置為 `value`。
+
+## 筆者解答
+
+```javascript
+function set(obj, path, value) {
+  path = Array.isArray(path) ? path : path.replace('[', '.').replace(']', '').split('.')
+
+  let pointer = obj
+
+  for (let i = 0; i < path.length - 1; i++) {
+    const currPath = path[i]
+
+    if (!Reflect.has(pointer, currPath) || typeof pointer[currPath] !== 'object') {
+      const next = path[i + 1]
+      pointer[currPath] = String(Number(next)) === next ? [] : {}
+    }
+
+    pointer = pointer[currPath]
+  }
+
+  pointer[path[path.length - 1]] = value
+}
+```
+
+## 相關題目
+
+1. [bigfrontend.dev - set](https://bigfrontend.dev/problem/lodash-set)
