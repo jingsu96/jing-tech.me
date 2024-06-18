@@ -1,0 +1,111 @@
+---
+title: '前端面試手寫練習 - partial'
+date: '2024-06-18'
+tags: ['fe-interview-questions']
+draft: false
+summary: 前端面試手寫練習 - partial 函式
+topic: '基本題型'
+---
+
+## 問題
+
+partial 是將函式 [庫里化 (Currying)](/writing/functional-programming/curry) 的一種方式，它可以接受一個函式和部分參數，並返回一個新的函式，這個新的函式將會接受剩餘的參數。當所有參數都被提供時，將會執行原始函式。
+
+```typescript
+function partial(func: Function, ...args: any[]): Function
+```
+
+## 範例
+
+在開發中，時常會將資料處理的邏輯抽象化成一個通用函式，目的是讓該功能可以更方便地被重複使用。
+
+舉例來說，很多情況下我們在實作功能時已經知道了 API 的端點，但是 id 是動態的，所以我們可能會將函式根據業務邏輯進行拆分：
+
+```javascript
+// api.js
+const getPostById = (id) => fetch(`https://jsonplaceholder.typicode.com/posts/${id}`)
+const getUserById = (id) => fetch(`https://jsonplaceholder.typicode.com/users/${id}`)
+
+// app.js
+const btn = document.querySelector('btn')
+
+btn.addEventListenr('click', async (evt) => {
+  const { value } = evt.target
+  const post = await getPostById(value)
+})
+```
+
+這樣的寫法沒有問題，但是如果有接觸過一些函數式編程的話，可能會發現這樣的寫法有點冗長，這時候就可以使用 `partial` 來簡化：
+
+```javascript
+// api.js
+
+const fetchById = (url, id) => fetch(url, id)
+const getPostById = partial(fetchById, 'https://jsonplaceholder.typicode.com/posts')
+const getUserById = partial(fetchById, 'https://jsonplaceholder.typicode.com/users')
+```
+
+## 練習區
+
+在了解問題後，可以嘗試先寫下您的思路，再到下方的練習區域實際寫出程式碼。
+
+<Sandpack lang="test-ts" activeFile="index.js" showTests={true}>
+
+```js file=index.js
+/**
+ * @param {Function} func
+ * @param {...any} args
+ * @returns {Function}
+ */
+function partial(func, ...args) {
+  // your code here
+  return function () {}
+}
+
+export { partial }
+```
+
+```js file=partial.test.js hidden=true
+import { partial } from './index.js'
+
+describe('partial', () => {
+  it('should return a function', () => {
+    const add = (a, b) => a + b
+    const addOne = partial(add, 1)
+    expect(addOne).toBeInstanceOf(Function)
+  })
+
+  it('should return a function that can accept the rest of the arguments', () => {
+    const add = (a, b) => a + b
+    const addOne = partial(add, 1)
+    expect(addOne(2)).toBe(3)
+  })
+})
+```
+
+</Sandpack>
+
+## 追問
+
+1. 支援 `placeholder` 的 `partial` 函式。
+
+   ```javascript
+   const _ = partial.placeholder
+   const subtract = (a, b) => a - b
+   const subtractFrom10 = partial(subtract, _, 10)
+   subtractFrom10(5) // -5
+   ```
+
+## 筆者解答
+
+```javascript
+function partial(func, ...args) {
+  return function partiallyApplied(...restArgs) {
+    return func.apply(this, [...args, ...restArgs])
+  }
+}
+```
+
+## 相關題目
+
+1. [bigfrontend.dev - partial](https://bigfrontend.dev/problem/implement-partial)

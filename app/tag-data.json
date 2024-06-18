@@ -1,10 +1,10 @@
 {
-  "career": 3,
   "dsa": 6,
+  "career": 3,
+  "fe-interview-questions": 16,
+  "design-system": 30,
   "functional-programming": 6,
   "others": 1,
-  "fe-interview-questions": 15,
-  "design-system": 30,
   "react": 1,
   "rust": 11,
   "user-experiences": 1
