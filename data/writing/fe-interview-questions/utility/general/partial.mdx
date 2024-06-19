@@ -19,7 +19,7 @@ function partial(func: Function, ...args: any[]): Function
 
 在開發中，時常會將資料處理的邏輯抽象化成一個通用函式，目的是讓該功能可以更方便地被重複使用。
 
-舉例來說，很多情況下我們在實作功能時已經知道了 API 的端點，但是 id 是動態的，所以我們可能會將函式根據業務邏輯進行拆分：
+舉例來說，很多情況下我們在實作功能前已經知道了 API 的端點，但是 id 是動態的，所以可能會將函式根據業務邏輯進行拆分：
 
 ```javascript
 // api.js
@@ -89,22 +89,47 @@ describe('partial', () => {
 
 1. 支援 `placeholder` 的 `partial` 函式。
 
-   ```javascript
-   const _ = partial.placeholder
-   const subtract = (a, b) => a - b
-   const subtractFrom10 = partial(subtract, _, 10)
-   subtractFrom10(5) // -5
-   ```
+```javascript
+const _ = partial.placeholder
+const subtract = (a, b) => a - b
+const subtractFrom10 = partial(subtract, _, 10)
+subtractFrom10(5) // -5
+```
 
 ## 筆者解答
 
-```javascript
-function partial(func, ...args) {
-  return function partiallyApplied(...restArgs) {
-    return func.apply(this, [...args, ...restArgs])
-  }
-}
-```
+<Tabs defaultValue="基本" className="w-full">
+  <TabsList>
+    <TabsTrigger value="基本">基本</TabsTrigger>
+    <TabsTrigger value="追問">追問</TabsTrigger>
+  </TabsList>
+  <TabsContent value="基本">
+  
+    ```javascript
+    function partial(func, ...args) {
+        return function partiallyApplied(...restArgs) {
+            return func.call(this, ...args, ...restArgs);
+        };
+    }
+    ```
+
+  </TabsContent>
+  <TabsContent value="追問">
+  
+    ```javascript
+    function partial(func, ...args) {
+        return function partiallyApplied(...restArgs) {
+            // 將 placeholder 替換成 restArgs 中的值
+            const finalArgs = args.map((arg) => (arg === partial.placeholder ? restArgs.shift() : arg));
+            return func.call(this, ...finalArgs, ...restArgs);
+        };
+    }
+
+    partial.placeholder = Symbol('placeholder');
+    ```
+
+  </TabsContent>
+</Tabs>
 
 ## 相關題目
 
