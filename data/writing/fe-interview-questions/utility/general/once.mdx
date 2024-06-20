@@ -1,0 +1,110 @@
+---
+title: '前端面試手寫練習 - once'
+date: '2024-06-20'
+tags: ['fe-interview-questions']
+draft: false
+summary: 前端面試手寫練習 - once 函式
+topic: '基本題型'
+---
+
+## 問題
+
+once 顧名思義，是一個可以確保某個函式只會被執行一次的工具函式。實作一個 once 函式，當多次調用時，只有第一次調用會執行函式，後續調用將會忽略。
+
+```typescript
+function once(func: Function): Function
+```
+
+## 範例
+
+有些資源 (像是圖片或是資料庫連線) 的載入可能會花費較長的時間，我們可以透過 once 函式來確保這些資源只會被載入一次。
+
+```javascript
+const loadResource = once(() => {
+  console.log('資料載入完成')
+})
+
+loadResource() // '資料載入完成'
+loadResource() // 不會有任何輸出
+```
+
+## 練習區
+
+在了解問題後，可以嘗試先寫下您的思路，再到下方的練習區域實際寫出程式碼。
+
+<Sandpack lang="test-ts" activeFile="index.js" showTests={true}>
+
+```js file=index.js
+/**
+ * @param {Function} func
+ * @return {Function}
+ */
+function once(func) {
+  // your code here
+}
+
+export { once }
+```
+
+```js file=once.test.js hidden=true
+import { once } from './index.js'
+
+describe('once', () => {
+  test('returns function', () => {
+    const onced = once(() => {})
+    expect(onced).toBeInstanceOf(Function)
+  })
+
+  test('only executes the function once', () => {
+    let callCount = 0
+    const incrementCallCount = once(() => callCount++)
+
+    incrementCallCount()
+    incrementCallCount()
+    expect(callCount).toBe(1)
+  })
+
+  test('returns the result of the first call on subsequent calls', () => {
+    let callCount = 0
+    const incrementAndReturnCount = once(() => ++callCount)
+
+    expect(incrementAndReturnCount()).toBe(1)
+    expect(incrementAndReturnCount()).toBe(1)
+    expect(callCount).toBe(1)
+
+    callCount = 42
+    expect(incrementAndReturnCount()).toBe(1)
+    expect(callCount).toBe(42)
+  })
+})
+```
+
+</Sandpack>
+
+## 筆者思路
+
+1. 這是一個簡單的閉包問題，跟 [memorize](/writing/fe-interview-questions/general/memorize) 的概念非常相似。
+2. 我們可以在 once 函式內部定義一個變數 `executed` 來追蹤函式是否已經被執行過。同時定義一個變數 `result` 來儲存函式的結果。
+3. 如果函式還沒有被執行過，執行函式並將 `executed` 設為 `true`。
+4. 如果函式已經被執行過，我們就直接返回結果。
+
+## 筆者解答
+
+```javascript
+function once(func) {
+  let result
+  let executed = false
+  return function (...args) {
+    if (!executed) {
+      executed = true
+      result = func.apply(this, args)
+    }
+
+    return result
+  }
+}
+```
+
+## 相關題目
+
+1. [bigfrontend.dev - once](https://bigfrontend.dev/problem/implement-once)
