@@ -3,7 +3,7 @@ import 'css/sandpack.css';
 import 'pliny/search/algolia.css';
 
 import { Metadata } from 'next';
-import { Space_Grotesk } from 'next/font/google';
+import { Inter, Noto_Sans_TC } from 'next/font/google';
 import { Analytics, AnalyticsConfig } from 'pliny/analytics';
 import { SearchProvider, SearchConfig } from 'pliny/search';
 import { draftMode } from 'next/headers';
@@ -17,12 +17,17 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import siteMetadata from '@/data/siteMetadata';
 
 import { ThemeProviders } from './theme-providers';
-import Link from 'next/link';
 
-const space_grotesk = Space_Grotesk({
+const space_grotesk = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-space-grotesk',
+});
+
+const noto_sans_tc = Noto_Sans_TC({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-noto-sans-tc',
 });
 
 export const metadata: Metadata = {
@@ -69,7 +74,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const { isEnabled } = draftMode();
 
   return (
-    <html lang={siteMetadata.language} className={`${space_grotesk.variable} scroll-smooth`} suppressHydrationWarning>
+    <html
+      lang={siteMetadata.language}
+      className={`${space_grotesk.variable} ${noto_sans_tc.variable} scroll-smooth`}
+      suppressHydrationWarning
+    >
       <link rel="apple-touch-icon" sizes="180x180" href="/static/favicons/apple-touch-icon.png" />
       <link rel="icon" type="image/png" sizes="32x32" href="/static/favicons/favicon-32x32.png" />
       <link rel="icon" type="image/png" sizes="16x16" href="/static/favicons/favicon-16x16.png" />

@@ -49,7 +49,7 @@ export const WritingList = ({ items, maxDisplay }) => {
                     return (
                       <li
                         key={slug}
-                        className="group/list-item grid grid-cols-6 p-0 group-hover/list-wrapper:text-gray-300 dark:group-hover/list-wrapper:text-gray-800"
+                        className="group/list-item grid grid-cols-6 p-0 group-hover/list-wrapper:text-gray-300 dark:group-hover/list-wrapper:text-gray-600"
                       >
                         <span
                           className={cn(

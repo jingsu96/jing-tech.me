@@ -95,6 +95,7 @@ export default async function Page({ params }: { params: { slug: string[] } }) {
   const prev =
     samePathContent?.[samePathPostIndex - 1] ||
     groupedPost[currentTopic - 1]?.posts?.[groupedPost[currentTopic - 1]?.posts.length - 1];
+
   const next = samePathContent?.[samePathPostIndex + 1] || groupedPost[currentTopic + 1]?.posts?.[0];
   const post = allBlogs.find((p) => p.slug === slug) as Blog;
   const authorList = post?.authors || ['default'];

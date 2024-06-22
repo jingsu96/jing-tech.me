@@ -13,6 +13,7 @@ import { WritingBreadcrumb } from '@/components/lab/writing-breadcrumb';
 import CustomLink from '@/components/CustomLink';
 import Share from '@/components/Share';
 import { ScrollArea } from '@/components/lab/scroll-area';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const editUrl = (path) => `${siteMetadata.siteRepo}/blob/main/data/${path}`;
 const discussUrl = (path) =>
@@ -28,8 +29,8 @@ const postDateTemplate: Intl.DateTimeFormatOptions = {
 interface LayoutProps {
   content: CoreContent<Blog>;
   authorDetails: CoreContent<Authors>[];
-  next?: { path: string; title: string };
-  prev?: { path: string; title: string };
+  next?: { path: string; title: string; topic: string };
+  prev?: { path: string; title: string; topic: string };
   children: ReactNode;
   filteredPosts: any;
 }
@@ -41,7 +42,7 @@ export default function PostLayout({ content, next, prev, children, filteredPost
   return (
     <SectionContainer className="relative">
       <ScrollTopAndComment />
-      <FloatingHeader scrollTitle="Writing" />
+      <FloatingHeader scrollTitle="文章" />
       <WritingListLayout filteredPosts={filteredPosts} slug={slug} classname="hidden lg:flex" />
       <ScrollArea className="hidden w-full lg:flex">
         <article id="jt-article">
@@ -78,24 +79,34 @@ export default function PostLayout({ content, next, prev, children, filteredPost
                 <footer>
                   <div className="my-5 flex gap-3 text-sm font-medium leading-5 md:justify-between md:gap-0">
                     {(next || prev) && (
-                      <>
-                        {prev && prev.path && (
-                          <div>
-                            <h2 className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">上篇</h2>
-                            <div className="text-indigo-1  hover:text-indigo-2">
-                              <Link href={`/${prev.path}`}>{prev.title}</Link>
+                      <div className="flex w-full items-stretch justify-between gap-2 text-text-1">
+                        <div className="max-w-[50%] flex-1">
+                          {prev && (
+                            <div className="flex cursor-pointer items-center rounded-md border border-border p-4 pl-1">
+                              <ChevronLeft className="h-4 w-4 min-w-[16px] lg:h-6 lg:w-6" />
+                              <div className="ml-auto">
+                                <div className="text-end text-xs text-text-3">{prev.topic}</div>
+                                <div className="mt-1 text-end text-sm text-text-1 hover:text-indigo-2">
+                                  <Link href={`/${prev.path}`}> {prev.title}</Link>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        {next && next.path && (
-                          <div>
-                            <h2 className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">下篇</h2>
-                            <div className="text-indigo-1  hover:text-indigo-2">
-                              <Link href={`/${next.path}`}>{next.title}</Link>
+                          )}
+                        </div>
+                        <div className="max-w-[50%] flex-1">
+                          {next && (
+                            <div className="flex cursor-pointer items-center rounded-md border border-border p-4 pr-1">
+                              <div className="mr-auto">
+                                <div className="text-start text-xs text-text-3">{next.topic}</div>
+                                <div className="mt-1 text-start text-sm text-text-1 hover:text-indigo-2">
+                                  <Link href={`/${next.path}`}>{next.title}</Link>
+                                </div>
+                              </div>
+                              <ChevronRight className="h-4 w-4 min-w-[16px] lg:h-6 lg:w-6" />
                             </div>
-                          </div>
-                        )}
-                      </>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
                   <div className="pt-4 xl:pt-8">
