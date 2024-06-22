@@ -13,7 +13,7 @@ const MAX_DISPLAY = 5;
 export default function Home({ posts: items, authors }) {
   return (
     <ScrollArea className="hidden w-full lg:flex">
-      <FloatingHeader scrollTitle="Home" />
+      <FloatingHeader scrollTitle="首頁" />
       <section className="mx-auto max-w-[840px] px-4 pt-10 md:m-auto">
         <div className="grid grid-cols-1 gap-x-16 gap-y-1 sm:grid-cols-3">
           {/* ABOUT ME */}
