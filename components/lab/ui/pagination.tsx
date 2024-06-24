@@ -49,7 +49,12 @@ const PaginationLink = ({ className, isActive, size = 'icon', ...props }: Pagina
 PaginationLink.displayName = 'PaginationLink';
 
 const PaginationPrevious = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink aria-label="Go to previous page" size="default" className={cn('gap-1 pl-2.5', className)} {...props}>
+  <PaginationLink
+    aria-label="Go to previous page"
+    size="default"
+    className={cn('cursor-pointer gap-1 pl-2.5', className)}
+    {...props}
+  >
     <ChevronLeft className="h-4 w-4" />
     <span>上一頁</span>
   </PaginationLink>
@@ -57,8 +62,13 @@ const PaginationPrevious = ({ className, ...props }: React.ComponentProps<typeof
 PaginationPrevious.displayName = 'PaginationPrevious';
 
 const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink aria-label="Go to next page" size="default" className={cn('gap-1 pr-2.5', className)} {...props}>
-    <span>下一頁</span>
+  <PaginationLink
+    aria-label="Go to next page"
+    size="default"
+    className={cn('cursor-pointer gap-1 pr-2.5', className)}
+    {...props}
+  >
+    <span className="cursor-pointer">下一頁</span>
     <ChevronRight className="h-4 w-4" />
   </PaginationLink>
 );

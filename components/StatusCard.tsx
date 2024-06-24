@@ -1,9 +1,9 @@
 import React from 'react';
-import { Check, Ban, CircleAlert } from 'lucide-react';
+import { Check, Ban, CircleAlert, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StatusCardProps {
-  status: 'success' | 'error' | 'warning' | null;
+  status: 'success' | 'error' | 'warning' | 'idea' | null;
   title: string;
   content: string | React.ReactNode;
   className?: string;
@@ -19,6 +19,8 @@ const StatusCard: React.FC = ({ status, title, content, className, size = 24 }: 
         return <Ban size={size} color="#5c73e7" />;
       case 'warning':
         return <CircleAlert size={size} color="#5c73e7" />;
+      case 'idea':
+        return <Lightbulb size={size} color="#5c73e7" />;
       default:
         return <CircleAlert size={size} color="#5c73e7" />;
     }

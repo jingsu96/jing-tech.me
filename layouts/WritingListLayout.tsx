@@ -24,7 +24,7 @@ const CollapsibleList = ({
     <AccordionItem value={topic} className="my-2">
       <AccordionTrigger
         className={cn(
-          'flex w-full items-center justify-between rounded-lg px-2 py-2 text-lg font-bold text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800'
+          'flex w-full items-center justify-between rounded-lg px-2 py-2 text-lg font-semibold text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800'
         )}
       >
         <h2>{topic}</h2>
@@ -103,7 +103,7 @@ const WritingListLayout = ({ filteredPosts, slug, classname }) => {
         <AnimatePresence mode="wait" initial={false}>
           {isSidebarVisible && (
             <motion.div
-              className="flex max-h-[100vh] w-full min-w-[22rem] max-w-[22rem] flex-wrap overflow-auto rounded bg-gray-50 pt-5 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 "
+              className="flex max-h-[100vh] w-full min-w-[22rem] max-w-[22rem] flex-wrap overflow-auto rounded bg-gray-50 shadow-md dark:bg-gray-900/70 dark:shadow-gray-800/40 "
               initial={{ display: 'none', minWidth: 0, width: 0 }}
               animate={{ display: 'flex', minWidth: '22rem' }}
               exit={{ display: 'none', minWidth: 0, width: 0 }}

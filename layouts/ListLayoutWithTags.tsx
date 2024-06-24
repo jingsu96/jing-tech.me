@@ -7,7 +7,7 @@ import type { Blog } from 'contentlayer/generated';
 import Link from '@/components/CustomLink';
 import tagData from 'app/tag-data.json';
 import { FloatingHeader } from '@/components/lab/floating-header';
-import { cn } from '@/lib/utils';
+import { cn, upperFirst } from '@/lib/utils';
 import ListItem from '@/components/ListItem';
 import { TOPIC_EN_TO_ZH } from '@/lib/constants';
 import { ScrollArea } from '@/components/lab/scroll-area';
@@ -54,7 +54,7 @@ function Pagination({ totalPages, currentPage, v2, className }: PaginationProps)
                 <PaginationPrevious
                   href={`/${basePath}/page/${currentPage - 1}`}
                   rel="prev"
-                  className="hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-text-1"
+                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-text-1"
                 />
               )}
             </PaginationItem>
@@ -66,7 +66,7 @@ function Pagination({ totalPages, currentPage, v2, className }: PaginationProps)
                 <PaginationNext
                   href={`/${basePath}/page/${currentPage + 1}`}
                   rel="next"
-                  className="hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-text-1"
+                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-text-1"
                 />
               )}
             </PaginationItem>
@@ -106,10 +106,7 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
               {pathname.startsWith('/writing') ? (
                 <h3 className="font-bold uppercase text-indigo-1">所有主題</h3>
               ) : (
-                <Link
-                  href={`/writing`}
-                  className="font-bold uppercase text-gray-700 hover:text-indigo-1 dark:text-gray-300 dark:hover:text-indigo-1"
-                >
+                <Link href={`/writing`} className="font-bold uppercase text-gray-700 text-indigo-1">
                   所有主題
                 </Link>
               )}
@@ -118,15 +115,15 @@ export default function ListLayoutWithTags({ posts, title, initialDisplayPosts =
                   return (
                     <li
                       key={t}
-                      className={`mt-1 flex w-full items-center gap-1 rounded-md px-2 py-2 text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${pathname.split('/tags/')[1]?.includes(slug(t)) ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+                      className={`mt-1 flex w-full items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${pathname.split('/tags/')[1]?.includes(slug(t)) ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
                     >
                       <TagIcon className="h-4 w-4" />
                       <Link
                         href={`/tags/${slug(t)}`}
-                        className="ml-1 py-1 text-sm font-medium uppercase"
+                        className="ml-1 py-1 text-sm font-medium"
                         aria-label={`View posts tagged ${t}`}
                       >
-                        {`${TOPIC_EN_TO_ZH[t]}`}
+                        {`${upperFirst(TOPIC_EN_TO_ZH[t])}`}
                         <span className="ml-1 text-xs text-text-2">{tagCounts[t]} 篇文章</span>
                       </Link>
                     </li>

@@ -1,0 +1,206 @@
+---
+title: '前端面試手寫練習 - isEqual'
+date: '2024-06-23'
+tags: ['fe-interview-questions']
+draft: false
+summary: 前端面試手寫練習 - isEqual 函式
+topic: '基本題型'
+---
+
+## 問題
+
+當我們想要按值而不是按引用比較複雜的數據類型時，`isEqual` 非常有用。這篇文章將討論如何實作一個 `isEqual` 函式，我們需要能夠支援以下數據類型：
+
+1. 原始類型 (primitives)
+2. 物件 (plain objects, object literals)
+3. 陣列 (arrays)
+
+```typescript
+function isEqual(a: any, b: any): boolean
+```
+
+## 範例
+
+`isEqual` 非常直觀，它將兩個值進行比較，如果它們是相等的，則返回 `true`，否則返回 `false`。
+
+```javascript
+const obj1 = { a: 1, b: 2 }
+const obj2 = { a: 1, b: 2 }
+
+console.log(isEqual(obj1, obj2)) // true
+
+const arr1 = [1, obj1, 3]
+const arr2 = [1, obj2, 3]
+
+console.log(isEqual(arr1, arr2)) // true
+```
+
+## 練習區
+
+在了解問題後，可以嘗試先寫下您的思路，再到下方的練習區域實際寫出程式碼。
+
+<Sandpack lang="test-ts" activeFile="index.js" showTests={true}>
+
+```js file=index.js
+/**
+ * @param {any} a
+ * @param {any} b
+ * @returns {boolean}
+ */
+function isEqual(a, b) {
+  // your code here
+}
+
+export { isEqual }
+```
+
+```js file=isEqual.test.js
+import { isEqual } from './index.js'
+
+describe('isEqual', () => {
+  test('should return true if two primitives are equal', () => {
+    expect(isEqual(1, 1)).toBe(true)
+  })
+
+  test('should return true if two objects are equal', () => {
+    const obj1 = { a: 1, b: 2 }
+    const obj2 = { a: 1, b: 2 }
+    expect(isEqual(obj1, obj2)).toBe(true)
+  })
+
+  test('should return true if two arrays are equal', () => {
+    const obj1 = { a: 1, b: 2 }
+    const obj2 = { a: 1, b: 2 }
+    const arr1 = [1, obj1, 3]
+    const arr2 = [1, obj2, 3]
+    expect(isEqual(arr1, arr2)).toBe(true)
+  })
+
+  test('should return false if two objects are not equal', () => {
+    const obj1 = { a: 1, b: 2 }
+    const obj2 = { a: 1, b: 3 }
+    expect(isEqual(obj1, obj2)).toBe(false)
+  })
+
+  test('should return false if two arrays are not equal', () => {
+    const obj1 = { a: 1, b: 2 }
+    const obj2 = { a: 1, b: 2 }
+    const arr1 = [1, obj1, 3]
+    const arr2 = [1, obj2, 4]
+    expect(isEqual(arr1, arr2)).toBe(false)
+  })
+
+  test.skip('should handle circular references in objects', () => {
+    const obj1 = { a: 1, b: 2 }
+    const obj2 = { a: 1, b: 2 }
+    obj1.c = obj2
+    obj2.c = obj1
+    expect(isEqual(obj1, obj2)).toBe(true)
+  })
+})
+```
+
+</Sandpack>
+
+## 追問
+
+1. 如何處理陣列或是物件中的循環引用 (circular references)？ (Hint: 使用 WeakMap)
+
+## 筆者思路
+
+1. 定義 base case
+
+   - 如果 `a === b` 直接回傳 `true`
+
+2. 如果 a 與 b 都是陣列
+
+   - 如果 b 長度與 a 不同，直接回傳 `false`
+   - 使用 `every` 來檢查每個元素是否相等
+
+3. 如果 a 與 b 都是物件
+   - 取得 a 與 b 的 key
+   - 如果 key 長度不同，直接回傳 `false`
+   - 使用 `every` 來檢查每個 key 是否相等
+
+## 筆者解答
+
+<Tabs defaultValue="基本" className="w-full">
+  <TabsList>
+    <TabsTrigger value="基本">基本</TabsTrigger>
+    <TabsTrigger value="追問">追問</TabsTrigger>
+  </TabsList>
+  <TabsContent value="基本">
+  
+    ```javascript
+    function isEqual(a, b) {
+      if (a === b) {
+        return true;
+      }
+
+      if (Array.isArray(a)) {
+        if (a.length !== b.length) {
+          return false;
+        }
+
+        return a.every((item, idx) => isEqual(item, b[idx]));
+      }
+
+      if (typeof a === 'object' && typeof b === 'object') {
+        let aKeys = Object.keys(a);
+        let bKeys = Object.keys(b);
+
+        if (aKeys.length !== bKeys.length) {
+          return false;
+        }
+
+        return aKeys.every((k) => isEqual(a[k], b[k]));
+      }
+
+      return false;
+    }
+    ```
+
+</TabsContent>
+<TabsContent value="追問">
+
+      ```javascript
+      function isEqual(a, b, seen = new WeakMap()) {
+        if (a === b) {
+          return true;
+        }
+
+        if (Array.isArray(a)) {
+          if (!Array.isArray(b) || a.length !== b.length) {
+            return false;
+          }
+
+          return a.every((item, idx) => isEqual(item, b[idx], seen));
+        }
+
+        if (typeof a === 'object' && typeof b === 'object' && a !== null && b !== null) {
+          if (seen.has(a) && seen.get(a) === b) {
+            return true;
+          }
+
+          seen.set(a, b);
+
+          let aKeys = Object.keys(a);
+          let bKeys = Object.keys(b);
+
+          if (aKeys.length !== bKeys.length) {
+            return false;
+          }
+
+          return aKeys.every((k) => isEqual(a[k], b[k], seen));
+        }
+
+        return false;
+      }
+      ```
+
+</TabsContent>
+</Tabs>
+
+## 相關題目
+
+1. [bigfrontend.dev - isEqual](https://bigfrontend.dev/problem/implement-deep-equal-isEqual)

@@ -1,0 +1,419 @@
+---
+title: 網頁渲染模式
+date: '2024-06-22'
+tags: ['frontend-engineering']
+draft: true
+authors: ['default']
+topic: '基礎概念'
+---
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## 前言
+
+網頁開發在這十年裡發生了許多變化，從在傳統 MVC 框架開發所搭配的模板語言 (e.g. ejs, pug) 來渲染頁面。到 2014 年 React 的發布，讓前後端分離的開發方式開始盛行，三大框架 (Angular, React, Vue) 崛起成為主流，這個時代讓前端能夠專注在實踐 UI 的設計與使用者體驗，後端則是負責 API 與資料庫的處理。最近 React 準備要發布的 v19 將會引入伺服器組件的概念，這讓組件可以在伺服器端渲染，從而提升網頁的載入速度。
+
+本系列將會涵蓋從客戶端渲染 (Client Side Rendering, CSR) 、伺服器端渲染 (Server Side Rendering, SSR) 以及 React 伺服器組件的概念 (React Server Component)，並且會透過一些範例來說明這些概念。
+
+## 術語
+
+| 指標     | 定義                                                                                        |
+| -------- | ------------------------------------------------------------------------------------------- |
+| **TTFB** | 第一個位元組間。從使用者點擊連結開始，到看到第一個內容出現所需等待的時間。                  |
+| **FCP**  | 首次顯示內容所需時間。從開始載入頁面，到第一塊內容 (像是文章的開頭) 出現需要多少時間。      |
+| **LCP**  | 最大內容繪製時間。從開始載入頁面，到最大內容出現需要多少時間。                              |
+| **INP**  | 與下一個顯示的內容互動，測試當使用者想跟頁面互動 (例如點選某物) 時，它有多快回應。          |
+| **TBT**  | 總封鎖時間，INP 的 Proxy 指標，當頁面載入時，有多少時間是被"卡住" (Blocking) 不讓你操作的。 |
+
+## 客戶端渲染 (Client Side Rendering, CSR)
+
+### 什麼是 CSR?
+
+**Client Side Rendering (CSR)** 顧名思義就是在客戶端上才開始將畫面進行生成，而在過程中伺服器所回傳的 HTML 檔案只有一個根節點，通常是 `<div id="root"/>`，而客戶端會在透過 JS 來從根節點開始作為起始點渲染頁面。
+
+回想在 2018 年剛開始學習 React 時，需要建立一個新專案就是在終端機下 `npx create-react-app app` 等個兩三分鐘下載資源，再來 `npm start` 開啟應用，最後就是一個熟悉的 React Icon 出現在頁面上。
+
+create-react-app 讓我們可以快速的建立一個客戶端渲染的 React 應用，應用裡的任何邏輯，像是 UI、資料請求與處理等等的邏輯，都會在打包後都會被放到 bundle.js 內，而最終打包後的 HTML 就會像是這樣：
+
+```html
+// dist/index.html
+<!doctype html>
+<html lang="en-US">
+  <body>
+    <div id="app"></div>
+    <script src="/dist/bundle.js"></script>
+  </body>
+</html>
+```
+
+當使用者訪問網站時，瀏覽器首先加載 dist/index.html，再來是下載並解析 bundle.js。解析完成後，React 開始構建應用的 DOM 結構，並插入到 `<div id="app"/>`，這就是 CSR 的渲染方式。
+
+### React for the Client
+
+透過一個簡單的 React 應用來舉例，這個應用主要是透過 `fetch` 來取得一些留言資料，然後將這些資料顯示在畫面上：
+
+如果把網路速度調整到 Fast 3G，可以看到當網頁載入時，留言那個區塊會是一片空白，等到 JS 載入完成後才會開始渲染留言資料，這就是 CSR 的特性。
+
+<Sandpack activeFile="Comments.js">
+
+```html file=index.html
+<div id="root"></div>
+```
+
+```js
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import Comments from './Comments'
+
+const App = () => {
+  return (
+    <>
+      <h2>Info for SEO</h2>
+      <p>Important information ready for SEO</p>
+
+      <h2>Comments</h2>
+      <Comments />
+    </>
+  )
+}
+
+const root = document.getElementById('root')
+ReactDOM.createRoot(root).render(App)
+
+export default App
+```
+
+```js file=Comments.js
+import { useEffect, useState } from 'react'
+
+const API_URL = 'https://jsonplaceholder.typicode.com/comments'
+
+function useFetchComments() {
+  const [comments, setComments] = useState([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(API_URL)
+      const data = await response.json()
+      setComments(data)
+    }
+
+    fetchData()
+  }, [])
+
+  return { comments }
+}
+
+function Comments() {
+  const { comments } = useFetchComments()
+
+  return (
+    <ul>
+      {comments.slice(0, 5).map((comment) => (
+        <li key={comment.id}>{comment.body}</li>
+      ))}
+    </ul>
+  )
+}
+
+export default Comments
+```
+
+</Sandpack>
+
+這個範例可能還不能看出明顯的缺點，但想像一下，當專案越來越複雜，打包出來的 bundle 也會隨之增大，使得使用者在進入頁面時會由於 bundle 過大需要更長時間加載，而看到一個空白的畫面（或是載入中的 UI）。然而，當好不容易等到 JS 載入完成且 React 把畫面渲染完成，這時如果有區塊的資訊是需要從後端 API 取得資料，則會需要再等網路請求完，才能看到所有的資訊，這就是 CSR 的缺點。
+
+### CSR 優缺點
+
+CSR 的渲染方式也造就了 **SPA (Single Page Application)** 的興起。當然每個技術的背後都會有它的優缺點，SPA 也不例外。
+
+<StatusCard
+  status="idea"
+  content="SPA 是一種 Web 應用或網站，只有一個 HTML 頁面，所有內容都是動態載入的。當用戶在應用中導航時，SPA 不會重新加載整個頁面，而是僅加載必要的內容或資料。"
+/>
+
+#### 優點
+
+1. **前後端解耦**：SPA 的架構底下，讓前後端更容易切分職責，讓前端專注於使用者與產品的互動以及資料的串接，而後端可以更專注於商業邏輯上的處理。
+2. **使用者體驗**：由於 SPA 是動態載入所需要的檔案，也讓我們在切換頁面的時候，可以有平滑的體驗，不會有頁面因爲重新載入而閃爍的問題。
+
+#### 缺點
+
+1. **第一幀畫面生成 (FCP)**：在上面有提到由於 SPA 都是透過 JS 去渲染畫面，所以在載入的時候會有一段時間的等待，特別是當載入檔案特別大時，這個缺點就會更加明顯。
+2. **SEO 表現**：儘管現在搜尋引擎爬蟲已經可以執行 JS 並渲染頁面，但是還是有可能因為連續的 API 請求或是其請求時間過長而導致爬蟲無法抓取完整的頁面資訊。
+3. **效能問題**：就如同先前所提到的，當載入檔案越來越大會進而導致 FCP 時間變長。儘管這部分可以透過一些方法優化，像是代碼分割 (Code Splitting)、懶載入 (Lazy Loading) 或是緩存 (Caching)，但這還是沒辦法根治 CSR 的根本問題。
+
+## SSR (Server Side Rendering)
+
+### 什麼是 SSR?
+
+**Server Side Rendering (SSR)** 則是在伺服器端就開始將畫面進行生成，也就是在使用者從瀏覽器輸入網址後進到頁面時，網頁送出請求，伺服器就會開始將畫面生成，然後將生成好的 HTML 檔案回傳給瀏覽器。
+
+像是 [Houzz](https://www.houzz.com/) 就是先在伺服器端將畫面生成好，然後再回傳給瀏覽器：
+
+<video src="https://i.imgur.com/NW89tzl.mp4" width="640" height="564" controls />
+
+### React for the Server
+
+而 React 是一個 Isomorphic 的框架，也就是說它可以在伺服器端以及客戶端都可以運作，所以可以在伺服器端使用 `ReactDOMServer.renderToString()` 來將 React Component 渲染成 HTML，然後將這個 HTML 回傳給瀏覽器。
+
+然而回傳的 HTML 只是一個靜態的 HTML 檔案，並沒有任何的事件綁定，所以我們需要去載入 JS 檔案並將相關事件綁定到對應的元素上，這個過程會透過 `ReactDOM.hydrate()` 來完成。
+
+而對於 Hydration 的解釋，可以參考 [Dan Abramov](https://twitter.com/dan_abramov) 一語道破的註解：
+
+> Hydration is like watering the “dry” HTML with the “water” of interactivity and event handlers.
+
+以下範例就是將上面的 CSR 範例改成 SSR：
+
+<Sandpack lang="node">
+
+```js file=index.js
+import cors from 'cors'
+import express from 'express'
+import fetch from 'node-fetch'
+import { renderToString } from './server/render-to-string.js'
+
+const app = express()
+
+app.use(express.json())
+app.use(cors())
+
+app.use(express.static('public'))
+
+app.use('/client', express.static('client'))
+
+const API_URL = 'https://jsonplaceholder.typicode.com/comments'
+const API_DELAY = 1000
+
+const delay = (ms) => {
+  return new Promise((res) => {
+    setTimeout(res, ms)
+  })
+}
+
+const getComments = async () => {
+  // fetch from https://jsonplaceholder.typicode.com/comments
+  const res = await fetch(API_URL)
+  const comments = await res.json()
+  await delay(API_DELAY)
+  return comments
+}
+
+app.get('/', async (req, res, next) => {
+  try {
+    const comments = await getComments()
+    const html = await renderToString({ comments })
+    res.send(html)
+  } catch (err) {
+    console.error(err)
+    next(err)
+  }
+})
+
+app.use((_req, res) => {
+  res.status(404).send({ message: 'NotFound' })
+})
+
+app.use((error, _req, res, _next) => {
+  res.status(500).send({ message: 'InternalServerError', error })
+})
+
+app.listen(3000, () => {
+  console.log(`Server listening on port ${3000}`)
+})
+```
+
+```js file=client/app.js
+import React from 'react'
+
+const Comments = ({ comments }) => {
+  return React.createElement(
+    'ul',
+    null,
+    comments
+      ?.slice(0, 5)
+      .map((comment) => React.createElement('li', { key: comment.id }, comment.body))
+  )
+}
+
+export const App = ({ comments }) => {
+  const element = React.createElement(
+    'div',
+    null,
+    React.createElement('h2', null, 'Info for SEO'),
+    React.createElement('p', null, 'Important information ready for SEO'),
+    React.createElement('h2', null, 'Comments'),
+    React.createElement(Comments, { comments })
+  )
+
+  return element
+}
+```
+
+```js file=client/index.js
+import React from 'react'
+import * as ReactDOM from 'react-dom'
+import { App } from './app.js'
+
+export function start() {
+  const root = ReactDOM.hydrateRoot(document.getElementById('root'))
+  root.render(React.createElement(App))
+}
+
+export { App }
+```
+
+```js file=server/render-to-string.js
+import fs from 'fs'
+import path from 'path'
+import React from 'react'
+import ReactDOMServer from 'react-dom/server'
+import { App } from '../client/index.js'
+
+export async function renderToString({ comments }) {
+  const pageTemplate = fs.readFileSync(path.resolve('templates/index.html'), {
+    encoding: 'utf-8',
+  })
+
+  const element = React.createElement('section', null, React.createElement(App, { comments }))
+
+  let appHtml = ReactDOMServer.renderToString(element)
+
+  let htmlString = pageTemplate.replace('<!-- SSR -->', appHtml)
+
+  return htmlString
+}
+```
+
+```json file=package.json
+{
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.1",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "node-fetch": "latest"
+  }
+}
+```
+
+```json file=templates/index.html
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>SSR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script
+      async
+      src="https://ga.jspm.io/npm:es-module-shims@1.5.6/dist/es-module-shims.js"
+    ></script>
+
+  </head>
+  <body>
+    <div id="root">
+      <!-- SSR -->
+    </div>
+    <script defer type="module">
+      import { start } from "./client/index.js";
+      start();
+    </script>
+  </body>
+</html>
+```
+
+</Sandpack>
+
+可以明顯地看出 SSR 的渲染方式沒有了載入的動畫，使得使用者在進入頁面時就可以看到所有資訊，我們可以透過 Chrome DevTools 的 Network 看到載入回來的 HTML 已經將所有的資料都包含在裡面了，因為少了客戶端與伺服器端來回要資料的時間，讓 SSR 的 FCP 比 CSR 快，也不會有 Loading 的畫面。
+
+<Image src="https://imgur.com/yQ9gn7Q.png" height="373" width="762" />
+
+### SSR 優缺點
+
+SSR 相較於 CSR 的渲染方式，其優缺點則是反過來的。
+
+#### 優點
+
+1. **第一幀畫面生成 (FCP)**：由於是在伺服器端就將畫面生成完成，所以在使用者進入頁面時就可以看到畫面，不需要等待 JS 載入完成後才開始渲染，這也就是為什麼 SSR 的 FCP 比 CSR 快的原因。
+2. **SEO 表現**：也因為 HTML 在伺服器端就已生成，所以搜尋引擎的爬蟲在抓取頁面時就可以抓到完整的 HTML 檔案。
+
+#### 缺點
+
+1. **TTFB (Time To First Byte)**：由於 SSR 是在伺服器端就開始將畫面生成，所以在使用者進入頁面時，瀏覽器會先發送請求給伺服器，然後伺服器才會開始將畫面生成，使得 TTFB 的時間會影響到使用者進入頁面的時間。
+2. **使用者體驗**：由於所有程式碼並未存在客戶端，如果一些使用者交互需要與伺服器之間的請求來完成，進而引起頁面的完全重新載入。這會延長各個操作間的間隔，因用戶需在每次動作間多等待一段時間。
+
+## SSG (Static Rendering)
+
+### 什麼是 Static Rendering?
+
+SSG 則是 SSR 的一種變形，它是在伺服器端就開始將畫面生成，然後將生成好的 HTML 檔案回傳給瀏覽器，但是不同的是 SSG 是在網站建置 (build time) 時就將畫面生成好，而不是在使用者進入頁面時才開始生成。
+
+許多部落格網站（像是 [本站](https://www.jing-tech.me/)）都是使用 SSG 的方式來渲染頁面，因為部落格的內容通常都是靜態的，所以在網站建置時就可以將頁面生成好，使用者進入頁面時就可以直接看到畫面。
+
+### SSG 優缺點
+
+SSG 則有 SSR 的大部分優點，但在網頁建置時就將畫面生成好的方式，也產生出了一些缺點：
+
+#### 優點
+
+1. **第一幀畫面生成 (FCP)**：由於是在**網頁建置時**就將畫面生成完成，讓它跟 SSR 一樣減少了客戶端和服務器的來回請求，幾乎可以達到即時渲染的效果。
+2. **SEO 表現**：也因為 HTML 已經在網頁建置時就已生成，所以搜尋引擎的爬蟲在抓取頁面時就可以抓到完整的 HTML 檔案。
+
+#### 缺點
+
+1. **動態內容**：每次內容發生變化時，就需要構建和重新部署。如果網站在任何內容更改後尚未構建+部署，則顯示的內容可能會過時。這使得 SSG 不適合高度動態的內容。
+
+## Progressive Hydration
+
+### 什麼是 Progressive Hydration?
+
+在上面提到了 SSR 有很不錯的 FCP 是由於 SSR 在伺服器接收到請求後就開始生成畫面，所以在使用者進入頁面時，伺服器回傳的是完整的 HTML，讓畫面可以很快就呈現。
+
+但是網頁不是只有讀的功能，我們需要讓網頁可以讓使用者進行互動，像是點擊按鈕，而這則是需要 JS 來處理。而使用者看到畫面到真正可以跟頁面進行互動，取決於 JS 載入時間，這段等待的時間稱為 **TTI (Time To Interactive)**。
+
+相比於 SSR 我們可以使用 **Progressive Hydration** 的選染方式，減少其 TTI 的時間，由於與 SSR 一次性將整個應用程式進行 hydration 不同，其使用逐步 hydration 的方式，先將頁面上的元素進行 hydration，然後再逐步將其他元素進行 hydration，這樣就可以只請求最小必要的 JavaScript。
+
+### Progressive Hydration 實作
+
+實作 Progressive Hydration 之前，需要滿足以下條件：
+
+1. 支援 SSR
+2. 能夠將代碼根據組件進行分割
+3. 能夠根據工程師定義的順序進行 hydration
+4. 不會在 hydration 中阻斷使用者跟已經 hydrated 的元素進行互動
+5. 在 hydration 過程中，顯示 loading 狀態
+
+我們可以透過 React 18 釋出的新功能 `lazy`, `Suspense` 來實作 Progressive Hydration。並用 `SuspenseList()` 來定義 hydration 的順序。
+
+## Streaming Server-Side Rendering
+
+### 什麼是 Streaming Server-Side Rendering?
+
+與 SSR 一接收到請求後，伺服器端將頁面所有的資料組裝好後，再回傳給瀏覽器不同，Streaming SSR 則是將頁面的資料分段回傳給瀏覽器，讓瀏覽器可以逐步的渲染頁面，而這其中就是用到了 **[HTTP Streaming](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API)** 的 API。
+
+React 也提供了原生的 API `ReactDOMServer.renderToNodeStream()` 讓我們可以將頁面資料分段回傳給瀏覽器，讓頁面可以一邊渲染畫面，一邊載入資料。
+
+### React for Streaming
+
+Streaming SSR 的渲染方式，讓我們可以先將對 SEO 重要的資訊生成到 HTML 中，然後透過 `<Suspense />` 與 `ReactDOMServer.renderToNodeStream()`，讓其他需要花比較久時間去請求的 API (像是 comments)，放在客戶端。也可以透過 Chrome DevTools 的 Network，看到 HTML 一開始就已經有 SEO 重要的資訊，而 comments 則以 `Loading...` 顯示。
+
+<Image src="https://imgur.com/Wj4FSNG.png" height="298" width="762" />
+
+### Streaming SSR 優缺點
+
+#### 優點
+
+1. **TTFB**：由於是分段成 chunk 檔回傳給瀏覽器，其 TTFB 比 SSR 更好。無論頁面大小如何，它都更為一致。由於客戶端可以在收到它後立即解析 HTML，FP 和 FCP 也更低。
+2. **SEO 表現**：搜尋引擎的爬蟲也可以抓取 Streaming SSR 的頁面，但有可能會有一些問題，Dan Abramov 在[這裡](https://github.com/reactwg/react-18/discussions/37#discussioncomment-842581)有提到。
+3. **資源優化**：其允許網頁在開始流動傳輸的最初階段就加載其他核心資源，如 CSS、JavaScript 和字體。也就是當頁面正進行主要內容的渲染時，其他資源也同時在背景中進行下載，提高了整體的頁面載入效率。
+
+## 參考資料
+
+1. [Rendering Patterns](https://www.patterns.dev/posts/)
+2. [Rendering on the Web](https://web.dev/rendering-on-the-web/)
+3. [Streaming SSR](https://github.com/jherr/react-streaming/tree/main/diy-starter/src)
