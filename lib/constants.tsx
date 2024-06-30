@@ -214,6 +214,9 @@ export const ORDER = {
     基本介紹: 1,
     基礎概念: 2,
   },
+  'writing/database-system': {
+    基本介紹: 1,
+  },
 };
 
 export const TOPIC_EN_TO_ZH = {
@@ -228,4 +231,5 @@ export const TOPIC_EN_TO_ZH = {
   react: 'React',
   'functional-programming': '函數式編程',
   'frontend-engineering': '前端工程',
+  'database-system': '資料庫系統',
 };
