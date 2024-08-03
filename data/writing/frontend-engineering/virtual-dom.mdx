@@ -1,0 +1,418 @@
+---
+title: Virtual DOM 原理與實作
+date: '2024-08-03'
+tags: ['frontend-engineering']
+draft: true
+authors: ['default']
+topic: '基礎概念'
+---
+
+## 前言
+
+本篇文章將會介紹前端框架 (像是 React 與 Vue) 中常見的底層技術邏輯 - Virtual DOM，並且實作一個簡單的 Virtual DOM。
+
+## 什麼是 Virtual DOM (VDOM)
+
+Virtual DOM，顧名思義，就是這個 DOM 是虛擬的。其與真實 DOM的差別就是的是，真實 DOM 是由瀏覽器所維護，而 VDOM 則是存在 JavaScript 的內存堆棧 (Memory Stack) 中，並且對 DOM 樹的結構與屬性進行鏡像。
+
+每當頁面發生變化時，不是直接更新真實的 DOM，而是修改 VDOM。這些變化會與 DOM 同步，避免了與直接 DOM 更新而可能產生的效能瓶頸。主要概念就是通過最小化與實際 DOM 的直接互動來提高性能，開發者可以創建高度動態和互動的用戶界面，同時保持最佳性能。。
+
+## Virtual DOM 是如何運作的
+
+![Image](https://res.cloudinary.com/practicaldev/image/fetch/s--KUH7at4H--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/t6ewc07tlj0q3qf4y24r.png)
+
+1. **表示**：首先，VDOM 會有一個類似於真實 DOM 的物件結構。每次發生變更（如用戶交互或數據更新）時，VDOM 就會被修改，而不是立即更改實際 DOM。
+
+2. **差異比對（Diffing）**：在創建了 VDOM 的新版本後，再來就是透過差異比對（Diffing）主要將當前（舊）版本的 VDOM 與新創建的版本 VDOM 進行比較。
+
+   差異比對算法會仔細遍歷舊的 VOM 和新的虛擬 DOM 中的每個節點（表示元素、組件、文本等），並且會對其進行標記，如果發現任何差異，則會根據情況為是標記不同的標籤，例如新增、刪除或變更。
+
+3. **調和（Reconciliation）**：當差異比對階段完成並識別出變更後，VDOM 進入調和階段。在這一步中，VDOM 會將從差異比對過程中識別出的變更應用到 DOM 上。
+
+   VDOM 不是直接修改現有的 DOM，而是聰明判斷需要進行的最小變更集，以使真實 DOM 與 VDOM 的新版本同步。這避免了重新渲染整個網頁的耗時和資源消耗任務。
+
+4. **重複循環**：每當在頁面中進行變更時，這個過程都會重複。通過持續監控變更並僅更新 DOM 的必要部分，虛擬 DOM 確保了更流暢的用戶體驗、更好的性能和高度動態的網頁應用程式。
+
+## 實作 Virtual DOM
+
+接下來我們將透過 JavaScript 來實作一個簡單的 Virtual DOM，與上述的 Virtual DOM 運作流程相似，主要分為以下幾個步驟：
+
+1. 定義資料結構
+2. 差異比對演算法
+3. 將 Virtual DOM 轉換成真實 DOM
+4. 處理狀態的變化
+
+透過這些步驟，我們就可以一步一步完成 Virtual DOM 的實作。
+
+### 1. 定義資料結構
+
+首先需要先定義 VDOM 每個節點的資料結構，其物件屬性通常會貼近真實 DOM 中的屬性與結構，主要有以下幾個屬性：
+
+1. `tag`：節點的標籤名稱，這與 HTML 標籤是一樣的，例如 `div`、`span` 等。
+2. `props`：節點中可能會包含的屬性，像是事件監聽器、樣式等。
+3. `children`：節點的子節點，可能是一個陣列，也可能是一個字串。
+
+例如，一個簡單的按鈕在 VDOM 中的表示：
+
+```javascript
+const vdomBtn = {
+  tag: 'button',
+  props: {
+    disabled: false,
+    onClick: () => alert('Hello, World!'),
+  },
+  children: ['Click me!'],
+}
+```
+
+又或是單純的文字節點：
+
+```javascript
+const vdomText = {
+  text: 'Hello World!',
+}
+```
+
+但讀者們應該有有發現，這只是一個節點，但如果我們需要表示一整個 DOM 樹，如果不用其他方法的話，這樣的表示方式會變得非常冗長。
+
+這時候我們就可以透過函式來簡化這個過程，例如：
+
+```javascript
+function createElement(tag, properties, children) {
+  return {
+    tag,
+    properties,
+    children,
+  }
+}
+
+function createText(text) {
+  return {
+    text,
+  }
+}
+```
+
+這樣就可以更簡單地創建 VDOM 節點
+
+```JavaScript
+const vdom = createElement('div', { className: 'container' }, [
+  createElement('h1', null, [createText('Hello World!')]),
+  createElement('button', { onClick: () => alert('Hello, World!') }, [createText('Click me!')]),
+]);
+```
+
+### 2. 差異比對演算法
+
+差異對比演算法的目標就是要找出新舊 VDOM 之間的差異，用最小的改動來更新真實 DOM。這也是讓 VDOM 保持高效的關鍵。像是在 React 16 版本中，React 採用了一個稱為「Fiber」的新調和算法，大幅地提高了 React 在這方面的效能。
+
+#### 2.1 定義差異比對的常數
+
+如同先前所說的差異比對算法會仔細遍歷舊的 VOM 和新的虛擬 DOM 中的每個節點，並且會對其進行標記，如果發現任何差異，則會根據情況為是標記不同的標籤，例如新增、刪除或變更。
+
+所以我們可以先根據這些標籤來定義一些常數，這可以在之後要進行差異比對時使用：
+
+```javascript
+const ACTION_TYPES = {
+  CREATE: 'CREATE',
+  REPLACE: 'REPLACE',
+  MODIFY: 'MODIFY',
+  NOOP: 'NOOP',
+}
+```
+
+- `CREATE`：表示新增一個新的節點。
+- `REPLACE`：表示取代一個舊的節點。
+- `MODIFY`：表示修改一個節點。
+- `NOOP`：表示不需要進行任何操作。
+
+#### 2.2 處理不同類型節點的比對
+
+在上一小節，我們將 VDOM 節點分成兩種：元素節點與文字節點。接下來我們就會先透過文字節點的比對來實作差異比對演算法。
+
+```javascript
+function diffNode(oldNode, newNode) {
+  if (oldNode.text !== undefined) {
+    return oldNode.text !== newNode.text
+      ? { type: ACTION_TYPES.REPLACE, newNode }
+      : { type: ACTION_TYPES.NOOP }
+  }
+
+  // ...其他節點的比對邏輯
+}
+```
+
+再來就是元素節點的比對，首先我們可以先判斷新舊節點的標籤是否相同，如果不同的話就直接取代。
+
+```javascript
+function diffNode(oldNode, newNode) {
+  // ...文字節點的比對邏輯
+
+  if (oldNode.tag !== newNode.tag) {
+    return { type: ACTION_TYPES.REPLACE, newNode }
+  }
+
+  // ...其他節點的比對邏輯
+}
+```
+
+最後就是處理子節點的比對，可以透過比較屬性與子節點來標記差異。
+
+```javascript
+function diffNode(oldNode, newNode) {
+  // ...文字節點的比對邏輯
+
+  // ...標籤不同的比對邏輯
+
+  const propsDiff = diffProps(oldNode.props, newNode.props)
+  const childrenDiff = diffChildren(oldNode.children, newNode.children)
+
+  if (!propsDiff && childrenDiff.every((diff) => diff === diff.noop)) {
+    return { type: ACTION_TYPES.NOOP }
+  }
+
+  return {
+    type: ACTION_TYPES.MODIFY,
+    remove: propsDiff.remove,
+    set: propsDiff.set,
+    children: childrenDiff,
+  }
+}
+```
+
+#### 2.3 處理屬性的比對
+
+到這裡我們已經完成差異比對函式的主要邏輯，接下來就是要實作比對屬性的邏輯，這裡我們可以透過 JavaScript 的 `Object.entries` 去一一比對屬性。
+
+```javascript
+function diffProps(oldProps, newProps) {
+  const patches = { remove: [], set: {} }
+  let hasChanged = false
+
+  // 比對新舊屬性
+  for (const [key, value] of Object.entries(newProps)) {
+    if (oldProps[key] !== value) {
+      patches.set[key] = value
+      hasChanged = true
+    }
+  }
+
+  // 移除舊屬性
+  for (const key in oldProps) {
+    if (!(key in newProps)) {
+      patches.remove.push(key)
+      hasChanged = true
+    }
+  }
+
+  return hasChanged ? patches : null
+}
+```
+
+#### 2.4 處理子節點的比對
+
+最後就是處理子節點的比對，這裡我們可以透過遞迴的方式來比對子節點。
+
+```javascript
+function diffChildren(oldChildren, newChildren) {
+  const patches = []
+  const length = Math.max(oldChildren.length, newChildren.length)
+
+  for (let i = 0; i < length; i++) {
+    patches[i] = diffNode(oldChildren[i], newChildren[i])
+  }
+
+  return patches
+}
+```
+
+### 3. 將 Virtual DOM 轉換成真實 DOM
+
+第三步驟則是將上一步驟所得到的差異比對結果應用到真實 DOM 上，這也是調和（Reconciliation）的過程，如果在上一步的比對差異中做得好的話，這個過程就會是用最小的改動來更新真實 DOM。
+
+#### 3.1 Apply Patch
+
+首先我們可以先定義一個 `apply` 函式，這個函式會將差異比對的結果應用到真實 DOM 上。
+
+```javascript
+function apply(parentElement, childrenDiff) {
+  const children = Array.from(parentElement.childNodes)
+
+  childrenDiffs.forEach((diff, idx) => {
+    applyDiff(parentElement, children[idx], diff)
+  })
+}
+```
+
+#### 3.2 Apply Diff
+
+接著我們就可以實作 `applyDiff` 函式，這個函式會根據差異比對的結果來應用到真實 DOM 上。
+
+```javascript
+function applyDiff(parentElement, domNode, diff) {
+  switch (diff.type) {
+    case ACTION_TYPES.CREATE:
+      const newNode = createDomNode(diff.vnode)
+      parentElement.appendChild(newNode)
+      break
+    case ACTION_TYPES.REMOVE:
+      domNode.remove()
+      break
+    case ACTION_TYPES.REPLACE:
+      const replaceNode = createDomNode(diff.vnode)
+      domNode.replaceWith(replaceNode)
+      break
+    case ACTION_TYPES.MODIFY:
+      applyModifications(domNode, diff.modifications)
+      break
+    case ACTION_TYPES.NOOP:
+      break
+  }
+}
+```
+
+#### 3.3 建立 DOM 節點
+
+建立 DOM 節點非常直觀，也就是根據 VDOM 定義的節點結構來建立真實 DOM 節點，所以會用到 `document.createElement` 來建立元素節點，`document.createTextNode` 來建立文字節點。
+
+```javascript
+function createDomNode(vnode) {
+  if (vnode.text !== undefined) {
+    return document.createTextNode(vnode.text)
+  }
+
+  const domNode = document.createElement(vnode.tag)
+
+  // 加入屬性
+  for (const [key, value] of Object.entries(vnode.props)) {
+    if (key.startsWith('on')) {
+      domNode.addEventListener(key.substring(2).toLowerCase(), value)
+    } else {
+      domNode.setAttribute(key, value)
+    }
+  }
+
+  // 加入子節點
+  vnode.children.forEach((child) => {
+    domNode.appendChild(createDomNode(child))
+  })
+
+  return domNode
+}
+```
+
+### 3.4 修改 DOM 節點中的屬性與子節點
+
+最後就是修改 DOM 節點中的屬性與子節點，這裡我們可以透過 `setAttribute` 與 `removeAttribute` 來修改屬性，透過 `appendChild` 與 `removeChild` 來修改子節點。
+
+```javascript
+function applyModifications(domNode, modifications) {
+  if (modifications.props) {
+    applyPropChanges(domNode, modifications.props)
+  }
+
+  if (modifications.children) {
+    apply(domNode, modifications.children)
+  }
+}
+
+function applyPropChanges(domNode, propsChange) {
+  propChanges.remove.forEach((prop) => {
+    if (prop.startsWith('on')) {
+      element.removeEventListener(prop.slice(2).toLowerCase(), element[prop])
+    } else {
+      element.removeAttribute(prop)
+    }
+  })
+
+  for (const [prop, value] of Object.entries(propChanges.set)) {
+    if (prop.startsWith('on') && typeof value === 'function') {
+      element.addEventListener(prop.slice(2).toLowerCase(), value)
+    } else {
+      element.setAttribute(prop, value)
+    }
+  }
+}
+```
+
+### 處理狀態的變化
+
+最後一個步驟，我們將會建立一個簡單的狀態處理器，可以透過它來改變 VDOM 的狀態，並且透過差異比對演算法來更新真實 DOM。
+
+我們會透過以下步驟來實作：
+
+1. 建立一個 `init` 函式，用來初始化應用。
+2. 實踐一個訊息佇列，用來處理狀態的變化。
+3. 用 `requestAnimationFrame` 來處理訊息佇列，並且透過差異比對演算法來更新真實 DOM。
+
+#### 4.1 初始化應用
+
+```javascript
+function init(rootElement, initialState, updateFn, viewFn) {
+  let state = initialState
+  let vdom = null
+  const messageQueue = []
+
+  function enqueue(message) {
+    messageQueue.push(message)
+    scheduleUpdate()
+  }
+
+  function updateState() {
+    while (messageQueue.length > 0) {
+      const message = messageQueue.shift()
+      state = updateFn(state, message)
+    }
+    render()
+  }
+
+  function render() {
+    const newVdoms = viewFn(state)
+    const patches = diff(vdom, newVdon)
+    apply(rootElement, patches)
+    vdom = newVdoms
+  }
+
+  function scheduleUpdate() {
+    requestAnimationFrame(updateState)
+  }
+
+  vdom = viewFn(state)
+  apply(rootElement, [{ type: ACTION_TYPES.CREATE, vnode: vdom }])
+
+  return enqueue
+}
+```
+
+#### 4.2 建立一個簡單的計數器
+
+```javascript
+const root = document.getElementById('app')
+
+function update(state, message) {
+  switch (message.type) {
+    case 'INCREMENT':
+      return { ...state, count: state.count + 1 }
+    case 'DECREMENT':
+      return { ...state, count: state.count - 1 }
+    default:
+      return state
+  }
+}
+
+function view(state) {
+  return h('div', {}, [
+    h('h1', {}, [text(`Count: ${state.count}`)]),
+    h('button', { onClick: () => enqueue({ type: 'DECREMENT' }) }, [text('-')]),
+    h('button', { onClick: () => enqueue({ type: 'INCREMENT' }) }, [text('+')]),
+  ])
+}
+
+const initialState = { count: 0 }
+
+const enqueue = init(root, initialState, update, view)
+```
+
+## Virtual DOM 的未來
+
+## 結論
