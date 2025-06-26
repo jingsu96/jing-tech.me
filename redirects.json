@@ -61,6 +61,11 @@
       "permanent": true
     },
     {
+      "source": "/writing/experiences/my_path_to_software_engineering/",
+      "destination": "https://www.jinghuangsu.com/zh-hant/writing/career/my-swe-career-ep1",
+      "permanent": true
+    },
+    {
       "source": "/about/",
       "destination": "/",
       "permanent": true
