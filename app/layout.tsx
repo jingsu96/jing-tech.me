@@ -15,7 +15,7 @@ import { SideMenu } from '@/components/lab/side-menu';
 import { TailwindIndicator } from '@/components/lab/tailwind-indicator';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import siteMetadata from '@/data/siteMetadata';
-
+import MigrationBanner from '@/components/Banner';
 import { ThemeProviders } from './theme-providers';
 
 const space_grotesk = Inter({
@@ -94,6 +94,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         {/* eslint-disable-next-line react/no-unknown-property */}
         <ThemeProviders>
+          {/* Clean Migration Banner */}
+          <MigrationBanner />
           <main vaul-drawer-wrapper="" className="min-h-screen bg-bg-primary">
             {isEnabled && (
               <div className="absolute inset-x-0 bottom-0 z-50 flex h-12 w-full items-center justify-center bg-green-500 text-center text-sm font-medium text-white">
